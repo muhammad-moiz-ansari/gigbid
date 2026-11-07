@@ -21,3 +21,8 @@ Phase 2: the original mock now includes durable proposals/messages/events,
 idempotent Connects accounting, configurable deterministic outcomes and reproducible
 fault controls. Its shared port contract is locally tested; this is not verification
 against official GigSim. All starter-kit and live-integration blockers above remain.
+
+Phase 3: three owned MCP servers are implemented and locally protocol-tested. HTTP
+uses first-party audience-bound credentials; general OAuth and Upwork OAuth are not
+claimed. Inspector screenshots await actual inspection. Third-party connections and
+official contracts remain absent; their operations do not return synthetic success.

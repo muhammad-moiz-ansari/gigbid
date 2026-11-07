@@ -7,6 +7,12 @@ deterministic outcomes, fault controls and transactional idempotency are impleme
 and locally tested under `tests/mock_marketplace/`. This does not complete R1's
 official integrations, R2's MCP acceptance or any subsequent phase.
 
+Phase 3 update: all three own MCP servers now have constrained schemas, structured
+outputs, bearer/session authentication, tenant checks, shared rate limiting,
+redacted audits and role-filtered client access. In-memory, stdio, HTTP and local
+server recovery checks pass. Inspector screenshots and the external integrations
+remain pending. See TOOLS.md and the phase log.
+
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|
 | R1 single marketplace port | agent/marketplace_port.py; mcp_servers/marketplace/adapters | contract tests, mock idempotency | Official schemas/accounts |

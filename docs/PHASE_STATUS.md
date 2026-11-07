@@ -121,3 +121,65 @@ Suggested commit (text only): `feat: add marketplace interface and deterministic
 
 Stopped at Phase 2. Phase 3 was not started. No commits, pushes, PRs, branches,
 Git configuration changes, deployments or publication actions were performed.
+
+## Phase 3 - implemented and verified locally; stopped before Phase 4
+
+Scope: the user requested Phase 3 only. Completed the own MCP servers and controlled
+tool access, preserving the later-phase stopping rule. No retrieval algorithm,
+ingestion feature or graph design was added. Existing workflows were executed only
+as compatibility checks.
+
+Implemented:
+
+- Portfolio: typed evidence search/get/skills, stable metadata/passages, JSON case
+  and past-proposal resource templates, and two useful versioned prompt templates.
+- Marketplace: constrained read/write schemas with output schemas and explicit
+  annotations, fixed per-tool action kinds, exact dry-run payload/cost, stable keys,
+  approval revalidation and structured error/reconciliation semantics.
+- Workspace: real local mock slots, tentative holds and email drafts, exact approval
+  and destination validation, tenant transaction locks and idempotent/concurrent
+  write protection. No invitation or email send capability was introduced.
+- Shared authentication: bearer-protected Streamable HTTP with audience-bound,
+  hashed, expiring delegated credentials tied to revocable app sessions; authenticated
+  stdio via environment; Host/Origin protection and no HTTP fallback to inherited
+  environment credentials. This is not general OAuth or an Upwork integration.
+- Shared per-user rate limits and bounded execution; timed-out writes are ambiguous
+  and late results are audited. Append-only application audit entries include actor,
+  arguments/result hashes, redacted summaries, timestamps and propagated trace IDs.
+- MCP client: name allowlists and runtime permission checks, structured artifacts
+  preserved, bounded read retries/backoff, Retry-After handling, no automatic write
+  retries, independent discovery and fresh sessions after server recovery. Persisted
+  observed MCP availability feeds the existing API status/degraded banner.
+- Tool/resource/prompt schema snapshots and docs/TOOLS.md, including ownership,
+  schemas, annotations, auth, trust rationales and pending third-party integrations.
+
+Final verification:
+
+| Check | Actual outcome |
+|---|---|
+| `python -m pytest -q --tb=short --junitxml=.cache/phase3-regression.xml` | 91 passed; zero failed/skipped; 127.42 seconds |
+| New Phase 3 MCP checks in that run | 29 passed |
+| Tool/resource/prompt snapshot and stdio contract checks | 2 passed |
+| Other existing compatibility checks | 60 passed |
+| Real local TCP HTTP service stop/restart | Passed; failure reported, queued run retained, same gateway recovered |
+| Auth audience/expiry/revocation, tenant boundaries, Host/Origin, shared rate limit | Passed |
+| Exact approval/changed cost/deleted evidence, concurrent holds, no automatic write retries | Passed |
+| Previously failing full-MCP graph compatibility | Now passes after the MCP structured-result fix; models remain labelled test doubles |
+| `python -m ruff check .` and `git diff --check` | Passed |
+| FastAPI OpenAPI vs existing exported schema | Unchanged; generated frontend contract remains consistent |
+
+The run emitted 13 upstream LangSmith/Python 3.14 deprecation warnings. Counts,
+source/snapshot hashes, Git base revision and the uncommitted-work flag are recorded
+in `docs/checks/phase3.json`. No real-model quality or official simulator metrics are
+claimed. API references and local startup commands are in TOOLS.md.
+
+Outstanding acceptance/evidence: MCP Inspector screenshots remain pending actual
+inspection; none were fabricated. Official GigSim/Upwork/GitHub integration checks,
+real model execution and Postgres runtime checks remain unverified. General OAuth,
+third-party connections, automatic scheduling and later-phase product work were not
+introduced. The foundation Compose configuration was not expanded in this phase.
+
+Suggested commit (text only): `feat: implement authenticated MCP servers and controlled tool access`
+
+Stopped at Phase 3. Phase 4 was not started. No commits, pushes, PRs, branches, Git
+configuration changes, deployments, publishing or real-account connections occurred.

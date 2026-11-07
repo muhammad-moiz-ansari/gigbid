@@ -1,0 +1,48 @@
+{
+  "GigBid Marketplace": {
+    "resource_templates": [],
+    "prompts": []
+  },
+  "GigBid Portfolio": {
+    "resource_templates": [
+      {
+        "name": "case_resource",
+        "uriTemplate": "portfolio://case/{id}",
+        "description": "",
+        "mimeType": "application/json"
+      },
+      {
+        "name": "proposal_resource",
+        "uriTemplate": "portfolio://proposal/{id}",
+        "description": "",
+        "mimeType": "application/json"
+      }
+    ],
+    "prompts": [
+      {
+        "name": "answer_screening_question",
+        "description": "",
+        "arguments": [
+          {
+            "name": "question",
+            "required": true
+          }
+        ]
+      },
+      {
+        "name": "portfolio_summary",
+        "description": "",
+        "arguments": [
+          {
+            "name": "skill",
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  "GigBid Workspace (local mock)": {
+    "resource_templates": [],
+    "prompts": []
+  }
+}

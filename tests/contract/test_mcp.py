@@ -19,12 +19,28 @@ async def test_mcp_in_memory_schema_and_authorization(account, monkeypatch):
         token, _ = issue_session(db, account["id"])
     monkeypatch.setenv("GIGBID_MCP_TOKEN", token)
     snapshot = {}
+    extras = {}
     for server in (marketplace, portfolio, workspace):
         async with create_connected_server_and_client_session(server) as session:
             tools = await session.list_tools()
-            snapshot[server.name] = [tool.model_dump(mode="json", exclude_none=True) for tool in tools.tools]
+            snapshot[server.name] = [
+                tool.model_dump(mode="json", exclude_none=True) for tool in tools.tools
+            ]
+            assert all(tool.outputSchema for tool in tools.tools)
+            assert all(tool.annotations and tool.annotations.idempotentHint for tool in tools.tools)
+            assert all("ctx" not in tool.inputSchema.get("properties", {}) for tool in tools.tools)
+            templates = await session.list_resource_templates()
+            prompts = await session.list_prompts()
+            extras[server.name] = {
+                "resource_templates": [
+                    t.model_dump(mode="json", exclude_none=True)
+                    for t in templates.resourceTemplates
+                ],
+                "prompts": [p.model_dump(mode="json", exclude_none=True) for p in prompts.prompts],
+            }
     expected = json.loads((Path(__file__).parent / "mcp_schema.json").read_text())
     assert snapshot == expected, "Tool schema changed. Review and explicitly regenerate snapshot."
+    assert extras == json.loads((Path(__file__).parent / "mcp_resources_prompts.json").read_text())
     async with create_connected_server_and_client_session(marketplace) as session:
         result = await session.call_tool("get_connects_balance", {})
         assert not result.isError
@@ -42,6 +58,7 @@ async def test_mcp_in_memory_schema_and_authorization(account, monkeypatch):
 @pytest.mark.asyncio
 async def test_real_stdio_mcp_reads(account):
     from agent.mcp_client import gateway
+
     with transaction() as db:
         token, _ = issue_session(db, account["id"])
     async with gateway(token, "protocol-test") as tools:

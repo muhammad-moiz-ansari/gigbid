@@ -1,0 +1,72 @@
+{
+  "phase": 3,
+  "scope": "Owned MCP servers and controlled client; all existing tests as compatibility checks",
+  "command": ".venv/Scripts/python -m pytest -q --tb=short --junitxml=.cache/phase3-regression.xml",
+  "tests": {
+    "total": 91,
+    "passed": 91,
+    "failed": 0,
+    "skipped": 0,
+    "phase3_mcp": 29,
+    "schema_and_stdio_contract": 2,
+    "other_existing_compatibility": 60
+  },
+  "duration_seconds": 127.42,
+  "python": "3.14.3",
+  "database": "isolated SQLite",
+  "warnings": "13 upstream LangSmith/Python 3.14 deprecation warnings",
+  "transports_exercised": [
+    "SDK in-memory",
+    "real stdio subprocesses",
+    "authenticated ASGI Streamable HTTP",
+    "real TCP Streamable HTTP process stop/restart"
+  ],
+  "graph_compatibility_models": "explicit deterministic test doubles; BM25 diagnostic retrieval",
+  "real_models_used": false,
+  "official_gigsim_used": false,
+  "live_accounts_used": false,
+  "postgres_verified": false,
+  "inspector_screenshots": "pending; Inspector not exercised",
+  "git_head_at_check": "9e5d300ad87248862f2381ca264fca62a1a3be04",
+  "tested_code_includes_uncommitted_changes": true,
+  "source_sha256": {
+    "agent/mcp_client.py": "9459059e6b758631f3b3506b44b5fcd2fe8c1d7019ee8d631630a2600e4bea16",
+    "apps/api/config.py": "8c115982fb63ba9dd7578325a06c58ffafa9b974c6849ff7a895520791e24238",
+    "apps/api/routers/workflow.py": "fdad73d2164ac0b1324acfdcd7f4d8fbc8c6e2402621a7853b4a83c3852f8d0f",
+    "mcp_servers/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mcp_servers/auth.py": "ff9cffe46b8d5c52da8838f78c09cb0e1ba046a2cebf1a7b6150afda4552b557",
+    "mcp_servers/common.py": "127b3ba30ae7e94acc1ff7945b8eb4cbae4d121a88dfa6467156b9127e70e30d",
+    "mcp_servers/marketplace/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mcp_servers/marketplace/adapters/__init__.py": "fca7ada88478d209805177112e3b28c814a65f3bf503a2b147c68bf86c5090ce",
+    "mcp_servers/marketplace/adapters/gigsim.py": "2f5ad369b9d67feb9c8baf43c0fc8a17df22c53b006bbdf790c149a633a602c2",
+    "mcp_servers/marketplace/adapters/unavailable.py": "c7b9f7f3b5528da3e70433488a9af71d7505d8f77c04a178a4ce6e4cca229ab5",
+    "mcp_servers/marketplace/adapters/upwork_live.py": "145f023b59e175b6ccb2dba6655f2f5dbe47e55943d91b34a203f873dbd14547",
+    "mcp_servers/marketplace/server.py": "ef3534e165ab50d467bcab55596e71bb8fc7f85bfb904c28e6bcf7c3ccb4a8a5",
+    "mcp_servers/portfolio/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mcp_servers/portfolio/prompts.py": "6abfc275b4c911cdac2b09cb12a3340910006a799c4e08bff82033823b965032",
+    "mcp_servers/portfolio/resources.py": "249e1a20fbc1dd12c2fffa86c4caa25c656f19eb768035aefc98ce33e3515b8c",
+    "mcp_servers/portfolio/server.py": "f81c6f925d23bbdb5b7a06f7bda10f5e8529c70c6f74cb290c8cedbf11069a08",
+    "mcp_servers/portfolio/tools.py": "b47aff43c0a59d225f5fa6e5e2be13310afa2b4db04854aaf617128ac5821139",
+    "mcp_servers/schemas.py": "5ff0b9c5f46a938299b1fd6598ec3da4411ee7403ab97d13d8e6420226e117c5",
+    "mcp_servers/workspace/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mcp_servers/workspace/server.py": "adcd05cb54e65a458d8a50a7f8a19dbdabbe61efe20451a7f1c0f1c216723994",
+    "mcp_servers/workspace/service.py": "b24ba3a2cd6cf07602db32e36c73c86df3e9edc27630046b761f34d3a9893d10"
+  },
+  "snapshot_sha256": {
+    "tests/contract/mcp_resources_prompts.json": "2119a05b106cd936938298babcd1acd7ea68ed15293e7e672e5076e45a50a1c5",
+    "tests/contract/mcp_schema.json": "837a79b29bb392bc44d08ab8fa4a0c3e100bf5b4ffebe4780e083169c7c80706"
+  },
+  "other_checks": {
+    "ruff": "passed",
+    "git_diff_whitespace": "passed",
+    "openapi_client_consistency": "unchanged FastAPI schema confirmed"
+  },
+  "limits": [
+    "No Inspector UI evidence",
+    "No general OAuth or Upwork OAuth implementation",
+    "No official-service or third-party connection verification",
+    "No real-model quality study",
+    "No Postgres runtime check"
+  ],
+  "stopping_point": "Phase 3 only; Phase 4 not started"
+}

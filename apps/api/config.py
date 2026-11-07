@@ -2,6 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,6 +20,10 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     queue_mode: Literal["database", "celery"] = "database"
     mcp_transport: Literal["stdio", "http"] = "stdio"
+    mcp_bind_host: str = "127.0.0.1"
+    mcp_allowed_hosts: list[str] = ["127.0.0.1:*", "localhost:*", "[::1]:*"]
+    mcp_server_timeout_seconds: float = Field(default=20, gt=0, le=180)
+    mcp_retry_max_delay_seconds: float = Field(default=2, ge=0, le=10)
     portfolio_mcp_url: str = "http://localhost:8001/mcp"
     marketplace_mcp_url: str = "http://localhost:8002/mcp"
     workspace_mcp_url: str = "http://localhost:8003/mcp"
@@ -27,7 +32,7 @@ class Settings(BaseSettings):
     session_hours: int = 12
     model_timeout_seconds: int = 45
     tool_timeout_seconds: int = 30
-    mcp_calls_per_minute: int = 60
+    mcp_calls_per_minute: int = Field(default=60, ge=1)
     max_upload_bytes: int = 2_000_000
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

@@ -1,6 +1,6 @@
 # Phase 1 local startup
 
-The user requires one explicitly requested phase at a time. Phase 2 is the
+The user requires one explicitly requested phase at a time. Phase 3 is the
 current stopping point. Code written for later phases before that instruction is
 preserved, unfinished and not a claim of acceptance.
 
@@ -73,3 +73,15 @@ explicitly requests that phase. No commits, pushes, branches, PRs or publication
 Phase 2 simulator-only commands and checks are documented in
 `dev_support/mock_marketplace/README.md`. They do not start the Phase 3 MCP layer or
 later graph/worker workflows. The foundation Compose file remains unchanged.
+
+Phase 3 MCP startup, credentials, tool schemas, roles, recovery and checks are in
+`docs/TOOLS.md`. Standalone HTTP processes bind to loopback by default and need the
+configured database. The gateway delegates resource-bound bearer credentials from
+the existing app session; do not expose or print them. New MCP deadline/bind/host
+variables are documented in `.env.example`.
+
+`/status` now includes timestamped tenant-scoped MCP observations. Once discovery or
+a call observes a stopped marketplace server, the existing degraded banner reports
+it. Queue records remain; restore the service and retry. Status is last observed
+state, not a continuous independent probe. Phase 3 does not change the foundation
+Compose file or start Phase 4. Inspector screenshots remain pending.

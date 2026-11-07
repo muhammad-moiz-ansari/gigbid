@@ -82,8 +82,15 @@ def status(user: User = Depends(current_user)) -> dict:
         available, error = True, None
     except Exception as exc:
         available, error = False, str(exc)
+    with transaction() as db:
+        health = {r.key: r.value for r in db.scalars(select(Record).where(
+            Record.tenant == user.id, Record.kind == "mcp_health"))}
+    if health.get("marketplace", {}).get("available") is False:
+        available = False
+        error = "Marketplace MCP unavailable; queued work is retained. Retry after service recovery."
     return {"marketplace_mode": settings().marketplace_mode, "synthetic": settings().marketplace_mode == "mock",
             "marketplace_available": available, "error": error,
+            "mcp_servers": health,
             "policy": "provisional-development-only", "model_profile": settings().model_profile}
 
 
