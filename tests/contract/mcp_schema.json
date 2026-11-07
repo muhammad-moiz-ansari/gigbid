@@ -1,0 +1,1411 @@
+{
+  "GigBid Marketplace": [
+    {
+      "name": "search_jobs",
+      "description": "Read tenant-visible jobs matching a saved-search query; never submits a bid.",
+      "inputSchema": {
+        "properties": {
+          "query": {
+            "default": "",
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "title": "search_jobsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "JobSpec": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "title": "Id",
+                "type": "string"
+              },
+              "title": {
+                "title": "Title",
+                "type": "string"
+              },
+              "description": {
+                "title": "Description",
+                "type": "string"
+              },
+              "skills": {
+                "items": {
+                  "type": "string"
+                },
+                "title": "Skills",
+                "type": "array"
+              },
+              "budget": {
+                "minimum": 0,
+                "title": "Budget",
+                "type": "number"
+              },
+              "connects": {
+                "minimum": 0,
+                "title": "Connects",
+                "type": "integer"
+              },
+              "client_id": {
+                "title": "Client Id",
+                "type": "string"
+              },
+              "deliverables": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Deliverables",
+                "type": "array"
+              },
+              "screening_questions": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Screening Questions",
+                "type": "array"
+              },
+              "timeline": {
+                "default": "Unspecified",
+                "title": "Timeline",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "description",
+              "skills",
+              "budget",
+              "connects",
+              "client_id"
+            ],
+            "title": "JobSpec",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "result": {
+            "items": {
+              "$ref": "#/$defs/JobSpec"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "search_jobsOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_job",
+      "description": "Read one job including its current Connects cost.",
+      "inputSchema": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "get_jobArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "budget": {
+            "minimum": 0,
+            "title": "Budget",
+            "type": "number"
+          },
+          "connects": {
+            "minimum": 0,
+            "title": "Connects",
+            "type": "integer"
+          },
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "deliverables": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Deliverables",
+            "type": "array"
+          },
+          "screening_questions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Screening Questions",
+            "type": "array"
+          },
+          "timeline": {
+            "default": "Unspecified",
+            "title": "Timeline",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "skills",
+          "budget",
+          "connects",
+          "client_id"
+        ],
+        "title": "JobSpec",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_client_history",
+      "description": "Read client verification, recorded spend and hiring history.",
+      "inputSchema": {
+        "properties": {
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id"
+        ],
+        "title": "get_client_historyArguments",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_connects_balance",
+      "description": "Read current Connects balance and recorded spend.",
+      "inputSchema": {
+        "properties": {},
+        "title": "get_connects_balanceArguments",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_messages",
+      "description": "Read messages in a tenant-owned conversation.",
+      "inputSchema": {
+        "properties": {
+          "conversation": {
+            "title": "Conversation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversation"
+        ],
+        "title": "list_messagesArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_messagesOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_events",
+      "description": "Read marketplace event history after a monotonic cursor.",
+      "inputSchema": {
+        "properties": {
+          "after": {
+            "default": 0,
+            "minimum": 0,
+            "title": "After",
+            "type": "integer"
+          }
+        },
+        "title": "list_eventsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_eventsOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_proposal_draft",
+      "description": "Preview a draft without effects; execution requires an exact human approval.",
+      "inputSchema": {
+        "$defs": {
+          "Action": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "proposal",
+                  "message",
+                  "draft",
+                  "hold",
+                  "email"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "destination": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Destination",
+                "type": "string"
+              },
+              "text": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "title": "Text",
+                "type": "string"
+              },
+              "price": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Price",
+                "type": "number"
+              },
+              "version": {
+                "default": 1,
+                "minimum": 1,
+                "title": "Version",
+                "type": "integer"
+              },
+              "evidence_hashes": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {},
+                "title": "Evidence Hashes",
+                "type": "object"
+              }
+            },
+            "required": [
+              "kind",
+              "destination",
+              "text"
+            ],
+            "title": "Action",
+            "type": "object"
+          },
+          "WriteRequest": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "$ref": "#/$defs/Action"
+              },
+              "idempotency_key": {
+                "maxLength": 200,
+                "minLength": 8,
+                "title": "Idempotency Key",
+                "type": "string"
+              },
+              "run_id": {
+                "minLength": 1,
+                "title": "Run Id",
+                "type": "string"
+              },
+              "approval_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Approval Id"
+              },
+              "dry_run": {
+                "default": true,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action",
+              "idempotency_key",
+              "run_id"
+            ],
+            "title": "WriteRequest",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "request": {
+            "$ref": "#/$defs/WriteRequest"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "title": "create_proposal_draftArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "connects_cost": {
+            "default": 0,
+            "title": "Connects Cost",
+            "type": "integer"
+          },
+          "effect_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Effect Id"
+          },
+          "status": {
+            "default": "preview",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "dry_run",
+          "payload"
+        ],
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "submit_proposal",
+      "description": "Preview exact payload and Connects cost, or execute an approved idempotent mock bid.",
+      "inputSchema": {
+        "$defs": {
+          "Action": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "proposal",
+                  "message",
+                  "draft",
+                  "hold",
+                  "email"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "destination": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Destination",
+                "type": "string"
+              },
+              "text": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "title": "Text",
+                "type": "string"
+              },
+              "price": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Price",
+                "type": "number"
+              },
+              "version": {
+                "default": 1,
+                "minimum": 1,
+                "title": "Version",
+                "type": "integer"
+              },
+              "evidence_hashes": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {},
+                "title": "Evidence Hashes",
+                "type": "object"
+              }
+            },
+            "required": [
+              "kind",
+              "destination",
+              "text"
+            ],
+            "title": "Action",
+            "type": "object"
+          },
+          "WriteRequest": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "$ref": "#/$defs/Action"
+              },
+              "idempotency_key": {
+                "maxLength": 200,
+                "minLength": 8,
+                "title": "Idempotency Key",
+                "type": "string"
+              },
+              "run_id": {
+                "minLength": 1,
+                "title": "Run Id",
+                "type": "string"
+              },
+              "approval_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Approval Id"
+              },
+              "dry_run": {
+                "default": true,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action",
+              "idempotency_key",
+              "run_id"
+            ],
+            "title": "WriteRequest",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "request": {
+            "$ref": "#/$defs/WriteRequest"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "title": "submit_proposalArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "connects_cost": {
+            "default": 0,
+            "title": "Connects Cost",
+            "type": "integer"
+          },
+          "effect_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Effect Id"
+          },
+          "status": {
+            "default": "preview",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "dry_run",
+          "payload"
+        ],
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Preview a reply or send only the exact approved message using a stable key.",
+      "inputSchema": {
+        "$defs": {
+          "Action": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "proposal",
+                  "message",
+                  "draft",
+                  "hold",
+                  "email"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "destination": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Destination",
+                "type": "string"
+              },
+              "text": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "title": "Text",
+                "type": "string"
+              },
+              "price": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Price",
+                "type": "number"
+              },
+              "version": {
+                "default": 1,
+                "minimum": 1,
+                "title": "Version",
+                "type": "integer"
+              },
+              "evidence_hashes": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {},
+                "title": "Evidence Hashes",
+                "type": "object"
+              }
+            },
+            "required": [
+              "kind",
+              "destination",
+              "text"
+            ],
+            "title": "Action",
+            "type": "object"
+          },
+          "WriteRequest": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "$ref": "#/$defs/Action"
+              },
+              "idempotency_key": {
+                "maxLength": 200,
+                "minLength": 8,
+                "title": "Idempotency Key",
+                "type": "string"
+              },
+              "run_id": {
+                "minLength": 1,
+                "title": "Run Id",
+                "type": "string"
+              },
+              "approval_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Approval Id"
+              },
+              "dry_run": {
+                "default": true,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action",
+              "idempotency_key",
+              "run_id"
+            ],
+            "title": "WriteRequest",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "request": {
+            "$ref": "#/$defs/WriteRequest"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "title": "send_messageArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "connects_cost": {
+            "default": 0,
+            "title": "Connects Cost",
+            "type": "integer"
+          },
+          "effect_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Effect Id"
+          },
+          "status": {
+            "default": "preview",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "dry_run",
+          "payload"
+        ],
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "reconcile_write",
+      "description": "Read the recorded result after an ambiguous write; does not repeat the effect.",
+      "inputSchema": {
+        "properties": {
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key"
+        ],
+        "title": "reconcile_writeArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "WriteResult": {
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "title": "Mode",
+                "type": "string"
+              },
+              "dry_run": {
+                "title": "Dry Run",
+                "type": "boolean"
+              },
+              "payload": {
+                "additionalProperties": true,
+                "title": "Payload",
+                "type": "object"
+              },
+              "connects_cost": {
+                "default": 0,
+                "title": "Connects Cost",
+                "type": "integer"
+              },
+              "effect_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Effect Id"
+              },
+              "status": {
+                "default": "preview",
+                "title": "Status",
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "dry_run",
+              "payload"
+            ],
+            "title": "WriteResult",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/WriteResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "reconcile_writeOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "GigBid Portfolio": [
+    {
+      "name": "search_evidence",
+      "description": "Retrieve tenant-scoped passages with stable IDs, provenance and inspectable text.",
+      "inputSchema": {
+        "properties": {
+          "requirement": {
+            "title": "Requirement",
+            "type": "string"
+          },
+          "k": {
+            "default": 5,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "K",
+            "type": "integer"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Filters"
+          }
+        },
+        "required": [
+          "requirement"
+        ],
+        "title": "search_evidenceArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "search_evidenceOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_case_study",
+      "description": "Read the current evidence passage by ID; deleted evidence is unavailable.",
+      "inputSchema": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "get_case_studyArguments",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_skills",
+      "description": "List skills found in the current tenant's portfolio metadata.",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_skillsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_skillsOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "GigBid Workspace (local mock)": [
+    {
+      "name": "free_slots",
+      "description": "Read synthetic calendar slots; these are not connected calendar availability.",
+      "inputSchema": {
+        "properties": {},
+        "title": "free_slotsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "free_slotsOutput",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_interview_hold",
+      "description": "Preview or create an approved tentative hold in the local mock calendar.",
+      "inputSchema": {
+        "$defs": {
+          "Action": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "proposal",
+                  "message",
+                  "draft",
+                  "hold",
+                  "email"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "destination": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Destination",
+                "type": "string"
+              },
+              "text": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "title": "Text",
+                "type": "string"
+              },
+              "price": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Price",
+                "type": "number"
+              },
+              "version": {
+                "default": 1,
+                "minimum": 1,
+                "title": "Version",
+                "type": "integer"
+              },
+              "evidence_hashes": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {},
+                "title": "Evidence Hashes",
+                "type": "object"
+              }
+            },
+            "required": [
+              "kind",
+              "destination",
+              "text"
+            ],
+            "title": "Action",
+            "type": "object"
+          },
+          "WriteRequest": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "$ref": "#/$defs/Action"
+              },
+              "idempotency_key": {
+                "maxLength": 200,
+                "minLength": 8,
+                "title": "Idempotency Key",
+                "type": "string"
+              },
+              "run_id": {
+                "minLength": 1,
+                "title": "Run Id",
+                "type": "string"
+              },
+              "approval_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Approval Id"
+              },
+              "dry_run": {
+                "default": true,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action",
+              "idempotency_key",
+              "run_id"
+            ],
+            "title": "WriteRequest",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "request": {
+            "$ref": "#/$defs/WriteRequest"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "title": "create_interview_holdArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "connects_cost": {
+            "default": 0,
+            "title": "Connects Cost",
+            "type": "integer"
+          },
+          "effect_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Effect Id"
+          },
+          "status": {
+            "default": "preview",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "dry_run",
+          "payload"
+        ],
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_email_draft",
+      "description": "Preview or save an approved local email draft; never sends email.",
+      "inputSchema": {
+        "$defs": {
+          "Action": {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "proposal",
+                  "message",
+                  "draft",
+                  "hold",
+                  "email"
+                ],
+                "title": "Kind",
+                "type": "string"
+              },
+              "destination": {
+                "maxLength": 200,
+                "minLength": 1,
+                "title": "Destination",
+                "type": "string"
+              },
+              "text": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "title": "Text",
+                "type": "string"
+              },
+              "price": {
+                "default": 0,
+                "minimum": 0,
+                "title": "Price",
+                "type": "number"
+              },
+              "version": {
+                "default": 1,
+                "minimum": 1,
+                "title": "Version",
+                "type": "integer"
+              },
+              "evidence_hashes": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {},
+                "title": "Evidence Hashes",
+                "type": "object"
+              }
+            },
+            "required": [
+              "kind",
+              "destination",
+              "text"
+            ],
+            "title": "Action",
+            "type": "object"
+          },
+          "WriteRequest": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "$ref": "#/$defs/Action"
+              },
+              "idempotency_key": {
+                "maxLength": 200,
+                "minLength": 8,
+                "title": "Idempotency Key",
+                "type": "string"
+              },
+              "run_id": {
+                "minLength": 1,
+                "title": "Run Id",
+                "type": "string"
+              },
+              "approval_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Approval Id"
+              },
+              "dry_run": {
+                "default": true,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "action",
+              "idempotency_key",
+              "run_id"
+            ],
+            "title": "WriteRequest",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "request": {
+            "$ref": "#/$defs/WriteRequest"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "title": "create_email_draftArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "connects_cost": {
+            "default": 0,
+            "title": "Connects Cost",
+            "type": "integer"
+          },
+          "effect_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Effect Id"
+          },
+          "status": {
+            "default": "preview",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "dry_run",
+          "payload"
+        ],
+        "title": "WriteResult",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

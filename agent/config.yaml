@@ -1,0 +1,53 @@
+version: 1
+profiles:
+  open:
+    provider: ollama
+    nodes:
+      scout: qwen3:4b
+      analyst: qwen3:4b
+      risk: qwen3:4b
+      matcher: qwen3:4b
+      pricing: qwen3:4b
+      writer: qwen3:8b
+      critic: qwen3:8b
+      compliance: qwen3:4b
+      liaison: qwen3:8b
+    fallback: qwen3:4b
+  paid:
+    enabled: false
+    reason: Optional; no paid provider is required or configured.
+open_comparisons:
+  small: {writer: 'qwen3:4b', critic: 'qwen3:4b'}
+  larger: {writer: 'qwen3:8b', critic: 'qwen3:8b'}
+retrieval:
+  variant: V2
+  embedding_model: nomic-embed-text
+  reranker: BAAI/bge-reranker-v2-m3
+  chunk_chars: 1200
+  overlap_chars: 150
+  k: 5
+budgets:
+  steps: 24
+  tokens: 12000
+  active_seconds: 180
+  api_usd: 0.10
+  analysis_p95_target_seconds: 60
+  proposal_p95_target_seconds: 120
+thresholds:
+  min_fit: 0.35
+  max_risk: 0.65
+  critic_revisions: 2
+  corrective_queries: 2
+scheduling:
+  mock_min_interval_seconds: 300
+  live_min_interval_seconds: 14400
+retries:
+  read_attempts: 3
+  write_attempts: 1
+  model_attempts: 2
+policy:
+  provenance: provisional-development-only
+  version: dev-1
+  november_2_update: pending
+  banned_phrases: [telegram, whatsapp, wire transfer, guaranteed results, guarantee success]
+  max_proposal_words: 350

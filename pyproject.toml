@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gigbid"
+version = "0.1.0"
+description = "Evidence-grounded freelancer copilot; local development implementation"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "fastapi==0.162.1",
+  "uvicorn[standard]==0.54.0",
+  "sqlalchemy==2.1.8",
+  "alembic==1.20.1",
+  "psycopg[binary]==3.3.8",
+  "pydantic-settings==2.16.2",
+  "pwdlib[argon2]==0.3.1",
+  "langgraph==1.2.20",
+  "langgraph-checkpoint-sqlite==3.1.3",
+  "langgraph-checkpoint-postgres==3.2.0",
+  "langchain-mcp-adapters==0.3.2",
+  "mcp==1.30.0",
+  "celery==5.7.0",
+  "redis==8.1.0",
+  "qdrant-client==1.20.0",
+  "rank-bm25==0.2.2",
+  "pyyaml==6.0.3",
+  "httpx==0.28.1",
+  "pypdf==7.0.0",
+  "langfuse==5.2.0",
+  "pytest==9.2.0",
+  "pytest-asyncio==1.4.1.post1",
+  "ruff==0.17.4",
+  "build==1.6.1",
+  "reportlab==5.1.0"
+]
+
+[project.scripts]
+gigbid = "scripts.manage:main"
+gigbid-portfolio = "mcp_servers.portfolio.server:main"
+
+[tool.setuptools.packages.find]
+include = ["apps*", "agent*", "rag*", "mcp_servers*", "worker*", "dev_support*", "evals*", "scripts*"]
+
+[tool.setuptools.package-data]
+agent = ["config.yaml", "prompts/*.md"]
+dev_support = ["fixtures/*.json", "fixtures/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "mcp_servers/marketplace/tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["ignore:.*PydanticDeprecatedSince20.*:DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".cache", ".venv", "apps/web", "gigsim"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+

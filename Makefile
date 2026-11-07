@@ -1,0 +1,16 @@
+.PHONY: dev migrate test seed demo lint client
+dev:
+	uv run python -m scripts.manage dev
+migrate:
+	uv run python -m scripts.manage migrate
+test:
+	uv run python -m pytest tests/unit/test_auth.py tests/unit/test_foundation.py -q
+seed:
+	uv run python -m scripts.manage seed --tenant $(TENANT)
+demo:
+	uv run python -m scripts.manage demo
+lint:
+	uv run python -m ruff check .
+client:
+	uv run python -m scripts.openapi
+	cd apps/web && npm run generate
