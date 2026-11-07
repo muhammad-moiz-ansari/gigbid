@@ -34,18 +34,20 @@ def build_conversation_graph(tools, model, checkpointer):
     builder = StateGraph(BidState)
     builder.add_node("intake", tracked("liaison_intake", intake))
     builder.add_node("draft", tracked("liaison_draft", draft))
-    for name in ("verifier", "compliance", "preview", "execute", "regenerate"):
+    for name in ("verifier", "compliance", "preview", "regenerate"):
         builder.add_node(name, tracked(name, getattr(shared, name)))
     builder.add_node("approval", shared.approval)
+    builder.add_node("execute", shared.execute)
     builder.add_edge(START, "intake")
-    builder.add_conditional_edges("intake", lambda s: END if s["status"] == "blocked" else "draft")
+    builder.add_conditional_edges("intake", lambda s: END if s["status"] == "blocked" else "draft", ["draft", END])
     builder.add_edge("draft", "verifier")
     builder.add_edge("regenerate", "verifier")
     builder.add_edge("verifier", "compliance")
-    builder.add_conditional_edges("compliance", lambda s: "preview" if s["compliance"]["passed"] else END)
+    builder.add_conditional_edges("compliance", lambda s: "preview" if s["compliance"]["passed"] else END, ["preview", END])
     builder.add_edge("preview", "approval")
     builder.add_conditional_edges("approval", lambda s: "execute" if s["status"] == "approved" else
                                   "regenerate" if s["status"] == "regenerating" else
-                                  "verifier" if s["status"] == "rechecking" else END)
+                                  "verifier" if s["status"] == "rechecking" else END,
+                                  ["execute", "regenerate", "verifier", END])
     builder.add_edge("execute", END)
     return builder.compile(checkpointer=checkpointer)

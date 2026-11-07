@@ -10,7 +10,9 @@ INJECTION = re.compile(r"ignore.{0,40}(?:instructions|rules)|system\s*prompt|"
 
 def redact(value):
     if isinstance(value, dict):
-        return {k: "[REDACTED]" if any(s in k.lower() for s in
+        return {k: v if k in {"tokens", "generated_tokens", "prompt_tokens", "completion_tokens"}
+                and isinstance(v, (int, float)) and not isinstance(v, bool)
+                else "[REDACTED]" if any(s in k.lower() for s in
                 ("password", "token", "authorization", "cookie", "secret", "email"))
                 else redact(v) for k, v in value.items()}
     if isinstance(value, list):

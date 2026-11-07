@@ -73,6 +73,14 @@
                 "default": "Unspecified",
                 "title": "Timeline",
                 "type": "string"
+              },
+              "hidden_needs": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Hidden Needs",
+                "type": "array"
               }
             },
             "required": [
@@ -185,6 +193,14 @@
             "default": "Unspecified",
             "title": "Timeline",
             "type": "string"
+          },
+          "hidden_needs": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Hidden Needs",
+            "type": "array"
           }
         },
         "required": [

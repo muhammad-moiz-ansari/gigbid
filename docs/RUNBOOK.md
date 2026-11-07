@@ -1,6 +1,6 @@
 # Phase 1 local startup
 
-The user requires one explicitly requested phase at a time. Phase 4 is the
+The user requires one explicitly requested phase at a time. Phase 5 is the
 current stopping point. Code written for later phases before that instruction is
 preserved, unfinished and not a claim of acceptance.
 
@@ -67,8 +67,9 @@ On this workstation the sandbox blocked Windows asyncio's local socketpair setup
 API/protocol tests required execution with local loopback permission. This is an
 environment constraint, not a test failure in the application.
 
-Do not run the worker or further-phase evaluation/deployment commands until the user
-explicitly requests that phase. No commits, pushes, branches, PRs or publications.
+Phase 5 worker verification is authorized locally. Further-phase evaluations,
+deployment and feature implementation still require a new explicit request.
+No commits, pushes, branches, PRs or publications.
 
 Phase 2 simulator-only commands and checks are documented in
 `dev_support/mock_marketplace/README.md`. They do not start the Phase 3 MCP layer or

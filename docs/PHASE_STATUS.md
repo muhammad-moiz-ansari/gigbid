@@ -270,3 +270,80 @@ Stopped at Phase 4. Phase 5 was not started. No commits, pushes, PRs, branches,
 Git configuration changes, deployments, publishing or real-account connections
 were performed. Generated TypeScript build-cache noise was restored to its original
 content; generated API types remain updated.
+
+## Phase 5 - implemented locally; stopped before Phase 6
+
+The user explicitly authorized Phase 5 only. Hardened the existing bid graph and
+its backend approval boundary; no Phase 6 screens or live streaming were added.
+Shared conversation helpers received compatibility changes only. Existing later
+phase memory/pipeline features were preserved without adding new capabilities.
+
+Implemented:
+
+- Pydantic analytical handoffs, evidence metadata and finite numeric validation;
+  tenant-qualified durable graph threads with synchronous checkpoint persistence.
+- Independent Send branches for analyst, risk and matcher, barrier reconciliation,
+  deterministic skip/watch/bid decisions, pricing and grounded drafting.
+- At most two critic-requested rewrites, each re-verified; human edits/renewal
+  cannot reset that allowance. Actual generated diagrams show conditional routes.
+- Conservative full-passage claim verification and versioned v2 prompts. Plans and
+  questions use a closed grammar; disguised historical claims, partial quotations,
+  unsupported screening answers and invented question labels are removed.
+- Atomic, durable step/token/active-node-time/API-cost budgets, failed model-attempt
+  usage, numeric audit metrics and explicit needs_attention on exhaustion or unknown
+  usage. Incomplete reservations after process death are retained as uncertainty;
+  retries never reset counters. Reconciliation can confirm an existing effect even
+  when new execution is budget-blocked.
+- Real persisted approval interrupts, serialized decisions and saved human decision
+  receipts checked against interrupt resumes. Context binds tenant/thread, policy,
+  profile and raw job in addition to action/version/destination/price/cost/evidence.
+  The marketplace transaction rechecks material context before writing or spending.
+- Saved tenant-owned edit diffs and complete verification/critique/compliance before
+  renewed approval. Renewal versions remain stable across worker restarts.
+- Local process locks and Postgres advisory locks for one writer per thread;
+  checkpoint-derived stable keys, reconciliation before writes, and saved-result
+  validation. Worker failures preserve partial checkpoint state. A secondary event
+  feed failure cannot overwrite the completed bid/approval status.
+- New adversarial, parallel-resume, revision, budget, model-contract and separate
+  worker-process crash tests; workflow/operation guide and explicit check evidence.
+
+Executed checks and exact counts are recorded in `docs/checks/phase5.json`.
+The full regression passed 154 tests with one explicit Postgres skip in 311.80
+seconds. The final focused checks passed 27 tests with the same Postgres skip in
+51.96 seconds. They
+include the last screening-label guard. Full regression results are recorded in
+the same report; focused counts overlap and must never be added to full counts.
+Ruff, whitespace, offline lockfile consistency and OpenAPI export checks passed;
+the exported public API schema was unchanged. No frontend code was changed.
+
+The first new handoff test run exposed missing retrieval-ranking metadata in the
+typed evidence contract. The contract was corrected and the durability checks then
+passed. No failed invocation is presented as passing evidence. Pytest emits 13
+upstream LangSmith/Python 3.14 deprecation warnings per invocation.
+
+Limits: real Postgres checkpoint/domain transactions, Docker, real Ollama inference,
+hardware/model latency and official integrations remain unverified. The optional
+real Postgres restart test is skipped until a disposable service URL is supplied.
+Tests use real local graphs/checkpoints/MCP transports where stated, original mock
+marketplace effects and labelled model/embedding doubles. No real-model quality,
+official outcomes or external exactly-once guarantee is claimed. The deterministic
+verifier intentionally restricts free-form prose. See `docs/BID_WORKFLOW.md`.
+
+Suggested commit (text only):
+
+```text
+feat: implement durable bid graph with grounded approvals
+
+- validate parallel analyst, risk, fit, pricing, and proposal handoffs
+- enforce durable execution budgets and two verified critic revisions
+- remove unsupported claims and constrain plan and screening-answer output
+- bind persisted human approvals to the exact action and execution context
+- save edit diffs and recheck drafts before renewed approval
+- reconcile stable action keys across worker crashes without duplicate spending
+- add approval security, budget, parallel recovery, and crash regression tests
+- document workflow operation and pending Postgres and real-model checks
+```
+
+Stopped at Phase 5. Phase 6 was not started. No commits, pushes, branches, PRs,
+Git configuration changes, deployments, publications or real-account connections
+were performed.

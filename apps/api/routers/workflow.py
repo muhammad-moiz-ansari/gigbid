@@ -3,6 +3,7 @@ import json
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy import select
 
+from apps.api.approvals import lock_decision
 from apps.api.auth.service import current_user
 from apps.api.config import settings
 from apps.api.db import (
@@ -11,6 +12,7 @@ from apps.api.db import (
     Record,
     Run,
     User,
+    digest,
     get_record,
     put_record,
     transaction,
@@ -163,6 +165,7 @@ def approvals(user: User = Depends(current_user)) -> list[dict]:
 @router.post("/approvals/{approval_id}/decision", response_model=RunView)
 def decide(approval_id: str, data: ApprovalDecision, user: User = Depends(current_user)):
     with transaction() as db:
+        lock_decision(db, user.id)
         approval = db.scalar(select(Approval).where(Approval.id == approval_id,
                                                    Approval.tenant == user.id).with_for_update())
         if not approval:
@@ -176,7 +179,9 @@ def decide(approval_id: str, data: ApprovalDecision, user: User = Depends(curren
             raise HTTPException(422, "Edited draft text is required")
         approval.decision = {"approve": "approved", "reject": "rejected", "edit": "invalidated", "regenerate": "invalidated"}[data.decision]
         approval.reason = data.reason
-        run.resume = data.model_dump()
+        run.resume = {**data.model_dump(), "approval_id": approval.id}
+        put_record(db, user.id, "approval_receipt", approval.id,
+                   {"decision": data.decision, "response_hash": digest(run.resume)})
         run.status = "queued"
         db.add(Event(tenant=user.id, run_id=run.id, trace_id=run.trace_id,
                      name=f"human:{data.decision}", payload={"approval_id": approval.id, "reason": data.reason}))
@@ -188,6 +193,7 @@ def decide(approval_id: str, data: ApprovalDecision, user: User = Depends(curren
 @router.post("/runs/{run_id}/renew", response_model=RunView)
 def renew(run_id: str, user: User = Depends(current_user)):
     with transaction() as db:
+        lock_decision(db, user.id)
         run = owned_run(db, user.id, run_id)
         if run.status not in ("awaiting_approval", "recoverable") or not run.state.get("draft"):
             raise HTTPException(409, "No reviewable draft available to renew")
@@ -195,7 +201,8 @@ def renew(run_id: str, user: User = Depends(current_user)):
                                                          Approval.run_id == run_id,
                                                          Approval.consumed.is_(False))):
             approval.decision = "invalidated"
-        run.resume, run.status, run.lease_until = {"decision": "renew"}, "queued", 0
+        run.resume, run.status, run.lease_until = {
+            "decision": "renew", "version": run.state["draft"]["version"] + 1}, "queued", 0
         result = view(run)
     dispatch(run_id)
     return result

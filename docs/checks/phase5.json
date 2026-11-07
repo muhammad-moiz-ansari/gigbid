@@ -1,0 +1,93 @@
+{
+  "phase": 5,
+  "scope": "Durable bid graph and real approval enforcement; no Phase 6 work",
+  "commands": {
+    "regression": ".venv/Scripts/python -m pytest -q --tb=short --junitxml=.cache/phase5-final-regression.xml",
+    "focused": ".venv/Scripts/python -m pytest tests/integration/test_bid_durability.py tests/unit/test_phase5_grounding.py tests/unit/test_model_usage.py -q --tb=short --junitxml=.cache/phase5-final-focused.xml"
+  },
+  "full_regression": {
+    "tests": 155,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 154,
+    "seconds": 311.802
+  },
+  "final_focused": {
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 27,
+    "seconds": 51.974
+  },
+  "sequence": "The full suite started before the final screening-label guard. The final focused suite verifies current Phase 5 code including that guard. Counts overlap and must not be added.",
+  "python": "3.14.3",
+  "domain_database": "isolated SQLite per pytest invocation",
+  "checkpoint_database": "real persistent SQLite with reopened graph and separate worker processes",
+  "postgres": {
+    "implementation": "AsyncPostgresSaver and per-thread advisory locks",
+    "runtime_verified": false,
+    "optional_test": "test_real_postgres_checkpoint_restart",
+    "skip_reason": "Real Postgres checkpoint service not configured"
+  },
+  "models": "labelled deterministic model doubles plus mocked Ollama HTTP contracts; no real inference verified",
+  "retrieval": "explicit BM25 in graph tests; existing fixed-vector Qdrant tests retained",
+  "mcp": "actual stdio/HTTP protocols included in full regression",
+  "acceptance": {
+    "persisted_human_interrupt": "passed locally",
+    "no_unapproved_write_or_connects_debit": "passed locally",
+    "saved_human_receipt_required_for_resume": "passed",
+    "edit_diff_reverification_and_new_approval": "passed",
+    "two_critic_rewrites_and_reverification": "passed",
+    "failed_branch_retry_keeps_successful_parallel_writes": "passed",
+    "step_token_time_api_cost_budgets_survive_retry": "passed",
+    "partial_quote_prefix_and_screening_label_attacks": "passed",
+    "separate_worker_crash_after_commit_reconciles_one_effect": "passed with mock and SQLite",
+    "policy_profile_job_cost_evidence_changes_block": "passed with mock",
+    "post_crash_unknown_usage_fails_closed": "passed"
+  },
+  "checks": {
+    "ruff": "passed",
+    "git_diff_whitespace": "passed",
+    "uv_lock_check_offline": "passed",
+    "openapi_export": "unchanged public API schema",
+    "generated_mcp_schema_snapshot": "explicitly regenerated",
+    "actual_graph_mermaid": "regenerated with complete conditional routes"
+  },
+  "warnings": "13 upstream LangSmith/Python 3.14 deprecation warnings per pytest invocation",
+  "git_head_at_check": "fd48765c0bea35bc43bdd68f9e012d280188f8c0",
+  "tested_code_includes_uncommitted_changes": true,
+  "source_sha256": {
+    "agent/budgets.py": "e903f36bd9690034447aa2f87cd09f43921342ac5b4479e7e191b366f1be9d14",
+    "agent/checkpoints.py": "890d9b2984c9ffb792df1a36ee551272c279400910af8906fcb222b2a083d75b",
+    "agent/config.yaml": "c77d10e8b5eaa9c82fd54bdd0573b49e9d5a51a1cbdd614bd8329141d15c77e0",
+    "agent/errors.py": "ef1adec36c54b1a506cf928854906017d503c84e046409a172b05753543fa476",
+    "agent/graphs/bid_graph.py": "d7c951195a2a47f9baf2824ca4ace27e15db3c1b7b0514dc8d0338a79be75b59",
+    "agent/graphs/conversation_graph.py": "3fae430afdaba6db6abd54d3943fa274dbc321697b97b991cf57eb89694ba75f",
+    "agent/handoffs.py": "996e2087882347862b960f36ea262f17f579da1e2e0f4cae95171a3106ce3036",
+    "agent/model.py": "c9ff31899ab6aa7c5e3970faba711b94a7b783b3d16dc6f382d0f1124e820ccf",
+    "agent/nodes/workflow.py": "027afebfc111fdb46571350e987b614aefd77fb7857e788907e0c766de59b80a",
+    "agent/prompts/liaison.v2.md": "828aaaddc6d3549b8dcdd59e1fa049a1a9c9bdf05304c134b07871ef207e25b0",
+    "agent/prompts/writer.v2.md": "92098d265a281e5f07c750d3f96da6c87ae2f36b63b6effe6c930d3855a7cb62",
+    "apps/api/approvals.py": "3256f2395e38b11a298310e72e9f6471cf1dd15360a4cd159849724925b56973",
+    "apps/api/routers/workflow.py": "f3538454a0cc320f33326c9a114285cd6828190abe5d7cafc54da261cc22eeb9",
+    "apps/api/safety.py": "f90a609192edcf34298a151d4835cb24d2d3150b74fb7f714f1b2157aee8da99",
+    "rag/verify.py": "b5dc6ed3d83e9ad5af95b8374bb31c309c82b6255fa206f8a46aefe858d7434f",
+    "tests/contract/mcp_schema.json": "945ae2bf22a7ef162fc3a5eceeabf455877a46513a02a8ab8c7069567a24d126",
+    "tests/integration/graph_worker_process.py": "6d56c6e57a5cbde7357218d0142bc77b5057cd8d6e5924c11fde17429be0db6b",
+    "tests/integration/test_bid_durability.py": "93d8d2db3a84e8251ab8bdb179e4db4fdc198d2fcbef996653234d59e5d9c903",
+    "tests/unit/test_model_usage.py": "79aaebb96f03408916c4f47aeb961fe96156d6a171faf23b2c1f5eadafc80d21",
+    "tests/unit/test_phase5_grounding.py": "3bd7a9007bc599b15b02bd1c4e76827341f845d3031bc3f4b4b3ec5597f2e6a4",
+    "worker/runtime.py": "31ffdfd986d96a5aa50752f1dac7047a95a30c0a0e4e2f9ae72dd54d885d599b"
+  },
+  "limits": [
+    "Postgres/Compose runtime pending",
+    "Real Ollama inference and model/hardware measurements pending",
+    "Official marketplace/persona/policy/evaluation inputs pending",
+    "No official backend exactly-once guarantee",
+    "Conservative claim grammar intentionally limits free-form prose"
+  ],
+  "stopping_point": "Phase 5; no Phase 6 implementation",
+  "git_mutations_or_publication": false
+}

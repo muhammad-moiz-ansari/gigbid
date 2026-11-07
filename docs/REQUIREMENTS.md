@@ -18,7 +18,13 @@ alias deduplication, transactional replacement/deletion, persistent tenant-scope
 BM25/Qdrant indexes, model/corpus versions and baseline V0 are implemented. Tests
 cover real local Qdrant and Portfolio MCP with labelled test embeddings. Actual
 Ollama execution, GitHub MCP ingestion and official corpora remain unverified or
-unavailable; no retrieval quality winner is claimed. Phase 5 has not been started.
+unavailable; no retrieval quality winner is claimed.
+
+Phase 5 update: durable parallel bid routing, validated handoffs, bounded verified
+rewrites, durable budgets, saved human decision receipts and context-bound approval
+are implemented. Separate worker-process crash checks verify one mock effect/debit;
+forged resumes and material changes fail closed. Postgres and real-model execution
+remain pending. See BID_WORKFLOW.md and checks/phase5.json. Phase 6 is not started.
 
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|

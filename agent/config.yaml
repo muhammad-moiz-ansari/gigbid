@@ -1,4 +1,10 @@
 version: 1
+prompts:
+  writer: v2
+  liaison: v2
+generation:
+  max_tokens: 1800
+  node_timeout_seconds: 150
 profiles:
   open:
     provider: ollama

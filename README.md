@@ -2,7 +2,7 @@
 
 An evidence-grounded freelancer copilot with human approval before outgoing actions.
 
-**Current handoff: Phase 4 implemented locally; stopped before Phase 5.** The user
+**Current handoff: Phase 5 implemented locally; stopped before Phase 6.** The user
 requires explicit instructions before each subsequent phase. Later-phase code
 started under the original authorization is preserved but unfinished.
 
@@ -28,6 +28,16 @@ pass; real Ollama embedding execution and GitHub MCP ingestion remain pending.
 The full regression run passed 128 tests; the final Phase 4 subset passed 37
 overlapping tests after edge-case fixes. [Phase 4 evidence](docs/checks/phase4.json)
 records commands, provenance and limitations.
+
+Phase 5 hardens the durable bid graph, typed parallel handoffs, bounded revisions,
+claim verification, persistent human approvals and crash recovery. Approval resumes
+require saved human decision receipts; material context changes block execution.
+Durable budgets include failed attempts and survive retries. Local crash tests use
+the original mock, real checkpoints and explicitly labelled model doubles. Postgres
+and real open-model runtime verification remain pending. See the
+[graph and approval guide](docs/BID_WORKFLOW.md) and
+[Phase 5 evidence](docs/checks/phase5.json). Full regression: 154 passed, one
+Postgres skip. Final focused checks: 27 passed, with the same skip; counts overlap.
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.

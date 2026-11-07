@@ -4,8 +4,8 @@
 Do not begin or continue another phase until the user explicitly names it. After
 each requested phase, report and stop again.
 
-The user subsequently authorized Phase 4 only. Implement and verify portfolio
-ingestion and baseline retrieval, then stop. Phase 5 and later work remain
+The user subsequently authorized Phase 5 only. Implement and verify the durable
+bid graph and approval enforcement, then stop. Phase 6 and later work remain
 unauthorized. Running compatibility tests does not authorize new phase features.
 
 Commit-message preference: a short conventional title followed by a detailed bullet

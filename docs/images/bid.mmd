@@ -4,7 +4,7 @@ config:
     curve: linear
 ---
 graph TD;
-	__start__(<p>__start__</p>)
+	__start__([<p>__start__</p>]):::first
 	intake(intake)
 	analyst(analyst)
 	risk(risk)
@@ -16,17 +16,33 @@ graph TD;
 	critic(critic)
 	compliance(compliance)
 	preview(preview)
-	execute(execute)
+	regenerate(regenerate)
 	approval(approval)
-	__end__(<p>__end__</p>)
+	execute(execute)
+	__end__([<p>__end__</p>]):::last
 	__start__ --> intake;
 	analyst --> reconcile;
+	approval -.-> __end__;
+	approval -.-> execute;
+	approval -.-> regenerate;
+	approval -.-> verifier;
+	compliance -.-> __end__;
+	compliance -.-> preview;
+	critic -.-> compliance;
+	critic -.-> writer;
 	intake -.-> analyst;
 	intake -.-> matcher;
 	intake -.-> risk;
 	matcher --> reconcile;
+	preview --> approval;
+	pricing --> writer;
+	reconcile -.-> __end__;
+	reconcile -.-> pricing;
+	regenerate --> verifier;
 	risk --> reconcile;
-	reconcile --> __end__;
+	verifier --> critic;
+	writer --> verifier;
+	execute --> __end__;
 	classDef default fill:#f2f0ff,line-height:1.2
 	classDef first fill-opacity:0
 	classDef last fill:#bfb6fc

@@ -33,3 +33,10 @@ Ollama `/api/tags` probe timed out; real open-model embedding execution remains
 pending. Dense tests use explicit test vectors, not reported model results. GitHub
 MCP ingestion has an unavailable boundary until a scoped, verified integration is
 provided. Official corpus and evaluation blockers remain unchanged.
+
+Phase 5: persisted approval, replay protection and worker crash recovery are tested
+locally with SQLite and the original mock. AsyncPostgresSaver and advisory locking
+are implemented; real Postgres verification is an explicit optional skipped check
+until a disposable service is supplied. Model HTTP contract tests use labelled
+responses, not real inference. Open-model generation/hardware measurements and
+official backend exactly-once guarantees remain unverified. Phase 6 is not started.

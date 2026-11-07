@@ -3,7 +3,9 @@ import time
 from langgraph.types import Command
 from sqlalchemy import or_, select, update
 
-from agent.checkpoints import checkpointer, thread_config
+from agent.budgets import read as read_budget
+from agent.budgets import recover as recover_budget
+from agent.checkpoints import checkpointer, thread_config, thread_lock
 from agent.graphs.bid_graph import build_bid_graph
 from agent.graphs.conversation_graph import build_conversation_graph
 from agent.mcp_client import gateway
@@ -24,6 +26,17 @@ def record_event(tenant, run_id, name, payload, trace_id):
 
 async def process_run(run_id, tool_gateway=None, model=None):
     with transaction() as db:
+        run = db.get(Run, run_id)
+        if not run:
+            return
+        tenant = run.tenant
+    async with thread_lock(tenant, run_id) as acquired:
+        if acquired:
+            await _process_run(run_id, tool_gateway, model)
+
+
+async def _process_run(run_id, tool_gateway=None, model=None):
+    with transaction() as db:
         claimed = db.execute(update(Run).where(Run.id == run_id,
             or_(Run.status == "queued", (Run.status == "running") & (Run.lease_until < now())))
             .values(status="running", lease_until=now() + 300))
@@ -38,6 +51,7 @@ async def process_run(run_id, tool_gateway=None, model=None):
     started = time.monotonic()
     record_event(tenant, run_id, "worker:started", {"kind": kind}, trace_id)
     try:
+        recover_budget(tenant, run_id)
         async with checkpointer() as saver:
             async def execute(tools):
                 graph = (build_bid_graph if kind == "bid" else build_conversation_graph)(tools, model or OpenModel(), saver)
@@ -45,11 +59,15 @@ async def process_run(run_id, tool_gateway=None, model=None):
                 snapshot = await graph.aget_state(cfg)
                 if resume and resume.get("decision") == "renew":
                     draft = dict(snapshot.values["draft"])
-                    draft["version"] += 1
-                    await graph.aupdate_state(cfg, {"draft": draft, "revision": 0},
-                                              as_node="writer" if kind == "bid" else "draft")
+                    target = resume.get("version", draft["version"] + 1)
+                    if draft["version"] < target:
+                        draft["version"] = target
+                        await graph.aupdate_state(cfg, {"draft": draft, "profile": profile},
+                                                  as_node="writer" if kind == "bid" else "draft")
+                    with transaction() as db:
+                        db.get(Run, run_id).resume = None
                     value = None
-                elif resume:
+                elif resume and any(task.interrupts for task in snapshot.tasks):
                     value = Command(resume=resume)
                 elif snapshot.values:
                     value = None
@@ -61,16 +79,22 @@ async def process_run(run_id, tool_gateway=None, model=None):
                              "memory": [entry.value for entry in memory.search((tenant, "style"))]}
                     if kind == "conversation":
                         value["conversation"] = subject
-                async for change in graph.astream(value, cfg, stream_mode="updates", durability="sync"):
-                    for node, payload in change.items():
-                        if node != "__interrupt__":
-                            record_event(tenant, run_id, f"node:{node}", {
-                                "completed": True, "status": payload.get("status"),
-                                "usage": payload.get("usage", []), "steps": payload.get("steps", 0)}, trace_id)
+                try:
+                    async for change in graph.astream(value, cfg, stream_mode="updates", durability="sync"):
+                        for node, payload in change.items():
+                            if node != "__interrupt__":
+                                record_event(tenant, run_id, f"node:{node}", {
+                                    "completed": True, "status": payload.get("status"),
+                                    "usage": payload.get("usage", []), "steps": payload.get("steps", 0)}, trace_id)
+                        with transaction() as db:
+                            db.get(Run, run_id).lease_until = now() + 300
+                finally:
+                    snapshot = await graph.aget_state(cfg)
                     with transaction() as db:
-                        db.get(Run, run_id).lease_until = now() + 300
+                        r = db.get(Run, run_id)
+                        r.state = {**dict(snapshot.values), "budget": read_budget(tenant, run_id)}
                 final = await graph.aget_state(cfg)
-                state = dict(final.values)
+                state = {**dict(final.values), "budget": read_budget(tenant, run_id)}
                 status = "awaiting_approval" if final.next and state.get("approval_id") else state.get("status", "needs_attention")
                 with transaction() as db:
                     r = db.get(Run, run_id)
@@ -78,14 +102,17 @@ async def process_run(run_id, tool_gateway=None, model=None):
                     if state.get("edit"):
                         put_record(db, tenant, "edit_observation", run_id,
                                    {**state["edit"], "run_id": run_id, "approved": status in ("submitted", "sent")})
-                if status in ("submitted", "sent"):
-                    with transaction() as db:
-                        edits = [r.value for r in db.scalars(select(Record).where(Record.tenant == tenant,
-                                  Record.kind == "edit_observation")) if r.value.get("approved")]
-                    for candidate in style_candidates(edits):
-                        promote(tenant, candidate)
-                events = await tools.call("scout", "list_events", {"after": 0})
-                apply_events(tenant, events)
+                try:
+                    if status in ("submitted", "sent"):
+                        with transaction() as db:
+                            edits = [r.value for r in db.scalars(select(Record).where(Record.tenant == tenant,
+                                      Record.kind == "edit_observation")) if r.value.get("approved")]
+                        for candidate in style_candidates(edits):
+                            promote(tenant, candidate)
+                    events = await tools.call("scout", "list_events", {"after": 0})
+                    apply_events(tenant, events)
+                except Exception as exc:
+                    record_event(tenant, run_id, "pipeline:deferred", {"type": type(exc).__name__}, trace_id)
                 record_event(tenant, run_id, "worker:finished", {"status": status,
                              "latency_seconds": time.monotonic() - started}, trace_id)
             if tool_gateway:

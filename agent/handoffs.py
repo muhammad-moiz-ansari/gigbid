@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class Contract(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, hide_input_in_errors=True)
 
 
 class JobSpec(Contract):
@@ -18,6 +18,7 @@ class JobSpec(Contract):
     deliverables: list[str] = []
     screening_questions: list[str] = []
     timeline: str = "Unspecified"
+    hidden_needs: list[str] = []
 
 
 class RiskReport(Contract):
@@ -29,7 +30,7 @@ class RiskReport(Contract):
 class FitReport(Contract):
     score: float = Field(ge=0, le=1)
     matrix: dict[str, list[str]]
-    evidence: list[dict]
+    evidence: list["RetrievedEvidence"]
 
 
 class BidDecision(Contract):
@@ -60,6 +61,36 @@ class ComplianceVerdict(Contract):
     reasons: list[str]
 
 
+class NodeUsage(Contract):
+    node: str
+    model: str
+    provider: str = "unspecified"
+    tokens: int = Field(ge=0)
+    api_usd: float | None = Field(default=None, ge=0)
+    latency_seconds: float = Field(default=0, ge=0)
+    generated_tokens: int = Field(default=0, ge=0)
+    generation_seconds: float = Field(default=0, ge=0)
+    test_double: bool = False
+    usage_complete: bool = True
+    attempts: int = Field(default=1, ge=1)
+    prompt_version: str = "unspecified"
+
+
+class AnalystHandoff(Contract):
+    role: Literal["analyst"] = "analyst"
+    result: JobSpec
+
+
+class RiskHandoff(Contract):
+    role: Literal["risk"] = "risk"
+    result: RiskReport
+
+
+class FitHandoff(Contract):
+    role: Literal["matcher"] = "matcher"
+    result: FitReport
+
+
 class Evidence(Contract):
     id: str
     tenant: str
@@ -75,6 +106,11 @@ class Evidence(Contract):
     industry: str
     outcome: str = "unknown"
     synthetic: bool = False
+
+
+class RetrievedEvidence(Evidence):
+    retrieval_score: float | None = None
+    retrieval_variant: str | None = None
 
 
 class Action(Contract):
