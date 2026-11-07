@@ -13,6 +13,13 @@ redacted audits and role-filtered client access. In-memory, stdio, HTTP and loca
 server recovery checks pass. Inspector screenshots and the external integrations
 remain pending. See TOOLS.md and the phase log.
 
+Phase 4 update: structured portfolio loaders, metadata/hash provenance, source
+alias deduplication, transactional replacement/deletion, persistent tenant-scoped
+BM25/Qdrant indexes, model/corpus versions and baseline V0 are implemented. Tests
+cover real local Qdrant and Portfolio MCP with labelled test embeddings. Actual
+Ollama execution, GitHub MCP ingestion and official corpora remain unverified or
+unavailable; no retrieval quality winner is claimed. Phase 5 has not been started.
+
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|
 | R1 single marketplace port | agent/marketplace_port.py; mcp_servers/marketplace/adapters | contract tests, mock idempotency | Official schemas/accounts |

@@ -1,0 +1,4 @@
+[
+  {"text":"Proposed approach: I would validate source totals before designing the reporting models.","type":"proposal","persona":"data-analyst","project":"Willow Reports","skills":["SQL","dbt"],"date":"2026-05-03","industry":"retail","outcome":"replied","synthetic":true},
+  {"text":"Proposed approach: I would first establish a retrieval baseline with inspectable source passages.","type":"proposal","persona":"ai-ml","project":"Maple Search","skills":["Python","RAG"],"date":"2026-05-04","industry":"search","outcome":"ignored","synthetic":true}
+]

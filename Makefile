@@ -4,7 +4,7 @@ dev:
 migrate:
 	uv run python -m scripts.manage migrate
 test:
-	uv run python -m pytest tests/unit/test_auth.py tests/unit/test_foundation.py -q
+	uv run python -m pytest -q
 seed:
 	uv run python -m scripts.manage seed --tenant $(TENANT)
 demo:

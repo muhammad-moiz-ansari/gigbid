@@ -20,7 +20,7 @@ open_comparisons:
   small: {writer: 'qwen3:4b', critic: 'qwen3:4b'}
   larger: {writer: 'qwen3:8b', critic: 'qwen3:8b'}
 retrieval:
-  variant: V2
+  variant: V0
   embedding_model: nomic-embed-text
   reranker: BAAI/bge-reranker-v2-m3
   chunk_chars: 1200

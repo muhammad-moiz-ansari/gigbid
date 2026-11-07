@@ -781,6 +781,29 @@
         }
       }
     },
+    "/evidence/index": {
+      "get": {
+        "tags": [
+          "workflow"
+        ],
+        "summary": "Evidence Index",
+        "operationId": "evidence_index_evidence_index_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Evidence Index Evidence Index Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/evidence/source/{source}": {
       "delete": {
         "tags": [
@@ -1155,6 +1178,11 @@
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "File"
+          },
+          "metadata": {
+            "type": "string",
+            "title": "Metadata",
+            "default": "{}"
           }
         },
         "type": "object",

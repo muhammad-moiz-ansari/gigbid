@@ -26,3 +26,10 @@ Phase 3: three owned MCP servers are implemented and locally protocol-tested. HT
 uses first-party audience-bound credentials; general OAuth and Upwork OAuth are not
 claimed. Inspector screenshots await actual inspection. Third-party connections and
 official contracts remain absent; their operations do not return synthetic success.
+
+Phase 4: portfolio ingestion and index lifecycle are locally tested. Qdrant local
+persistence works without Docker, including reopened-process checks. The real local
+Ollama `/api/tags` probe timed out; real open-model embedding execution remains
+pending. Dense tests use explicit test vectors, not reported model results. GitHub
+MCP ingestion has an unavailable boundary until a scoped, verified integration is
+provided. Official corpus and evaluation blockers remain unchanged.

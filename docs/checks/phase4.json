@@ -1,0 +1,95 @@
+{
+  "phase": 4,
+  "scope": "Portfolio ingestion, index lifecycle and V0 baseline only",
+  "commands": {
+    "full": ".venv/Scripts/python -m pytest -q --tb=short --junitxml=.cache/phase4-regression.xml",
+    "final_rag": ".venv/Scripts/python -m pytest tests/rag -q --tb=short --junitxml=.cache/phase4-final-rag.xml"
+  },
+  "full_regression": {
+    "tests": 128,
+    "passed": 128,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 241.989
+  },
+  "final_rag": {
+    "tests": 37,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 24.453
+  },
+  "sequence": "Full regression passed after lazy vector-import correction. Final Phase 4 subset then verifies current code including the last CRLF/raw-provenance edge-case fixes. Subset counts overlap the full suite and must not be added.",
+  "python": "3.14.3",
+  "database": "isolated SQLite",
+  "vector_engine": "real Qdrant local (memory and on-disk), qdrant-client==1.20.0",
+  "embedding_tests": "explicit fixed-vector doubles and a mocked Ollama HTTP contract; no semantic quality claims",
+  "real_embedding_smoke": {
+    "status": "pending",
+    "probe": "local GET /api/tags",
+    "outcome": "ConnectTimeout",
+    "real_model_execution_verified": false
+  },
+  "github_mcp_ingestion": "unavailable pending a verified integration",
+  "official_corpora_used": false,
+  "official_evaluations_run": false,
+  "checks": {
+    "ruff": "passed",
+    "git_diff_whitespace": "passed",
+    "uv_lock_check_offline": "passed",
+    "openapi_export": "matches current API",
+    "typescript": "passed",
+    "next_production_build": "passed"
+  },
+  "warnings": "13 upstream LangSmith/Python 3.14 deprecation warnings per pytest invocation",
+  "git_head_at_check": "722de941674fd36c07c61419bf0b93d53129b964",
+  "tested_code_includes_uncommitted_changes": true,
+  "source_sha256": {
+    "rag/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rag/index/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rag/index/__main__.py": "673ef32e1ac71bff7ef13d6583facfd06fa2b84e852430ff8906f312e111f93f",
+    "rag/index/corpus.py": "35f091b58a2996fe5fab330409f9b2a3317d59af325dd6a84cc9d21667445907",
+    "rag/index/dense.py": "b25a4b87a461658d7c81f21cb7b3190b7d39f72a49033f62e4726e91cc304216",
+    "rag/index/lexical.py": "020f86ada349094533862f7f04d8f7c8ca9c2e0f4dbd0a80a4ecf1a340f4e097",
+    "rag/index/vector_store.py": "2ac02a970e546e234a772163cb6540cd2b79dcb117ab46ffdbf8e1dfd5d2651e",
+    "rag/ingest/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rag/ingest/github.py": "f48b2ba964e266c0f4b8e1392ed13938ab740cbebd66f460daf1e4b72e3cd9ef",
+    "rag/ingest/loaders.py": "c9a2a3368b2d22ba22ac581a435b0c8dfae9fffa85ad0d213300228a0f9871d4",
+    "rag/ingest/models.py": "62885cd780a166e5cf456ecdf74cac70034dc6624d0e62502782e6b0c2fb5720",
+    "rag/ingest/parsers.py": "0943a731a16147c55977612f7802cc1502d663eaa5f99658ba86cf91ede49e59",
+    "rag/retriever.py": "99ee2cb08b073d3ce5c9ca5a6a150d37f31071285f426c500e6898d314116060",
+    "rag/variants/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rag/variants/v0_naive.py": "79bfae8e5ad6f1d638c7ee70edee3bf9bf7080beb9875fec5d482273f24150c7",
+    "rag/variants/v1_decomposition.py": "ab9ca407e9262da75781f56a85d3bdc9912716cd2a77df8782f460d4de4ef925",
+    "rag/variants/v2_hybrid.py": "ecdf8b2263a97caf583b59c5b253703278a52b254ea071fb19a591841d2f8641",
+    "rag/variants/v3_rerank.py": "e00700a6ac4bf763cd6ec0221fd9e63a2fb09096bc1524979104d089a7186a54",
+    "rag/variants/v4_outcome.py": "6bc5083864c1dd2202621aba78cf7f3bc358511ec9786fab0425b3bcf6cd280c",
+    "rag/variants/v8_corrective.py": "fee18fa33b3eee6ee53a0804b7b8833b9d5969ae18520e003d40bb0b06e14889",
+    "rag/verify.py": "244b98562c8608f92f4b3d5f0a0d9d30420b49aa5c74603c9aa316396fe54401",
+    "agent/config.yaml": "17c5dccfc081f1ac56e94daf834a3120ae7c37331d2d61a5cea05db0c3c9113e",
+    "agent/mcp_client.py": "521e24b6caae2e24c5278cbaa0dd2fa860b8f5e99d4aae0fb7cb66c05d3f211f",
+    "apps/api/config.py": "b647784c4cbe69180fc8584a7c4b8e2259dae1f8f4878c3e2c5483fc9545913b",
+    "apps/api/routers/workflow.py": "a3b295bc56122f5f86a2cfc397bc7722d185b19651e9b5504031d9a68c0fb819",
+    "dev_support/seed.py": "9f4f4a749bf8f5050657c2a4aefdaa410cf60a98bf28b2856510cdfafba56582",
+    "pyproject.toml": "f6a3786bcd2394203db9657667afeae43b6e1c3a5f2bebcfe9282e08ff99889b",
+    "uv.lock": "5d57bc3a2dab7e3f67034c547e150e575368961752b534ee887bd918bd93dc6c",
+    "apps/web/openapi.json": "63b9cbfa3a64fb9842f4a0ed3b2584e377413e6faa922d4f1772a8bfc946bce7",
+    "apps/web/src/lib/api/schema.d.ts": "a7eb69e5bfab9682abdd6a1f3d094dc17e7a0984c4d1782dcb47efab98af9424"
+  },
+  "fixture_sha256": {
+    "dev_support/fixtures/case_study.md": "d78c1ac92ecf4029c34c0efcc948afcee890897e0036625b7cb64938818dd80e",
+    "dev_support/fixtures/clients.json": "7a06712ff9d6ed7a2222ad70cd3a5787fc08d4e951a6b3ddab39897eb08ea39e",
+    "dev_support/fixtures/jobs.json": "3f4e46a64dd2fa057e2611fe244328ba3198c722732949a25cc06d934650d66c",
+    "dev_support/fixtures/past_proposals.json": "144a4f2e5eb2674863b04730ad712a606222ac0ba5df8d6e19bcb33a3df1507c",
+    "dev_support/fixtures/portfolio.json": "9dccd2eb2d5342b54a2a4e80a178fe38b19c1fa41e56bd0fc0b44c78355ab2f3",
+    "dev_support/fixtures/reviews.json": "4a18a60ab74ab7404d25be291f7ab0161a475d372e45db0d31f963ff57bed7a8",
+    "dev_support/fixtures/simulator.json": "8114c102e6ea96f0b243c9ad1e77b53d8db7e9eb1f4b491a6234ec0b6eb14d3c"
+  },
+  "limits": [
+    "Ollama real-model smoke pending",
+    "GitHub MCP ingestion unavailable",
+    "Official data/evaluation pending",
+    "Remote Qdrant/Postgres Compose runtime not verified"
+  ],
+  "stopping_point": "Phase 4; no Phase 5 implementation"
+}

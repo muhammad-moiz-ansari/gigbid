@@ -1,6 +1,6 @@
 # Phase 1 local startup
 
-The user requires one explicitly requested phase at a time. Phase 3 is the
+The user requires one explicitly requested phase at a time. Phase 4 is the
 current stopping point. Code written for later phases before that instruction is
 preserved, unfinished and not a claim of acceptance.
 
@@ -85,3 +85,57 @@ a call observes a stopped marketplace server, the existing degraded banner repor
 it. Queue records remain; restore the service and retry. Status is last observed
 state, not a continuous independent probe. Phase 3 does not change the foundation
 Compose file or start Phase 4. Inspector screenshots remain pending.
+
+## Phase 4 portfolio ingestion and indexes
+
+Text uploads retain the existing `/evidence` API. `/evidence/file` now parses PDF,
+Markdown, UTF-8 text/code and structured JSON reviews/proposals, with an optional
+multipart `metadata` JSON object. It preserves typed metadata and page/entry/text
+locations instead of treating every file as a CV. `/evidence/index` reports the
+authenticated user's source/corpus/index manifests and pending physical cleanup.
+The generated frontend schema was refreshed; no new screen or graph was added.
+
+Default retrieval is V0, the fixed-chunk dense baseline, pending future evaluation.
+It requires the configured open Ollama embedding model. This workstation's real
+Ollama probe timed out; test vectors do not substitute for a real-model smoke check.
+Initialize the service/model in your own environment before requesting V0 retrieval:
+
+```powershell
+ollama pull nomic-embed-text
+```
+
+For explicit lexical development, set `RETRIEVAL_VARIANT=BM25`. This is diagnostic
+lexical retrieval, not a claim that mandatory dense V0 ran. Qdrant defaults to local
+persistence under `data/processed/qdrant`; operations are file-locked across stdio
+processes. Set `QDRANT_MODE=server` and `QDRANT_URL` to use an actual server. The
+foundation Compose stack has not been expanded or verified for that service.
+
+From the root, after registration/upload, replace USER_ID with the authenticated
+user ID. These commands do not run an agent, worker or marketplace action:
+
+```powershell
+uv run python -m rag.index status --tenant USER_ID
+uv run python -m rag.index rebuild --tenant USER_ID --lexical-only
+uv run python -m rag.index rebuild --tenant USER_ID
+uv run python -m rag.index cleanup --tenant USER_ID
+# Explicitly re-chunk saved extracted sections after changing chunk configuration:
+uv run python -m rag.index rebuild --tenant USER_ID --rechunk --lexical-only
+```
+
+Uploads immediately update canonical SQL evidence/BM25 and mark changed vector
+generations pending. The next dense search or rebuild synchronizes new/changed
+vectors. Deletion hides evidence immediately, removes retained extracted source
+text and invalidates affected approvals; interrupted physical vector cleanup stays
+pending and can be retried. Source aliases preserve evidence until its final owner
+is deleted. Older pre-Phase-4 sources without retained sections need re-upload before
+re-chunking; original text is never reconstructed by guessing.
+
+The expanded synthetic seed includes original Markdown, review and proposal fixtures.
+See DATA_CARD.md for supported formats/provenance and the Phase 4 check report for
+actual verification. GitHub MCP repository ingestion remains explicitly unavailable.
+
+```powershell
+uv run python -m pytest tests/rag -q
+uv run python -m pytest -q
+uv run python -m ruff check .
+```

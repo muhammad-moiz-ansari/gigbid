@@ -362,6 +362,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/evidence/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evidence Index */
+        get: operations["evidence_index_evidence_index_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/evidence/source/{source}": {
         parameters: {
             query?: never;
@@ -543,6 +560,11 @@ export interface components {
         Body_upload_file_evidence_file_post: {
             /** File */
             file: string;
+            /**
+             * Metadata
+             * @default {}
+             */
+            metadata: string;
         };
         /** Credentials */
         Credentials: {
@@ -1325,6 +1347,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evidence_index_evidence_index_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

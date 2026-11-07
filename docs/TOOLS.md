@@ -200,3 +200,12 @@ Primary API references reviewed: [official MCP Python SDK](https://github.com/mo
 and [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization).
 Installed pinned SDK/adapter source was also inspected for context injection,
 resource validation and structured result handling.
+
+## Phase 4 portfolio update
+
+The existing Portfolio tools now read versioned, incrementally maintained SQL/BM25
+and Qdrant indexes. Tool output schemas and role permissions are unchanged. Upload
+metadata, source aliases, replacement/deletion and cache cleanup are described in
+DATA_CARD.md and RUNBOOK.md. V0's real Qdrant path is tested through an in-memory MCP
+session using explicitly labelled test vectors. Real Ollama semantic execution is
+still pending; GitHub ingestion remains unavailable. No Phase 5 graph work was added.

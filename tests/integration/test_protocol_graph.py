@@ -18,25 +18,33 @@ async def test_full_graph_through_actual_mcp(client, account, monkeypatch):
     async with gateway(token, "full-protocol-graph-test") as tools:
         await process_run(run_id, tools, TestModels())
         result = client.get(f"/runs/{run_id}").json()
-        assert result["status"] == "awaiting_approval", result
-        client.post(f'/approvals/{result["state"]["approval_id"]}/decision', json={"decision": "approve"})
+        assert result["status"] == "awaiting_approval", result["state"].get("error", result)
+        client.post(
+            f"/approvals/{result['state']['approval_id']}/decision", json={"decision": "approve"}
+        )
         await process_run(run_id, tools, TestModels())
         result = client.get(f"/runs/{run_id}").json()
-        assert result["status"] == "submitted", result
+        assert result["status"] == "submitted", result["state"].get("error", result)
         assert (await tools.call("pricing", "get_connects_balance", {}))["spent"] == 8
 
 
 @pytest.mark.asyncio
 async def test_conversation_approval(client, account):
     from tests.support import TestTools
-    client.post("/dev/client-message", json={"conversation": "client-one", "text": "Can we schedule an interview about Python?"})
+
+    client.post(
+        "/dev/client-message",
+        json={"conversation": "client-one", "text": "Can we schedule an interview about Python?"},
+    )
     run_id = client.post("/messages/client-one/draft").json()["id"]
     await process_run(run_id, TestTools(account["id"]), TestModels())
     result = client.get(f"/runs/{run_id}").json()
     assert result["status"] == "awaiting_approval", result
     assert result["state"]["intent"] == "interview"
     assert len(client.get("/messages").json()) == 1
-    client.post(f'/approvals/{result["state"]["approval_id"]}/decision', json={"decision": "approve"})
+    client.post(
+        f"/approvals/{result['state']['approval_id']}/decision", json={"decision": "approve"}
+    )
     await process_run(run_id, TestTools(account["id"]), TestModels())
     assert client.get(f"/runs/{run_id}").json()["status"] == "sent"
     assert len(client.get("/messages").json()) == 2

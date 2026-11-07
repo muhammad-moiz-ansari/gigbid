@@ -183,3 +183,90 @@ Suggested commit (text only): `feat: implement authenticated MCP servers and con
 
 Stopped at Phase 3. Phase 4 was not started. No commits, pushes, PRs, branches, Git
 configuration changes, deployments, publishing or real-account connections occurred.
+
+## Phase 4 - implemented locally; stopped before Phase 5
+
+The user authorized Phase 4 only. Implemented portfolio ingestion and baseline
+retrieval without adding graph design, approval-flow features or a subsequent phase.
+
+Implemented:
+
+- Typed loaders for selectable PDF CVs, Markdown/safe frontmatter, UTF-8 text/code,
+  JSON reviews and outcome-labelled proposals. Source/page/entry/character metadata
+  is inspectable. Blank/scanned, encrypted, malformed and oversized files fail
+  before replacing an existing source. Windows line endings are supported.
+- Typed tenant/persona/type/project/skills/date/industry/outcome/synthetic metadata;
+  raw/document/passage hashes and loader/chunker versions. Original extracted
+  sections are retained privately for explicit re-chunking, with latest raw-byte
+  provenance preserved even for normalized no-op uploads.
+- Content-based deduplication/source aliases, stable unchanged passages, serialized
+  concurrent uploads, incremental replacement/deletion, lexical-cache repair, and
+  targeted invalidation of approvals citing changed/deleted evidence.
+- Persistent tenant-scoped BM25 token records/manifests and a Qdrant cosine V0
+  baseline. Vector namespaces use actual model identity/revision and corpus
+  fingerprint generations. Search applies tenant/generation/permitted-ID filters
+  and rehydrates current SQL passages; removed/stale evidence is never restored.
+- Batched real Ollama embedding adapter with digest discovery, dimensional/finite
+  checks, version-aware caches and explicit service-unavailable behavior. No
+  production fake-embedding fallback was added.
+- Lazy vector synchronization on dense retrieval or local rebuild. Source deletion
+  hides SQL evidence immediately; unsuccessful physical Qdrant cleanup remains
+  durable/pending and can be retried. Local Qdrant operations close within a
+  cross-process file lock; remote Qdrant configuration remains supported.
+- Structured file-upload metadata and authenticated `/evidence/index`, refreshed
+  OpenAPI/TypeScript contract, root test command for the complete suite, index CLI,
+  original Markdown/review/proposal fixtures and DATA_CARD.md.
+- Explicitly unavailable GitHub MCP ingestion boundary until the integration is
+  verified/configured. Manual repository text is labelled as a user upload.
+
+V0 is the default baseline, not an experimentally selected winner. Existing advanced
+retrieval variants are preserved for later phases, not claimed as Phase 4 research.
+
+Checks and evidence:
+
+| Check | Actual outcome |
+|---|---|
+| Full regression suite | 128 passed, zero failed/skipped; about 242 seconds |
+| Final Phase 4 subset after final CRLF/raw-provenance fixes | 37 passed, zero failed/skipped; about 24 seconds; overlaps the full suite |
+| Real Qdrant local persistence across threads and reopened process | Passed with explicitly labelled test vectors |
+| V0 upload/search/get/delete through actual Portfolio MCP protocol | Passed with real Qdrant and labelled test vectors |
+| Corpus deduplication, replacement, deletion, aliases, model/cache revisions, stale-publication race and outage cleanup | Passed |
+| Generated OpenAPI/client, TypeScript check and production Next build | Passed |
+| Ruff, whitespace check, offline lockfile consistency | Passed |
+| Real local Ollama `/api/tags` probe | ConnectTimeout; real-model verification remains pending |
+
+The first full compatibility run exposed a regression at the existing MCP
+approval-to-submit boundary. Moving unnecessary vector imports behind real vector
+operations was followed by a passing focused test and full rerun; graph code and
+budgets were not changed. A duplicate test-module filename was also corrected by
+namespacing the new test directory. No failed run is presented as passing evidence.
+
+The test invocations emit 13 upstream LangSmith/Python 3.14 deprecation warnings.
+Actual command outcomes, timing, source/fixture hashes, Git base and uncommitted-work
+status are in `docs/checks/phase4.json`. The final focused subset follows the last
+small provenance/line-ending fixes; its counts must not be added to the full suite.
+
+Limits: real open-model embeddings remain unverified because the local service
+probe timed out. GitHub MCP ingestion, official persona/evaluation materials and
+remote Qdrant/Postgres/Compose runtime checks remain pending. No semantic retrieval
+quality, official outcomes or model-cost result is invented. Synthetic fixture
+outcomes are authored development labels only.
+
+Suggested commit (text only):
+
+```text
+feat: add versioned portfolio ingestion and baseline retrieval
+
+- load PDF CVs, Markdown, reviews, and outcome-labelled proposals with provenance
+- add source hashing, deduplication, aliases, and incremental replacement/deletion
+- persist tenant-scoped BM25 and Qdrant indexes with corpus/model revisions
+- invalidate stale vector caches and approvals that cite affected evidence
+- expose upload metadata and index status through the typed API
+- add index lifecycle and Portfolio MCP tests with labelled test embeddings
+- document data provenance, local index commands, and pending integrations
+```
+
+Stopped at Phase 4. Phase 5 was not started. No commits, pushes, PRs, branches,
+Git configuration changes, deployments, publishing or real-account connections
+were performed. Generated TypeScript build-cache noise was restored to its original
+content; generated API types remain updated.

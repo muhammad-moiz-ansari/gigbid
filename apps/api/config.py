@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     ollama_url: str = "http://127.0.0.1:11434"
     redis_url: str = "redis://localhost:6379/0"
     qdrant_url: str = "http://localhost:6333"
+    qdrant_mode: Literal["local", "server"] = "local"
+    qdrant_path: str = "data/processed/qdrant"
     queue_mode: Literal["database", "celery"] = "database"
     mcp_transport: Literal["stdio", "http"] = "stdio"
     mcp_bind_host: str = "127.0.0.1"

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+import json
+
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy import select
 
 from apps.api.auth.service import current_user
@@ -17,7 +19,7 @@ from apps.api.db import (
 from apps.api.schemas.api import ApprovalDecision, FaultInput, MessageInput, RunView, Upload
 from dev_support.seed import seed
 from mcp_servers.marketplace.adapters import marketplace
-from rag.ingest.loaders import delete_source, ingest_text, load_bytes
+from rag.ingest.loaders import delete_source, ingest_file, ingest_text
 
 router = APIRouter(tags=["workflow"])
 
@@ -213,15 +215,23 @@ def upload(data: Upload, user: User = Depends(current_user)) -> list[dict]:
 
 
 @router.post("/evidence/file")
-async def upload_file(file: UploadFile, user: User = Depends(current_user)) -> list[dict]:
+async def upload_file(file: UploadFile, metadata: str = Form(default="{}"), user: User = Depends(current_user)) -> list[dict]:
     content = await file.read(settings().max_upload_bytes + 1)
     if len(content) > settings().max_upload_bytes:
         raise HTTPException(413, "Portfolio file exceeds upload limit")
     try:
-        text = load_bytes(content, file.filename or "upload.txt")
-        return ingest_text(user.id, text, {"source": file.filename or "upload.txt", "type": "cv"})
+        fields = json.loads(metadata)
+        if not isinstance(fields, dict):
+            raise ValueError("File metadata must be a JSON object")
+        return ingest_file(user.id, content, file.filename or "upload.txt", fields)
     except (ValueError, UnicodeError):
         raise HTTPException(422, "Cannot parse uploaded file") from None
+
+
+@router.get("/evidence/index")
+def evidence_index(user: User = Depends(current_user)) -> dict:
+    from rag.index.corpus import status
+    return status(user.id)
 
 
 @router.delete("/evidence/source/{source:path}")

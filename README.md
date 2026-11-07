@@ -2,7 +2,7 @@
 
 An evidence-grounded freelancer copilot with human approval before outgoing actions.
 
-**Current handoff: Phase 3 implemented locally; stopped before Phase 4.** The user
+**Current handoff: Phase 4 implemented locally; stopped before Phase 5.** The user
 requires explicit instructions before each subsequent phase. Later-phase code
 started under the original authorization is preserved but unfinished.
 
@@ -19,6 +19,15 @@ redacted audits and role allowlists. All 91 regression tests pass, including rea
 stdio/HTTP calls and server recovery. See [MCP tool guide](docs/TOOLS.md) and
 [Phase 3 evidence](docs/checks/phase3.json). Inspector screenshots and official
 integration verification remain pending.
+
+Phase 4 adds structured PDF/Markdown/review/proposal ingestion, source metadata and
+hashes, deduplication, incremental replacement/deletion, tenant-scoped BM25/Qdrant
+indexes and a versioned V0 dense baseline. See [portfolio data card](docs/DATA_CARD.md)
+and [index commands](docs/RUNBOOK.md). Local Qdrant and test-vector lifecycle checks
+pass; real Ollama embedding execution and GitHub MCP ingestion remain pending.
+The full regression run passed 128 tests; the final Phase 4 subset passed 37
+overlapping tests after edge-case fixes. [Phase 4 evidence](docs/checks/phase4.json)
+records commands, provenance and limitations.
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.
