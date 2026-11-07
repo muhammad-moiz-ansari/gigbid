@@ -16,3 +16,8 @@
 
 Installing dependencies requires package-registry network access. Environment failures
 are recorded in PHASE_STATUS.md and must not be represented as passing checks.
+
+Phase 2: the original mock now includes durable proposals/messages/events,
+idempotent Connects accounting, configurable deterministic outcomes and reproducible
+fault controls. Its shared port contract is locally tested; this is not verification
+against official GigSim. All starter-kit and live-integration blockers above remain.

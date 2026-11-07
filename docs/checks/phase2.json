@@ -1,0 +1,52 @@
+{
+  "phase": 2,
+  "scope": "Original synthetic simulator and existing foundation/approval compatibility",
+  "command": ".venv/Scripts/python -m pytest tests/mock_marketplace tests/unit/test_auth.py tests/unit/test_foundation.py tests/integration/test_approval.py -q --tb=short --junitxml=.cache/phase2-regression.xml",
+  "tests": {
+    "total": 54,
+    "passed": 54,
+    "failed": 0,
+    "skipped": 0,
+    "phase2_simulator": 44,
+    "existing_compatibility": 10
+  },
+  "python": "3.14.3",
+  "database": "isolated SQLite",
+  "warnings": "13 upstream LangSmith Python 3.14 deprecation warnings",
+  "real_models_used": false,
+  "official_gigsim_used": false,
+  "live_accounts_used": false,
+  "postgres_verified": false,
+  "git_head_at_check": "a6a9b764f8f92bcd9d6e521cfcf2954a6631027d",
+  "tested_code_includes_uncommitted_changes": true,
+  "fixture_sha256": {
+    "dev_support/fixtures/clients.json": "7a06712ff9d6ed7a2222ad70cd3a5787fc08d4e951a6b3ddab39897eb08ea39e",
+    "dev_support/fixtures/jobs.json": "3f4e46a64dd2fa057e2611fe244328ba3198c722732949a25cc06d934650d66c",
+    "dev_support/fixtures/portfolio.json": "9dccd2eb2d5342b54a2a4e80a178fe38b19c1fa41e56bd0fc0b44c78355ab2f3",
+    "dev_support/fixtures/simulator.json": "8114c102e6ea96f0b243c9ad1e77b53d8db7e9eb1f4b491a6234ec0b6eb14d3c"
+  },
+  "source_sha256": {
+    "agent/marketplace_port.py": "430fe9910cc07f9411a8c2250902ede36a5feb6dfc7bb542ca67d635c8b13150",
+    "dev_support/mock_marketplace/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dev_support/mock_marketplace/__main__.py": "e5583beb86a21610f8eaba058bb94121476b548bf5f46a5b492767001ba3b0f5",
+    "dev_support/mock_marketplace/config.py": "405a287006493ab7e5b1cf6fc2530c8e1314f6485fe55c4139b6dc99ad3a8d71",
+    "dev_support/mock_marketplace/seed.py": "7520fd79127269a1d6baab1293c8d405b09d35a03b2a4a9b1895a9f7dad2d433",
+    "dev_support/mock_marketplace/service.py": "7117aa0a849d50ec7b6216fdad8eb34fb1c786509d3d84bde618629ea80a2714",
+    "mcp_servers/marketplace/adapters/__init__.py": "fca7ada88478d209805177112e3b28c814a65f3bf503a2b147c68bf86c5090ce",
+    "mcp_servers/marketplace/adapters/gigsim.py": "2f5ad369b9d67feb9c8baf43c0fc8a17df22c53b006bbdf790c149a633a602c2",
+    "mcp_servers/marketplace/adapters/unavailable.py": "c7b9f7f3b5528da3e70433488a9af71d7505d8f77c04a178a4ce6e4cca229ab5",
+    "mcp_servers/marketplace/adapters/upwork_live.py": "145f023b59e175b6ccb2dba6655f2f5dbe47e55943d91b34a203f873dbd14547"
+  },
+  "duration_seconds": 31.47,
+  "other_checks": {
+    "ruff": "passed",
+    "diff_whitespace": "passed"
+  },
+  "excluded": [
+    "Official adapter verification",
+    "MCP implementation/verification",
+    "Full MCP graph known failure",
+    "Docker/Postgres runtime",
+    "Real-model or official-outcome evaluation"
+  ]
+}

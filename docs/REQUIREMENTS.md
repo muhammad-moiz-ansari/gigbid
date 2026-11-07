@@ -2,6 +2,11 @@
 
 Status starts pending; PHASE_STATUS.md records actual implementation and verification.
 
+Phase 2 update: the shared port, provisional mock contract, synthetic fixtures,
+deterministic outcomes, fault controls and transactional idempotency are implemented
+and locally tested under `tests/mock_marketplace/`. This does not complete R1's
+official integrations, R2's MCP acceptance or any subsequent phase.
+
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|
 | R1 single marketplace port | agent/marketplace_port.py; mcp_servers/marketplace/adapters | contract tests, mock idempotency | Official schemas/accounts |

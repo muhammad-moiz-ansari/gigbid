@@ -65,3 +65,59 @@ Suggested commit (text only): `feat: add application foundation and tenant authe
 
 Stopped. No next phase is authorized until the user explicitly names it. No commits,
 pushes, PRs, branches, Git configuration changes, deployment or publication occurred.
+
+## Phase 2 - complete locally; stopped before Phase 3
+
+The user explicitly requested Phase 2 only. Implemented and verified the shared
+marketplace interface and original development simulator without starting the next
+phase. Previously written MCP, graph and UI implementation files were not extended.
+Existing approval tests were run only as compatibility checks for the changed port.
+
+Implemented:
+
+- Typed shared operations for jobs/search, client histories, Connects balances,
+  proposal inspection, messages/conversations, events, writes and reconciliation.
+  Explicit capability flags and readiness separate mock support from unavailable
+  official integrations. Removed dynamic catch-all adapter methods.
+- Original mock proposals, approved drafts/messages, Connects accounting, owned
+  conversations and append-only proposal/message events with increasing cursors.
+  No simulator implementation or fixtures were put under `gigsim/`.
+- A duplicate-posting fixture alongside scams, planted injection and unmatched jobs;
+  original client/config fixtures; re-seeding preserves existing account/state.
+- Configurable hash-based reply/interview/hire outcomes, captured configuration per
+  proposal, synthetic inbound messages, terminal lost handling and idempotent ticks.
+- Durable operation-scoped faults: outage, 429/retry-after, 503, immediate synthetic
+  timeout and ambiguous postcommit write response, with bounded or persistent plans.
+- Transactional write deduplication, conflicting-key rejection, safe retry after job
+  deletion/cost changes, same-job duplicate submission prevention, weekly budget
+  rollover, rollback recovery, and no approval/dry-run spending bypass.
+- Local CLI controls and simulator guide. Official GigSim/Upwork calls remain
+  explicitly unavailable; no guessed HTTP mappings or account access were added.
+
+Final checks:
+
+| Check | Actual outcome |
+|---|---|
+| Phase 2 tests + existing foundation/auth/approval compatibility command in `docs/checks/phase2.json` | 54 passed, zero failed/skipped, 31.47 seconds |
+| Phase 2 simulator tests within that run | 44 passed, separated under `tests/mock_marketplace/` |
+| Existing foundation/auth/approval compatibility | 10 passed; no later-phase implementation added |
+| CLI status for mock/GigSim/Upwork, official-mode mutation refusal | Passed within simulator tests |
+| Concurrent identical writes/ticks, new-process reconciliation, rollback and ambiguous writes | Passed within simulator tests |
+| `python -m ruff check .` | Passed |
+| `git diff --check` | Passed after normalizing the service file's trailing newline |
+
+The run emitted 13 upstream LangSmith/Python 3.14 deprecation warnings. Test counts,
+fixture hashes, tested-source hashes, Git base revision and the uncommitted-work flag
+are recorded in `docs/checks/phase2.json`. All outcomes are original synthetic
+development outcomes, never official GigSim metrics or real-model results.
+
+Limits: Postgres locking has code support but was not runtime-tested because Docker
+is unavailable. Official GigSim schemas/services and live Upwork authorization remain
+missing. The previously documented full-MCP graph failure remains outside this phase.
+MCP service work, advanced UI controls and automatic scouting/outcome polling await
+their explicitly requested phases.
+
+Suggested commit (text only): `feat: add marketplace interface and deterministic development simulator`
+
+Stopped at Phase 2. Phase 3 was not started. No commits, pushes, PRs, branches,
+Git configuration changes, deployments or publication actions were performed.

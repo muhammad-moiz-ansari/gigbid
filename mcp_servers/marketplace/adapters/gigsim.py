@@ -1,10 +1,13 @@
-from agent.marketplace_port import Capabilities, Unavailable
+from agent.marketplace_port import AdapterReadiness
+from mcp_servers.marketplace.adapters.unavailable import UnavailableMarketplace
 
 
-class GigSimAdapter:
-    capabilities = Capabilities()
-
-    def __getattr__(self, name):
-        def unavailable(*args, **kwargs):
-            raise Unavailable("Official GigSim contract is missing; adapter mapping is not implemented")
-        return unavailable
+class GigSimAdapter(UnavailableMarketplace):
+    readiness = AdapterReadiness(
+        mode="gigsim",
+        implemented=False,
+        contract_verified=False,
+        externally_verified=False,
+        synthetic=False,
+        detail="Official GigSim contract is missing; adapter mapping is not implemented",
+    )

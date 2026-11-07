@@ -1,6 +1,6 @@
 # Phase 1 local startup
 
-The user now requires one explicitly requested phase at a time. Phase 1 is the
+The user requires one explicitly requested phase at a time. Phase 2 is the
 current stopping point. Code written for later phases before that instruction is
 preserved, unfinished and not a claim of acceptance.
 
@@ -69,3 +69,7 @@ environment constraint, not a test failure in the application.
 
 Do not run the worker or further-phase evaluation/deployment commands until the user
 explicitly requests that phase. No commits, pushes, branches, PRs or publications.
+
+Phase 2 simulator-only commands and checks are documented in
+`dev_support/mock_marketplace/README.md`. They do not start the Phase 3 MCP layer or
+later graph/worker workflows. The foundation Compose file remains unchanged.

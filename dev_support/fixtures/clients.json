@@ -1,0 +1,5 @@
+[
+  {"id":"mock-client-1","verified":true,"spend":4000.0,"hires":8,"synthetic":true},
+  {"id":"mock-client-2","verified":true,"spend":1600.0,"hires":4,"synthetic":true},
+  {"id":"mock-client-3","verified":false,"spend":0.0,"hires":0,"synthetic":true}
+]

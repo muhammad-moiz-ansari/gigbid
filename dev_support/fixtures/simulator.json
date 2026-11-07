@@ -1,0 +1,6 @@
+{
+  "seed": 4016,
+  "reply_probability": 0.65,
+  "interview_probability": 0.5,
+  "hire_probability": 0.25
+}

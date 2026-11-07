@@ -2,9 +2,16 @@
 
 An evidence-grounded freelancer copilot with human approval before outgoing actions.
 
-**Current handoff: Phase 0 complete; Phase 1 local foundation finished and stopped.** The user
+**Current handoff: Phase 2 complete locally; stopped before Phase 3.** The user
 requires explicit instructions before each subsequent phase. Later-phase code
 started under the original authorization is preserved but unfinished.
+
+Phase 2 adds typed marketplace contracts, explicit adapter readiness, a durable
+synthetic marketplace, deterministic client outcomes, fault controls and tested
+idempotent Connects accounting. See the [simulator guide](dev_support/mock_marketplace/README.md).
+Official adapter implementations remain unavailable pending verified contracts.
+The final checks passed all 54 simulator/foundation/approval compatibility tests and
+Ruff. Recorded counts and source/fixture hashes are in [Phase 2 check evidence](docs/checks/phase2.json).
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.

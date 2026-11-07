@@ -1,11 +1,15 @@
-from agent.marketplace_port import Capabilities, Unavailable
+from agent.marketplace_port import AdapterReadiness
+from mcp_servers.marketplace.adapters.unavailable import UnavailableMarketplace
 
 
-class UpworkAdapter:
+class UpworkAdapter(UnavailableMarketplace):
     """Fail closed. No guessed tool names, OAuth registration or live side effects."""
-    capabilities = Capabilities()
 
-    def __getattr__(self, name):
-        def unavailable(*args, **kwargs):
-            raise Unavailable("Upwork OAuth and capability mappings await verified contract and authorization")
-        return unavailable
+    readiness = AdapterReadiness(
+        mode="upwork",
+        implemented=False,
+        contract_verified=False,
+        externally_verified=False,
+        synthetic=False,
+        detail="Upwork OAuth and capability mappings await verified contract and authorization",
+    )
