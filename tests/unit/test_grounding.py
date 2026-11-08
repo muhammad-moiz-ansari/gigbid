@@ -3,17 +3,17 @@ from rag.verify import verify
 
 
 def test_fabrication_and_disguised_history_removed():
-    evidence = [{"id": "abc", "text": "Built an API."}]
-    text = ('Portfolio evidence: "Built an API." [abc]\n\n'
-            'Portfolio evidence: "Earned a million dollars." [abc]\n\n'
-            'I have 10 years of experience.\n\n'
-            'Proposed approach: I built five systems.\n\n'
-            'Proposed approach: I would test authorization.')
+    evidence = [{"id": "abc123", "text": "Built an API."}]
+    text = ("I built an API. [abc123]\n\n"
+            "I earned a million dollars. [abc123]\n\n"
+            "I have 10 years of experience.\n\n"
+            "I would reuse the five systems I built.\n\n"
+            "I would test authorization.")
     result = verify(text, evidence)
     assert result["unsupported_before"] == 3
     assert result["unsupported_after"] == 0
     assert "million" not in result["text"]
-    assert "test authorization" in result["text"]
+    assert result["text"] == "I built an API. [abc123]\n\nI would test authorization."
 
 
 def test_injection_and_pii():

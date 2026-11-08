@@ -6,8 +6,11 @@ import sys
 
 def main():
     parser = argparse.ArgumentParser(description="GigBid local commands (no Git or publishing operations)")
-    parser.add_argument("command", choices=["migrate", "seed", "dev", "worker", "test", "lint", "eval", "demo", "client", "graphs"])
+    parser.add_argument("command", choices=["migrate", "seed", "dev", "worker", "test", "lint", "eval", "demo", "client",
+                                            "graphs", "replay"])
     parser.add_argument("--tenant")
+    parser.add_argument("--run", help="Run ID for replay")
+    parser.add_argument("--node", help="Replay from the latest checkpoint that runs this node next")
     args = parser.parse_args()
     if args.command == "migrate":
         subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], check=True)
@@ -33,6 +36,11 @@ def main():
     elif args.command == "client":
         from scripts.openapi import main as generate
         generate()
+    elif args.command == "replay":
+        if not args.run:
+            parser.error("--run is required; omit --node to list the run's checkpoints")
+        from worker.replay import cli
+        asyncio.run(cli(args.run, args.node))
     elif args.command == "graphs":
         from scripts.graphs import main as diagrams
         diagrams()

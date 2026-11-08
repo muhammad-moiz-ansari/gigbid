@@ -83,6 +83,53 @@ class SessionView(BaseModel):
     profile: dict
 
 
+class SkipInput(BaseModel):
+    reason: str = Field(default="", max_length=500)
+
+
+class ReplayInput(BaseModel):
+    checkpoint_id: str = Field(min_length=1, max_length=100)
+
+
+class CategoryStats(BaseModel):
+    category: str
+    submitted: int
+    replied: int
+    hired: int
+    connects_spent: int
+    reply_rate: float | None
+    hire_rate: float | None
+
+
+class Spread(BaseModel):
+    p50: float | None
+    p95: float | None
+
+
+class ReasonCount(BaseModel):
+    reason: str
+    count: int
+
+
+class Analytics(BaseModel):
+    mode: str
+    synthetic: bool
+    submitted: int
+    replied: int
+    hired: int
+    reply_rate: float | None
+    hire_rate: float | None
+    connects: dict
+    by_category: list[CategoryStats]
+    proposal_tokens: Spread
+    proposal_active_seconds: Spread
+    proposal_api_usd: Spread
+    rejection_reasons: list[ReasonCount]
+    runs: int
+    usage: list[dict]
+    official_outcomes: str
+
+
 class MessageInput(BaseModel):
     conversation: str = Field(min_length=1, max_length=200)
     text: str = Field(min_length=1, max_length=10000)

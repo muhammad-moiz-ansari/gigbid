@@ -140,3 +140,53 @@ uv run python -m pytest tests/rag -q
 uv run python -m pytest -q
 uv run python -m ruff check .
 ```
+
+## Phase 7 worker, schedules and replay
+
+Real generation needs Ollama with the configured models. `agent/config.yaml` sets
+`generation.think: false` for Qwen3, and the per-request model timeout defaults to
+120 seconds (`MODEL_TIMEOUT_SECONDS`).
+
+```bash
+ollama pull qwen3:4b
+ollama pull qwen3:8b
+ollama pull nomic-embed-text
+```
+
+Both worker modes use the same idempotent run processing:
+
+- `QUEUE_MODE=database` (default): `uv run python -m scripts.manage worker` drains queued
+  runs and also runs the saved-search scout, marketplace event sync and, in mock mode,
+  simulated client outcomes, each on its own schedule.
+- `QUEUE_MODE=celery` with Redis at `REDIS_URL`: the API dispatches runs to Celery and the
+  beat scheduler runs recovery every 30 s plus scouting, event sync and mock outcomes on
+  60 s ticks, each gated by its own per-user interval. Compose starts `worker` and `beat`.
+
+```bash
+redis-server --port 6379 --save "" --appendonly no
+QUEUE_MODE=celery uv run celery -A worker.tasks worker --loglevel=info
+QUEUE_MODE=celery uv run celery -A worker.tasks beat --loglevel=info
+```
+
+The local macOS check used `--pool=solo`; Compose uses Celery's default pool.
+
+Schedules live in `agent/config.yaml` under `scheduling`. A saved search runs no more often
+than its profile interval, and never more often than every 5 minutes in mock mode or every
+4 hours in live mode. Four hours keeps live reads far from anything resembling scraping
+(Upwork forbids scraping and unapproved bots) while still catching new postings the same
+day. Event sync runs every 60 s and mock outcomes advance every 120 s. A worker killed
+mid-run leaves the run leased for 300 s; the recovery task then resumes it from its last
+checkpoint, so finished nodes do not run again and stable action keys prevent a second
+submission. The scout skips postings it has seen and marks duplicate postings (same title,
+description and client under another ID) without analysing them.
+
+Replay a run from a saved checkpoint as a new branch (an operator and debugging tool):
+
+```bash
+uv run python -m scripts.manage replay --run RUN_ID
+uv run python -m scripts.manage replay --run RUN_ID --node writer
+```
+
+The first command lists checkpoints; the second queues a replay from the latest checkpoint
+that runs `writer` next. The run viewer at `/runs/RUN_ID` lists the same checkpoints with
+Replay buttons. A replay gets a fresh budget and must be approved again before any send.

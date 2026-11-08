@@ -153,3 +153,39 @@ test("invalidated reviews and account switching clear stale workspace data", asy
   await expect(page.getByText("Your opportunity feed is empty.")).toBeVisible();
 });
 
+test("client reply becomes an approved reply with offered interview slots", async ({ page }) => {
+  await register(page);
+  await page.getByRole("link", { name: "Job inbox", exact: false }).click();
+  await page.getByRole("button", { name: /Load synthetic examples/ }).click();
+  await page.getByRole("link", { name: "Messages", exact: false }).click();
+  await page.getByLabel("Client message").fill("Could we schedule an interview this week?");
+  await page.getByRole("button", { name: "Add synthetic reply" }).click();
+  await page.getByRole("link", { name: "Review reply ↗" }).click();
+  await expect(page.getByRole("heading", { name: "Offered interview slots" })).toBeVisible();
+  await page.getByRole("button", { name: "Approve exact action →" }).click();
+  await expect(page.getByText("Approved action completed.", { exact: false })).toBeVisible();
+  const messages = await (await page.request.get("/api/messages")).json();
+  expect(messages.map((m: { direction: string }) => m.direction)).toEqual(["inbound", "outbound"]);
+});
+
+test("memory viewer shows a learned rule and forgetting it removes it", async ({ page }) => {
+  await register(page);
+  expect((await page.request.get("/api/test/memory/seed")).ok()).toBe(true);
+  await expect(page.getByText('Avoid this repeatedly removed word: "passionate"')).toBeVisible();
+  await page.getByRole("button", { name: "Forget this" }).click();
+  await expect(page.getByText("Nothing promoted yet.", { exact: false })).toBeVisible();
+  expect(await (await page.request.get("/api/memory")).json()).toEqual([]);
+});
+
+test("inbox skip hides a job and keeps it under the Skipped filter", async ({ page }) => {
+  await register(page);
+  await page.getByRole("link", { name: "Job inbox", exact: false }).click();
+  await page.getByRole("button", { name: /Load synthetic examples/ }).click();
+  const card = page.locator(".job-card").filter({ hasText: "Native iOS development" });
+  await card.getByText("Skip…").click();
+  await card.getByLabel("Reason for skipping Native iOS development").fill("Not my stack");
+  await card.getByRole("button", { name: "Skip job" }).click();
+  await expect(page.locator(".job-card").filter({ hasText: "Native iOS development" })).toHaveCount(0);
+  await page.getByRole("combobox", { name: "Decision filter" }).selectOption("skipped");
+  await expect(page.getByText("Skipped: Not my stack")).toBeVisible();
+});

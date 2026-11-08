@@ -26,7 +26,7 @@ ALLOWLISTS = {
     "verifier": {"get_case_study"},
     "critic": {"get_case_study"},
     "compliance": set(),
-    "liaison": {"list_messages", "search_evidence", "free_slots"},
+    "liaison": {"list_messages", "get_job", "search_evidence", "free_slots"},
     "executor": {
         "submit_proposal",
         "send_message",

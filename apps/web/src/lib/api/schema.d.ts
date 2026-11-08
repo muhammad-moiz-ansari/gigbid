@@ -191,6 +191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/jobs/{job_id}/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip */
+        post: operations["skip_jobs__job_id__skip_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{job_id}": {
         parameters: {
             query?: never;
@@ -464,17 +481,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/analytics": {
+    "/dev/advance": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Analytics */
-        get: operations["analytics_analytics_get"];
+        get?: never;
         put?: never;
-        post?: never;
+        /**
+         * Advance
+         * @description Mock only: advances simulated client outcomes now and applies the resulting events.
+         */
+        post: operations["advance_dev_advance_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -510,6 +530,57 @@ export interface paths {
         post?: never;
         /** Forget */
         delete: operations["forget_memory__memory_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analytics */
+        get: operations["analytics_analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/checkpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Checkpoints */
+        get: operations["run_checkpoints_runs__run_id__checkpoints_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replay */
+        post: operations["replay_runs__run_id__replay_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -553,6 +624,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Analytics */
+        Analytics: {
+            /** Mode */
+            mode: string;
+            /** Synthetic */
+            synthetic: boolean;
+            /** Submitted */
+            submitted: number;
+            /** Replied */
+            replied: number;
+            /** Hired */
+            hired: number;
+            /** Reply Rate */
+            reply_rate: number | null;
+            /** Hire Rate */
+            hire_rate: number | null;
+            /** Connects */
+            connects: {
+                [key: string]: unknown;
+            };
+            /** By Category */
+            by_category: components["schemas"]["CategoryStats"][];
+            proposal_tokens: components["schemas"]["Spread"];
+            proposal_active_seconds: components["schemas"]["Spread"];
+            proposal_api_usd: components["schemas"]["Spread"];
+            /** Rejection Reasons */
+            rejection_reasons: components["schemas"]["ReasonCount"][];
+            /** Runs */
+            runs: number;
+            /** Usage */
+            usage: {
+                [key: string]: unknown;
+            }[];
+            /** Official Outcomes */
+            official_outcomes: string;
+        };
         /** ApprovalDecision */
         ApprovalDecision: {
             /**
@@ -582,6 +689,23 @@ export interface components {
              * @default {}
              */
             metadata: string;
+        };
+        /** CategoryStats */
+        CategoryStats: {
+            /** Category */
+            category: string;
+            /** Submitted */
+            submitted: number;
+            /** Replied */
+            replied: number;
+            /** Hired */
+            hired: number;
+            /** Connects Spent */
+            connects_spent: number;
+            /** Reply Rate */
+            reply_rate: number | null;
+            /** Hire Rate */
+            hire_rate: number | null;
         };
         /** Credentials */
         Credentials: {
@@ -677,6 +801,18 @@ export interface components {
             /** Marketplace Mode */
             marketplace_mode?: ("mock" | "gigsim" | "upwork") | null;
         };
+        /** ReasonCount */
+        ReasonCount: {
+            /** Reason */
+            reason: string;
+            /** Count */
+            count: number;
+        };
+        /** ReplayInput */
+        ReplayInput: {
+            /** Checkpoint Id */
+            checkpoint_id: string;
+        };
         /** RunEvent */
         RunEvent: {
             /** Id */
@@ -728,6 +864,21 @@ export interface components {
             profile: {
                 [key: string]: unknown;
             };
+        };
+        /** SkipInput */
+        SkipInput: {
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+        };
+        /** Spread */
+        Spread: {
+            /** P50 */
+            p50: number | null;
+            /** P95 */
+            p95: number | null;
         };
         /** Upload */
         Upload: {
@@ -1079,6 +1230,43 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    skip_jobs__job_id__skip_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SkipInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -1583,7 +1771,7 @@ export interface operations {
             };
         };
     };
-    analytics_analytics_get: {
+    advance_dev_advance_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1647,6 +1835,94 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analytics_analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Analytics"];
+                };
+            };
+        };
+    };
+    run_checkpoints_runs__run_id__checkpoints_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replay_runs__run_id__replay_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplayInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunView"];
                 };
             };
             /** @description Validation Error */

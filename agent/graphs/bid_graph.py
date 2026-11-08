@@ -6,7 +6,7 @@ from agent.nodes.workflow import Nodes, tracked
 from agent.state import BidState
 
 
-def build_bid_graph(tools, model, checkpointer):
+def build_bid_graph(tools, model, checkpointer, store=None):
     nodes = Nodes(tools, model)
     builder = StateGraph(BidState)
     for name in ("intake", "analyst", "risk", "matcher", "reconcile", "pricing", "writer",
@@ -37,4 +37,4 @@ def build_bid_graph(tools, model, checkpointer):
                                   "verifier" if s["status"] == "rechecking" else END,
                                   ["execute", "regenerate", "verifier", END])
     builder.add_edge("execute", END)
-    return builder.compile(checkpointer=checkpointer)
+    return builder.compile(checkpointer=checkpointer, store=store)

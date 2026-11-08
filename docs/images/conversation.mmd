@@ -6,6 +6,7 @@ config:
 graph TD;
 	__start__([<p>__start__</p>]):::first
 	intake(intake)
+	classify(classify)
 	draft(draft)
 	verifier(verifier)
 	compliance(compliance)
@@ -19,11 +20,12 @@ graph TD;
 	approval -.-> execute;
 	approval -.-> regenerate;
 	approval -.-> verifier;
+	classify -.-> __end__;
+	classify -.-> draft;
 	compliance -.-> __end__;
 	compliance -.-> preview;
 	draft --> verifier;
-	intake -.-> __end__;
-	intake -.-> draft;
+	intake --> classify;
 	preview --> approval;
 	regenerate --> verifier;
 	verifier --> compliance;

@@ -16,6 +16,7 @@ async def test_restart_approve_and_replay(client, account):
     result = client.get(f"/runs/{run_id}").json()
     assert result["status"] == "awaiting_approval", result
     assert MockMarketplace().balance(tenant)["spent"] == 0
+    assert "[" in result["state"]["draft"]["text"] and "[" not in result["state"]["preview"]["payload"]["text"]
     approval_id = result["state"]["approval_id"]
     assert client.post(f"/approvals/{approval_id}/decision", json={"decision": "approve"}).status_code == 200
     # Reopens the durable SQLite checkpointer, recreates graph and model after pause.

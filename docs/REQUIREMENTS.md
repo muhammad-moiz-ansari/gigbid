@@ -30,7 +30,18 @@ Phase 6 update: onboarding, metadata-preserving uploads, saved filters, structur
 job details, evidence citations, the proposal studio and paragraph regeneration are
 implemented. Typed history and authenticated SSE expose actual saved graph activity
 with replay, de-duplication and session revocation. See WEB_WORKFLOW.md and
-checks/phase6.json for browser/backend results. Phase 7 is not started.
+checks/phase6.json for browser/backend results.
+
+Phase 7 step 0 update: R5 claim verification now checks each sentence against the
+evidence its paragraph cites (supported, partly supported or unsupported), replacing the
+closed grammar that real models could not follow. Qwen3 thinking is disabled through
+config.
+
+Phase 7 update: conversation threads with intent classification and approved replies,
+event-driven pipeline statuses, Celery/Redis scheduling with duplicate-posting detection,
+style and outcome memory in a LangGraph store with explicit promotion rules and durable
+forgetting, autonomy-controlled skip archiving, category analytics and checkpoint replay
+are implemented. See PHASE_STATUS.md and checks/phase7.json.
 
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|

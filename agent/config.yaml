@@ -1,10 +1,12 @@
 version: 1
 prompts:
-  writer: v2
-  liaison: v2
+  writer: v3
+  liaison: v3
+  compliance: v2
 generation:
   max_tokens: 1800
   node_timeout_seconds: 150
+  think: false
 profiles:
   open:
     provider: ollama
@@ -15,8 +17,10 @@ profiles:
       matcher: qwen3:4b
       pricing: qwen3:4b
       writer: qwen3:8b
+      answer: qwen3:4b
       critic: qwen3:8b
       compliance: qwen3:4b
+      intent: qwen3:4b
       liaison: qwen3:8b
     fallback: qwen3:4b
   paid:
@@ -44,9 +48,19 @@ thresholds:
   max_risk: 0.65
   critic_revisions: 2
   corrective_queries: 2
+  claim_support: 0.6
+  claim_partial: 0.3
 scheduling:
   mock_min_interval_seconds: 300
   live_min_interval_seconds: 14400
+  event_sync_seconds: 60
+  mock_outcome_seconds: 120
+categories:
+  backend: [FastAPI, Postgres, Django, Flask, API, Celery]
+  web: [TypeScript, React, Next.js, JavaScript, CSS]
+  ai-ml: [RAG, LLM, Qdrant, PyTorch, Machine Learning]
+  data: [SQL, dbt, Pandas, Tableau, Power BI]
+  mobile: [Swift, ARKit, Kotlin, Flutter]
 retries:
   read_attempts: 3
   write_attempts: 1
@@ -55,5 +69,7 @@ policy:
   provenance: provisional-development-only
   version: dev-1
   november_2_update: pending
+  rules: [No off-platform contact or payment, No fabricated experience or credentials,
+          No guarantees of results, Nothing is sent without human approval]
   banned_phrases: [telegram, whatsapp, wire transfer, guaranteed results, guarantee success]
   max_proposal_words: 350

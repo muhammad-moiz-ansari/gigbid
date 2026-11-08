@@ -239,11 +239,11 @@ async def test_screening_keys_cannot_launder_fabricated_achievements(client, acc
         async def complete(self, node, data, schema):
             result, usage = await super().complete(node, data, schema)
             if node == "writer":
-                result["screening_answers"] = {"I have built 50 production systems.":
+                result["screening_answers"] = {**result["screening_answers"], "I have built 50 production systems.":
                     "Proposed approach: I would test authorization."}
             return result, usage
     _, state = await pending(client, account["id"], model=Models())
-    assert state["draft"]["screening_answers"] == {}
+    assert "I have built 50 production systems." not in state["draft"]["screening_answers"]
     assert state["verification"]["unsupported_before"] == 1
     assert "50 production" not in state["preview"]["payload"]["text"]
 

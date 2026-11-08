@@ -22,10 +22,11 @@ def binding(run_id, preview, context=None):
 
 def stage_approval(db, tenant, run_id, preview, context=None):
     bound = binding(run_id, preview, context)
+    # Only a still-pending review is reused; a decided or consumed approval never authorizes a new preview.
     approval = db.scalar(select(Approval).where(Approval.tenant == tenant,
                                               Approval.run_id == run_id,
                                               Approval.binding == bound,
-                                              Approval.decision != "invalidated"))
+                                              Approval.decision == "pending"))
     if not approval:
         for old in db.scalars(select(Approval).where(Approval.tenant == tenant,
                                                      Approval.run_id == run_id,

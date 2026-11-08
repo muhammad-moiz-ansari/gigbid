@@ -78,7 +78,7 @@ export default function Onboarding({ profile: savedProfile, setProfile: saveProf
         <label>Maximum Connects per job<input type="number" min="0" max="10000" placeholder="No limit" value={profile.max_connects ?? ""} onChange={e => setProfile({ ...profile, max_connects: e.target.value === "" ? null : Number(e.target.value) })}/></label>
       </div>
       <label>Search interval (seconds)<input type="number" min={status.marketplace_mode === "mock" ? 300 : 14400} required value={profile.interval_seconds} onChange={e => setProfile({ ...profile, interval_seconds: Number(e.target.value) })}/></label>
-      <label className="checkbox"><input type="checkbox" checked={profile.auto_skip} onChange={e => setProfile({ ...profile, auto_skip: e.target.checked })}/>Allow low-fit auto-skip. Sending always needs approval.</label>
+      <label className="checkbox"><input type="checkbox" checked={profile.auto_skip} onChange={e => setProfile({ ...profile, auto_skip: e.target.checked })}/>Archive jobs the agents recommend skipping. Sending always needs your approval.</label>
       <button className="primary" disabled={busy}>Save profile</button>
     </form>
     <form className="panel" onSubmit={upload}><h2>Upload your work</h2>

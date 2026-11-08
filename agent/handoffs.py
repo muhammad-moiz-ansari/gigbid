@@ -51,6 +51,15 @@ class ProposalDraft(Contract):
     evidence_ids: list[str] = []
 
 
+class ScreeningAnswer(Contract):
+    answer: str = Field(min_length=1, max_length=4000)
+
+
+class IntentReport(Contract):
+    intent: Literal["question", "negotiation", "interview", "scam"]
+    reasons: list[str]
+
+
 class Critique(Contract):
     passed: bool
     comments: list[str]

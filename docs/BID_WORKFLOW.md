@@ -80,16 +80,24 @@ The budget ledger is authoritative; checkpoint usage lists summarize completed
 nodes. Attempt-level budget events include failures and preserve numeric metrics.
 API USD is unreported/null for local Ollama calls; hardware cost is not measured.
 
-The verifier accepts exact complete current evidence passages and a closed grammar
-of future plans and questions. Prefixing a past achievement with "Proposed approach"
-or "Question" cannot bypass it. Partial quotes are removed because they can drop
-negation. Multi-paragraph quotes retain context. Unsupported screening answers are
-also removed, and compliance scans both question labels and answer content.
-Screening labels must match questions from the actual marketplace job; invented
-labels are removed and recorded as unsupported rather than sent with the proposal.
-Versioned writer/liaison v2 prompts describe the accepted grammar. This intentionally
-restricts prose variety. Reported before/after counts measure this deterministic
-grammar check, not semantic accuracy or a real-model quality score.
+Phase 7 step 0 replaced the earlier closed grammar, which a real qwen3:8b writer never
+satisfied: in the 2026-11-08 smoke test every draft was removed and the run was blocked.
+Drafts are now plain paragraphs that end with `[evidence_id]` citations. The verifier
+splits each paragraph into sentences. Questions, plans ("I would ...") and courtesy or
+client-need sentences are kept. A sentence about past work must cite current evidence,
+use only numbers that appear in it, not contradict a negation in it, and share at least
+60% of its words with it (30-60% is partly supported). Unsupported and partly supported
+sentences are removed before the Critic and counted before and after. Prefixing a past
+achievement with "Proposed approach" or "Question" still cannot bypass the check.
+Screening answers are checked the same way, and invented question labels are removed.
+Citations stay in the studio; the client receives plain text. Thresholds live in
+`agent/config.yaml`. Word overlap is a deterministic check, not semantic proof.
+
+Compliance blocks only on rule checks: off-platform contact or payment, free work,
+guarantees, contact details, injected text, banned phrases, the word limit and a failed
+Critique. The compliance model (prompt v2) reviews the plain outgoing text and its concerns
+appear in the studio as warnings for the human reviewer; it cannot block or approve. In real
+runs a small model without portfolio access repeatedly flagged verified claims as fabricated.
 
 ## Checks and limits
 
@@ -111,3 +119,32 @@ API behavior was checked against the official documentation for
 [interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts),
 [persistence](https://docs.langchain.com/oss/python/langgraph/persistence) and
 [graph routing](https://docs.langchain.com/oss/python/langgraph/graph-api).
+
+## Conversation graph (Phase 7)
+
+One durable thread per client conversation: intake (thread, job context and evidence),
+classify (small-model intent with a rule-based scam override), draft, verifier, compliance,
+preview, approval and send. Each new client message starts the next turn on the same thread.
+Draft versions keep increasing so action keys stay unique, and a message that is already
+being answered is never queued twice. Interview requests get free calendar slots from the
+Workspace MCP; no calendar hold is created. Compliance blocks any dollar amount below the
+user's minimum bid.
+
+## Memory (Phase 7)
+
+Promoted memory lives in a LangGraph store (SQLite locally, Postgres when `CHECKPOINT_URL`
+is a Postgres URL) under per-tenant `style` and `outcome` namespaces. Both graphs are
+compiled with the store and nodes read it with `get_store()`. Style rules come only from
+approved text edits (the same word removed in five distinct runs). Outcome notes come from
+replied, interview, hired and lost events grouped by a configurable skill-to-category map
+(three outcomes in one category). Raw tool output never becomes memory. The writer and
+liaison receive memory as labelled context, pricing receives the category's outcome note,
+and the Critic sends back a draft that uses a word the user keeps removing. Forgetting an
+entry deletes it and records a tombstone so later observations cannot promote it again.
+
+## Replay (Phase 7)
+
+`scripts.manage replay` and `/runs/{id}/replay` re-run a thread from a saved checkpoint as a
+new branch with a fresh budget; earlier totals stay in the ledger. A replay that reaches
+preview always needs a new approval, because only a still-pending approval is reused. A
+replayed execute step reconciles its stable key, so a submitted proposal is never sent twice.

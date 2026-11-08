@@ -61,7 +61,7 @@ class MarketplaceEvent(TypedDict):
     sequence: int
     subject: str
     proposal_id: str | None
-    status: PipelineStatus | Literal["sent"]
+    status: PipelineStatus | Literal["sent", "received"]
     synthetic: bool
     kind: Literal["proposal", "message"]
     message_id: NotRequired[str]

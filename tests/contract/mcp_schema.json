@@ -467,7 +467,10 @@
                     "type": "string"
                   },
                   {
-                    "const": "sent",
+                    "enum": [
+                      "sent",
+                      "received"
+                    ],
                     "type": "string"
                   }
                 ],

@@ -1,10 +1,12 @@
 import asyncio
+import re
 import time
 from difflib import unified_diff
 
 from langgraph.types import interrupt
 
 from agent import budgets
+from agent.categories import category
 from agent.errors import BudgetExceeded
 from agent.handoffs import (
     Action,
@@ -19,15 +21,19 @@ from agent.handoffs import (
     ProposalDraft,
     RiskHandoff,
     RiskReport,
+    ScreeningAnswer,
     WriteRequest,
     WriteResult,
 )
+from agent.memory.store import recall
 from agent.model import config, usage_sink
 from apps.api.approvals import approval_context, stage_approval, validate_resume
 from apps.api.db import Approval, put_record, transaction
 from apps.api.safety import risks
 from rag.verify import paragraphs as draft_paragraphs
-from rag.verify import verify
+from rag.verify import strip_citations, verify
+
+PRICE = re.compile(r"\$\s?(\d[\d,]*(?:\.\d+)?)")
 
 
 def tracked(name, function):
@@ -50,7 +56,8 @@ def tracked(name, function):
                                      observed or result.get("usage", []), node=name)
         # An already completed effect remains a fact even when its duration exceeds a budget.
         if budgets.exceeded(totals) and name != "execute":
-            raise BudgetExceeded(f"{name}: execution budget exhausted ({', '.join(budgets.exceeded(totals))})") from failure
+            cause = f"; cause: {type(failure).__name__} {failure}".rstrip() if failure else ""
+            raise BudgetExceeded(f"{name}: execution budget exhausted ({', '.join(budgets.exceeded(totals))}){cause}") from failure
         if failure:
             raise failure
         return {**result, "steps": 1, "active_seconds": elapsed}
@@ -116,12 +123,17 @@ class Nodes:
                 "decision": BidDecision(action=action, reason=reason).model_dump(),
                 "status": "running" if action == "bid" else action}
 
+    async def outcomes(self, state):
+        job = category(state.get("job", {}).get("skills", []))
+        return [entry for entry in await recall(state["tenant"], "outcome") if entry.get("category") == job]
+
     async def pricing(self, state):
         balance = await self.tools.call("pricing", "get_connects_balance", {})
         if balance["balance"] < state["job"]["connects"]:
             raise BudgetExceeded("Insufficient Connects balance")
         result, usage = await self.model.complete("pricing", {"job": state["job"], "profile": state["profile"],
-                                                              "balance": balance}, PriceQuote)
+                                                              "balance": balance, "outcomes": await self.outcomes(state)},
+                                                  PriceQuote)
         result = PriceQuote.model_validate(result).model_dump()
         result["amount"] = max(state["profile"].get("floor_fixed", 50),
                                min(result["amount"], state["job"]["budget"]))
@@ -131,11 +143,21 @@ class Nodes:
     async def writer(self, state):
         result, usage = await self.model.complete("writer", {
             "job": state["job_spec"], "evidence": state["fit"]["evidence"], "price": state["price"],
-            "critique": state.get("critique"), "memory": state.get("memory", []),
+            "critique": state.get("critique"), "memory": await recall(state["tenant"], "style"),
+            "outcomes": await self.outcomes(state),
             "version": state.get("draft", {}).get("version", 0) + 1,
+            "max_words": config()["policy"]["max_proposal_words"],
         }, ProposalDraft)
         result["version"] = state.get("draft", {}).get("version", 0) + 1
-        return {"draft": ProposalDraft.model_validate(result).model_dump(), "usage": [usage]}
+        usages, answers = [usage], dict(result.get("screening_answers") or {})
+        for question in state["job_spec"].get("screening_questions", []):
+            if not answers.get(question, "").strip():
+                # Small models often skip screening answers, so ask for each missing one directly.
+                answer, extra = await self.model.complete("answer", {"question": question, "job": state["job_spec"],
+                                                                     "evidence": state["fit"]["evidence"]}, ScreeningAnswer)
+                answers[question], usages = answer["answer"], usages + [extra]
+        result["screening_answers"] = answers
+        return {"draft": ProposalDraft.model_validate(result).model_dump(), "usage": usages}
 
     async def verifier(self, state):
         evidence = []
@@ -154,7 +176,7 @@ class Nodes:
         for question, answer in draft.get("screening_answers", {}).items():
             if question not in state["job"].get("screening_questions", []):
                 checked["unsupported_before"] += 1
-                checked["claims"].append({"text": question, "label": "unsupported", "evidence_id": None,
+                checked["claims"].append({"text": question, "label": "unsupported", "evidence_ids": [],
                                           "reason": "Question is not present in the marketplace job"})
                 continue
             result = verify(answer, evidence)
@@ -164,8 +186,7 @@ class Nodes:
             answers[question] = result["text"]
         draft["text"] = checked["text"]
         draft["screening_answers"] = answers
-        draft["evidence_ids"] = sorted({c["evidence_id"] for c in checked["claims"]
-                                         if c["label"] == "supported" and c["evidence_id"]})
+        draft["evidence_ids"] = sorted({i for claim in checked["claims"] for i in claim["evidence_ids"]})
         return {"draft": draft, "verification": checked,
                 "fit": {**state["fit"], "evidence": evidence}}
 
@@ -173,6 +194,14 @@ class Nodes:
         result, usage = await self.model.complete("critic", {"job": state["job"], "draft": state["draft"],
                                                             "verification": state["verification"]}, Critique)
         result = Critique.model_validate(result).model_dump()
+        answers = state["draft"].get("screening_answers", {})
+        missing = [q for q in state["job"].get("screening_questions", []) if not answers.get(q, "").strip()]
+        avoided = [m["word"] for m in await recall(state["tenant"], "style")
+                   if re.search(rf"\b{re.escape(m['word'])}\b", state["draft"]["text"], re.I)]
+        comments = [f"Answer the screening question: {q}" for q in missing] + [
+            f"Avoid '{word}', which you removed in earlier approved edits" for word in avoided]
+        if comments:
+            result = {"passed": False, "comments": comments}
         if not state["draft"]["text"].strip():
             result = {"passed": False, "comments": ["No grounded proposal content remains"]}
         return {"critique": Critique.model_validate(result).model_dump(), "revision": state.get("revision", 0) + (not result["passed"]),
@@ -180,8 +209,8 @@ class Nodes:
 
     async def compliance(self, state):
         reasons = []
-        text = state["draft"]["text"] + "\n" + "\n".join(
-            f"{q}\n{a}" for q, a in state["draft"].get("screening_answers", {}).items())
+        text = strip_citations(state["draft"]["text"] + "\n" + "\n".join(
+            f"{q}\n{a}" for q, a in state["draft"].get("screening_answers", {}).items()))
         reasons.extend(risks(text))
         policy = config()["policy"]
         reasons.extend(f"Banned phrase: {p}" for p in policy["banned_phrases"] if p in text.lower())
@@ -189,18 +218,23 @@ class Nodes:
             reasons.append("Proposal exceeds configured word limit")
         if not text.strip() or not state.get("critique", {"passed": True})["passed"]:
             reasons.append("Draft did not pass critique")
-        # Deterministic policy cannot be overruled by a model verdict.
-        result, usage = await self.model.complete("compliance", {"draft": state["draft"], "policy": policy}, ComplianceVerdict)
+        floor = state.get("profile", {}).get("floor_fixed", 0)
+        if any(float(amount.replace(",", "")) < floor for amount in PRICE.findall(text)):
+            reasons.append(f"Mentions a price below your minimum of ${floor:g}")
+        # Only the rule checks above block; the model's concerns are warnings for the human reviewer.
+        rules = {key: policy[key] for key in ("rules", "banned_phrases", "max_proposal_words")}
+        result, usage = await self.model.complete("compliance", {"outgoing_text": text, "policy": rules}, ComplianceVerdict)
         result = ComplianceVerdict.model_validate(result).model_dump()
-        reasons += result["reasons"] if not result["passed"] else []
-        return {"compliance": {"passed": not reasons, "reasons": reasons},
+        warnings = [] if result["passed"] else result["reasons"]
+        return {"compliance": {"passed": not reasons, "reasons": reasons, "warnings": warnings},
                 "status": "running" if not reasons else "blocked", "usage": [usage]}
 
     def action(self, state):
         draft = state["draft"]
-        text = draft["text"]
+        # Citations stay in the studio; the client receives plain text.
+        text = strip_citations(draft["text"])
         for question, answer in draft.get("screening_answers", {}).items():
-            text += f"\n\nScreening question: {question}\n{answer}"
+            text += f"\n\nScreening question: {question}\n{strip_citations(answer)}"
         return Action(kind="message" if state.get("conversation") else "proposal",
             destination=state.get("conversation") or state["job"]["id"], text=text,
             price=state.get("price", {}).get("amount", 0), version=draft["version"],
@@ -209,7 +243,7 @@ class Nodes:
 
     def request(self, state):
         action = self.action(state)
-        return WriteRequest(action=action, run_id=state["run_id"], approval_id=state.get("approval_id"),
+        return WriteRequest(action=action, run_id=state["run_id"], approval_id=state.get("approval_id") or None,
                             idempotency_key=f"{state['run_id']}:{action.kind}:v{action.version}")
 
     async def preview(self, state):
@@ -246,8 +280,8 @@ class Nodes:
             "price": state.get("price", {}), "version": state["draft"]["version"] + 1,
             "regenerate_paragraph": state["edit"]["paragraph"], "previous_draft": state["draft"]}, ProposalDraft)
         result = ProposalDraft.model_validate(result).model_dump()
-        paragraphs = [p for p, _ in draft_paragraphs(state["draft"]["text"])]
-        replacement = [p for p, _ in draft_paragraphs(result["text"])]
+        paragraphs = draft_paragraphs(state["draft"]["text"])
+        replacement = draft_paragraphs(result["text"])
         index = state["edit"]["paragraph"]
         if not replacement or index >= len(paragraphs):
             raise ValueError("Regeneration requires an existing paragraph and non-empty replacement")

@@ -27,6 +27,7 @@ async def test_failed_structured_attempts_count_tokens_and_fallback(monkeypatch)
     assert usage["usage_complete"] and len(observations) == 2
     assert sum(u["tokens"] for u in observations) == 50
     assert calls[0]["messages"][0]["role"] == "system"
+    assert calls[0]["think"] is False
 
 
 @pytest.mark.asyncio

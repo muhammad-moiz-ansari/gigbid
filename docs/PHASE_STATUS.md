@@ -434,3 +434,75 @@ Stopped at Phase 6. Five phases remain: 7 conversations/scheduling/memory;
 Phase 9 and parts of the evaluation/reporting work depend on unavailable official
 inputs, real model runs and human labels. No next phase was started. No commits,
 pushes, branches, PRs, Git configuration changes or publishing were performed.
+
+## Phase 7 - implemented; two real-model issues await the user's decision
+
+2026-11-08: the user authorized Phase 7 with Claude Code. Step 0 (real-model fixes and the
+writer/verifier redesign) came first; steps 0c and 1-8 then ran in one pass at the user's
+request, with a single commit planned once the phase is complete.
+
+Implemented:
+
+- Real models: Qwen3 thinking off through config, 120 s model request timeout, sentence-level
+  claim verification with `[id]` citations, advisory compliance-model warnings, and a separate
+  model call for any screening question the writer leaves unanswered.
+- Conversations: one durable thread per client conversation (intake, small-model intent
+  classification with a rule-based scam override, draft, verifier, compliance, approval, send).
+  Each new client message starts the next turn; a message arriving during review cancels that
+  review. Interview requests offer free Workspace slots. Compliance blocks prices below the
+  user's minimum.
+- Events and pipeline: the mock records an event for each client message; the worker reads
+  events from a saved cursor, moves pipeline cards forward only, marks proposals awaiting
+  review as drafted and queues replies. Mock outcomes advance on a schedule and on demand.
+- Scheduling: Celery tasks and beat entries for recovery, scouting, event sync and mock
+  outcomes, with matching schedules in the database worker; worker and beat Compose services.
+  The scout records duplicate postings instead of analysing them.
+- Memory: a LangGraph SQLite/Postgres store with per-tenant style and outcome namespaces, read by
+  nodes through `get_store()`. Style rules come from approved text edits only; outcome notes come
+  from outcome events by job category. Forgetting is durable. The Critic flags style violations.
+- Autonomy and inbox: skip decisions are archived or shown as recommendations depending on the
+  setting; any job can be skipped with a reason. Sending always needs approval.
+- Analytics by job category, per-proposal token, active-second and API cost percentiles, and top
+  rejection reasons. Checkpoint replay through `scripts.manage replay` and the API. The previously
+  empty Agent runs screen now shows activity and checkpoints with Replay buttons.
+- `stage_approval` now reuses only a still-pending approval; before, an identical replayed
+  preview could pick up an approval that was already consumed.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 177 passed, 1 Postgres skip (54.7 s) |
+| Playwright journeys in installed Chrome | 9 passed: 6 existing and 3 new (client reply with slots, forgetting memory, inbox skip) |
+| Ruff, TypeScript check, production build | Passed |
+| OpenAPI export and generated client; MCP schema snapshot | Regenerated; the snapshot change is the new `received` event status |
+
+Real-model runs (Ollama 0.40.15, Apple M3 24 GB, qwen3:4b and qwen3:8b, mock marketplace, V0):
+
+| Run | Actual outcome |
+|---|---|
+| Before step 0, code as committed | needs_attention after 92 s; all four model attempts timed out in thinking mode |
+| Before step 0, thinking disabled in the test driver | blocked; all three drafts removed by the closed grammar |
+| Step 0 with advisory compliance | proposal reached approval, approved and submitted once; Connects 100 -> 92 |
+| Step 0 after the timeout change | blocked: the writer left screening answers empty in all three drafts |
+| Phase 7, proposal and reply | proposal needs_attention at the 180 s active budget; reply failed because `intent.v1.md` was missing (added, with a test that every node has a prompt) |
+| Phase 7, second run | proposal needs_attention at 14,498 of 12,000 tokens after two rewrites, because its screening answer was removed as partly supported each time; reply failed at the MCP preview on an empty approval id (fixed, with an MCP-level test) and its slot sentence was removed (fixed) |
+
+Celery and Redis check (Redis 8.10.3, `--pool=solo`, real models, the dashboard job): the worker
+was killed with SIGKILL 22.6 s in, after intake, analyst, risk, matcher, reconcile and pricing had
+completed and the writer had started. After the 300 s lease the recovery task resumed the run at
+338 s. No completed node ran again and nothing was submitted or spent. The run then stopped as
+needs_attention: the killed writer's token usage is unknown, the existing budget rule blocks
+further generation, and Retry cannot clear it.
+
+Open issues awaiting the user:
+
+1. Screening answers: qwen3:8b writes one sentence that mixes a plan with a past-work claim; the
+   verifier removes it as partly supported, the Critic asks again, and two rewrites exceed the
+   token budget. Proposed fix: screening answers are plans only, and evidence claims stay in the
+   cover letter.
+2. Interrupted model calls: a run killed mid-call can never continue. Proposed fix: Retry records
+   a human acknowledgement of the unknown usage and continues within the remaining budget.
+
+Known benign warning: LangGraph's async SQLite store can log "Task was destroyed but it is
+pending" when a run's store closes. No commits, pushes, branches, PRs or publication occurred.

@@ -350,6 +350,60 @@
         }
       }
     },
+    "/jobs/{job_id}/skip": {
+      "post": {
+        "tags": [
+          "workflow"
+        ],
+        "summary": "Skip",
+        "operationId": "skip_jobs__job_id__skip_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkipInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Skip Jobs  Job Id  Skip Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/{job_id}": {
       "get": {
         "tags": [
@@ -851,7 +905,7 @@
     "/messages": {
       "get": {
         "tags": [
-          "workflow"
+          "messages"
         ],
         "summary": "Messages",
         "operationId": "messages_messages_get",
@@ -877,7 +931,7 @@
     "/dev/client-message": {
       "post": {
         "tags": [
-          "workflow"
+          "messages"
         ],
         "summary": "Mock Client",
         "operationId": "mock_client_dev_client_message_post",
@@ -920,7 +974,7 @@
     "/messages/{conversation}/draft": {
       "post": {
         "tags": [
-          "workflow"
+          "messages"
         ],
         "summary": "Reply",
         "operationId": "reply_messages__conversation__draft_post",
@@ -962,7 +1016,7 @@
     "/pipeline": {
       "get": {
         "tags": [
-          "workflow"
+          "pipeline"
         ],
         "summary": "Pipeline",
         "operationId": "pipeline_pipeline_get",
@@ -985,13 +1039,14 @@
         }
       }
     },
-    "/analytics": {
-      "get": {
+    "/dev/advance": {
+      "post": {
         "tags": [
-          "workflow"
+          "pipeline"
         ],
-        "summary": "Analytics",
-        "operationId": "analytics_analytics_get",
+        "summary": "Advance",
+        "description": "Mock only: advances simulated client outcomes now and applies the resulting events.",
+        "operationId": "advance_dev_advance_post",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1000,7 +1055,7 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Analytics Analytics Get"
+                  "title": "Response Advance Dev Advance Post"
                 }
               }
             }
@@ -1011,7 +1066,7 @@
     "/memory": {
       "get": {
         "tags": [
-          "workflow"
+          "memory"
         ],
         "summary": "Memory",
         "operationId": "memory_memory_get",
@@ -1037,7 +1092,7 @@
     "/memory/{memory_id}": {
       "delete": {
         "tags": [
-          "workflow"
+          "memory"
         ],
         "summary": "Forget",
         "operationId": "forget_memory__memory_id__delete",
@@ -1061,6 +1116,126 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Forget Memory  Memory Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Analytics",
+        "operationId": "analytics_analytics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Analytics"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{run_id}/checkpoints": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Run Checkpoints",
+        "operationId": "run_checkpoints_runs__run_id__checkpoints_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Run Checkpoints Runs  Run Id  Checkpoints Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{run_id}/replay": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Replay",
+        "operationId": "replay_runs__run_id__replay_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplayInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunView"
                 }
               }
             }
@@ -1193,6 +1368,116 @@
   },
   "components": {
     "schemas": {
+      "Analytics": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "synthetic": {
+            "type": "boolean",
+            "title": "Synthetic"
+          },
+          "submitted": {
+            "type": "integer",
+            "title": "Submitted"
+          },
+          "replied": {
+            "type": "integer",
+            "title": "Replied"
+          },
+          "hired": {
+            "type": "integer",
+            "title": "Hired"
+          },
+          "reply_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply Rate"
+          },
+          "hire_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Rate"
+          },
+          "connects": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Connects"
+          },
+          "by_category": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryStats"
+            },
+            "type": "array",
+            "title": "By Category"
+          },
+          "proposal_tokens": {
+            "$ref": "#/components/schemas/Spread"
+          },
+          "proposal_active_seconds": {
+            "$ref": "#/components/schemas/Spread"
+          },
+          "proposal_api_usd": {
+            "$ref": "#/components/schemas/Spread"
+          },
+          "rejection_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCount"
+            },
+            "type": "array",
+            "title": "Rejection Reasons"
+          },
+          "runs": {
+            "type": "integer",
+            "title": "Runs"
+          },
+          "usage": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Usage"
+          },
+          "official_outcomes": {
+            "type": "string",
+            "title": "Official Outcomes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "synthetic",
+          "submitted",
+          "replied",
+          "hired",
+          "reply_rate",
+          "hire_rate",
+          "connects",
+          "by_category",
+          "proposal_tokens",
+          "proposal_active_seconds",
+          "proposal_api_usd",
+          "rejection_reasons",
+          "runs",
+          "usage",
+          "official_outcomes"
+        ],
+        "title": "Analytics"
+      },
       "ApprovalDecision": {
         "properties": {
           "decision": {
@@ -1255,6 +1540,63 @@
           "file"
         ],
         "title": "Body_upload_file_evidence_file_post"
+      },
+      "CategoryStats": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "submitted": {
+            "type": "integer",
+            "title": "Submitted"
+          },
+          "replied": {
+            "type": "integer",
+            "title": "Replied"
+          },
+          "hired": {
+            "type": "integer",
+            "title": "Hired"
+          },
+          "connects_spent": {
+            "type": "integer",
+            "title": "Connects Spent"
+          },
+          "reply_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply Rate"
+          },
+          "hire_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "submitted",
+          "replied",
+          "hired",
+          "connects_spent",
+          "reply_rate",
+          "hire_rate"
+        ],
+        "title": "CategoryStats"
       },
       "Credentials": {
         "properties": {
@@ -1466,6 +1808,39 @@
         "type": "object",
         "title": "Profile"
       },
+      "ReasonCount": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "count"
+        ],
+        "title": "ReasonCount"
+      },
+      "ReplayInput": {
+        "properties": {
+          "checkpoint_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Checkpoint Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "checkpoint_id"
+        ],
+        "title": "ReplayInput"
+      },
       "RunEvent": {
         "properties": {
           "id": {
@@ -1586,6 +1961,50 @@
           "profile"
         ],
         "title": "SessionView"
+      },
+      "SkipInput": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "SkipInput"
+      },
+      "Spread": {
+        "properties": {
+          "p50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P50"
+          },
+          "p95": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95"
+          }
+        },
+        "type": "object",
+        "required": [
+          "p50",
+          "p95"
+        ],
+        "title": "Spread"
       },
       "Upload": {
         "properties": {

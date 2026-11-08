@@ -1,0 +1,224 @@
+{
+  "phase": 7,
+  "date": "2026-11-08",
+  "timezone": "Asia/Karachi",
+  "scope": "Step 0 real-model fixes and writer/verifier redesign, then steps 0c and 1-8: conversations, events and pipeline, Celery scheduling, LangGraph-store memory, autonomy, analytics and replay",
+  "commands": {
+    "regression": "uv run python -m pytest -q --tb=short --junitxml=<scratch>/phase7-regression.xml",
+    "lint": "uv run python -m ruff check .",
+    "typecheck_build": "cd apps/web && npm run typecheck && npm run build",
+    "browser": "PLAYWRIGHT_CHANNEL=chrome node node_modules/@playwright/test/cli.js test --reporter=list,json",
+    "client": "uv run python -m scripts.openapi && cd apps/web && npm run generate",
+    "mcp_snapshot": "uv run python -m scripts.mcp_snapshot",
+    "graphs": "uv run python -m scripts.graphs",
+    "real_model_smoke": "scratchpad driver: TestClient + worker.runtime.process_run with real Ollama models and stdio MCP",
+    "celery_check": "scratchpad driver: real Celery worker and beat on Redis, SIGKILL during the writer, restart"
+  },
+  "full_regression": {
+    "tests": 178,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 177,
+    "seconds": 49.04
+  },
+  "browser": {
+    "startTime": "2026-11-08T14:00:23.107Z",
+    "duration": 59641.668,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browser_journeys": [
+    "onboarding saves rates, filters and upload metadata across refresh",
+    "inbox to approval preserves review on refresh and spends once",
+    "edits require new verification and a rejection reason",
+    "paragraph regeneration preserves evidence and repeats all validation",
+    "mobile navigation, empty filters and outage recovery remain usable",
+    "invalidated reviews and account switching clear stale workspace data",
+    "client reply becomes an approved reply with offered interview slots",
+    "memory viewer shows a learned rule and forgetting it removes it",
+    "inbox skip hides a job and keeps it under the Skipped filter"
+  ],
+  "environment": {
+    "hardware": "Apple M3, 24 GB",
+    "macos": "27.2",
+    "python": "3.13.14",
+    "node": "v26.5.0",
+    "uv": "0.11.32",
+    "ollama": "0.40.15",
+    "redis": "8.10.3",
+    "models": {
+      "small": "qwen3:4b",
+      "writer_critic_liaison": "qwen3:8b",
+      "embeddings": "nomic-embed-text"
+    }
+  },
+  "real_model_runs": [
+    {
+      "run": "before step 0, code as committed",
+      "outcome": "needs_attention after 92 s; all four model attempts timed out in thinking mode"
+    },
+    {
+      "run": "before step 0, thinking disabled in the test driver",
+      "outcome": "blocked; all three drafts removed by the closed grammar"
+    },
+    {
+      "run": "step 0 with advisory compliance",
+      "outcome": "proposal approved and submitted once; Connects 100 -> 92"
+    },
+    {
+      "run": "step 0 after the timeout change",
+      "outcome": "blocked; the writer left screening answers empty in all three drafts"
+    },
+    {
+      "run": "phase 7 proposal and reply",
+      "outcome": "proposal needs_attention at the 180 s active budget; reply failed on a missing intent prompt (fixed)"
+    },
+    {
+      "run": "phase 7 second run",
+      "outcome": "proposal needs_attention at 14,498 of 12,000 tokens after two rewrites (screening answer removed as partly supported); reply failed on an empty approval id at the MCP preview (fixed)"
+    }
+  ],
+  "celery_check": {
+    "killed_at_seconds": 22.6,
+    "completed_before_kill": [
+      "intake",
+      "analyst",
+      "matcher",
+      "risk",
+      "reconcile",
+      "pricing"
+    ],
+    "status_after_kill": "running",
+    "status_after_recovery": "needs_attention",
+    "recovered_at_seconds": 338.1,
+    "node_starts": {
+      "intake": 1,
+      "analyst": 1,
+      "risk": 1,
+      "matcher": 1,
+      "reconcile": 1,
+      "pricing": 1,
+      "writer": 1
+    },
+    "node_completions": {
+      "intake": 1,
+      "analyst": 1,
+      "matcher": 1,
+      "risk": 1,
+      "reconcile": 1,
+      "pricing": 1
+    },
+    "connects": {
+      "balance": 100,
+      "spent": 0,
+      "week": "2026-W45",
+      "weekly_spent": 0,
+      "weekly_limit": 50
+    },
+    "duplicates_recorded": [],
+    "bid_runs": [
+      "mock-web"
+    ]
+  },
+  "caught_issues": [
+    "Qwen3 thinking by default on Ollama 0.40 (empty answers, timeouts)",
+    "Closed-grammar verifier removed every real qwen3:8b draft",
+    "Compliance model flagged policy metadata, citation ids and verified claims as violations",
+    "Real writer citation formats [evidence_id:x] and [id:x]; 45 s request timeout too short for qwen3:8b",
+    "Missing intent.v1.md prompt, caught by the real run; a test now checks every configured node has a prompt",
+    "Empty approval id rejected by the real MCP schema; a conversation test through the real MCP servers now covers it",
+    "stage_approval reused an approval that was already consumed when a replay recreated an identical preview",
+    "Agent runs screen rendered nothing before Phase 7"
+  ],
+  "open_issues": [
+    "qwen3:8b screening answers mix a plan and a past-work claim; the verifier removes them, the Critic asks again and two rewrites exceed the 12,000-token budget",
+    "A run killed during a step can never continue: the unknown usage of the interrupted step blocks every Retry"
+  ],
+  "warnings": [
+    "LangGraph's async SQLite store can log 'Task was destroyed but it is pending' when a run's store closes; benign",
+    "Node 26 prints a DEP0205 module.register deprecation warning during Playwright runs"
+  ],
+  "git_head_at_check": "fdc548dc1678bdeaf0953dec83107d53a7c1c59b",
+  "tested_code_includes_uncommitted_changes": true,
+  "source_sha256": {
+    "agent/budgets.py": "e2cd5af74a408c4e739e49c0a1fe0620725d3f08db949b69724eb000919755ca",
+    "agent/categories.py": "6b60a6591468dd4f91cfe7ccba18b144d856e6a2a9fca3bbcb1f2278446402fb",
+    "agent/config.yaml": "9297a89bb4d2440d37bf21d903bc9d03a8edf062fa251f0c40c02e51f1854768",
+    "agent/graphs/bid_graph.py": "760b819a8fa0672620546bcb58e3bb7d54d1cea0a5a59b085d04ad4555ad6897",
+    "agent/graphs/conversation_graph.py": "3b10d6aa404149b662b03342958b5e4422b017fa683a01ef1bf746b434c74196",
+    "agent/handoffs.py": "dd28226e52901cd6015611ab99724ba979286ce156a907c0d877007c5ea033f3",
+    "agent/marketplace_port.py": "07c7814a9fb7d4a74bd9f6ec211fef633794d45bb627fba7aeb2207d80b482dd",
+    "agent/mcp_client.py": "954febf637eb50cef6175d9276917fb8c286381bc9d841f6d5282f6580842471",
+    "agent/memory/promotion_rules.py": "ea250def0ce2092b892595301275a6c1c1268900ff323493d1d8fd44798e7721",
+    "agent/memory/store.py": "3d631e5c24c0ff3cdfcf7d66d2ca653f50eb30ae8397a769799d2b6d4c08a632",
+    "agent/model.py": "4b56497ad4ced013e5ef9ca189a37ba7886bcf557da19fdfc34ff82fa75e76d4",
+    "agent/nodes/liaison.py": "516950b8ee8242039f43a630740b6578e74934c4987a3d92e10928e4a5c97d38",
+    "agent/nodes/workflow.py": "7eb16d7f49d620a108897056c5d7b3b29f45026baf0a0d827feef5fb21f9770f",
+    "agent/prompts/answer.v1.md": "00f8d200eb97033309236dba0ec9fffafd7670b187c3ee38e80690d3b3f043e3",
+    "agent/prompts/compliance.v2.md": "d428cfcd16d9dc7c2a6ef07f05f33cc6d8f5ba2f0788105196800f57716b30d1",
+    "agent/prompts/intent.v1.md": "5613aeac29768ee5fcce9cf74a8d0e6acde11d806ceb809d8b61ebeb9e40cc28",
+    "agent/prompts/liaison.v3.md": "60faee9a143f85c9a631c4cf6a9e2886e13c3f797566e1f9d8f0bc355b8eb29f",
+    "agent/prompts/writer.v3.md": "9518f0894f99a2c890a90cac043abb7d183b0c80f8c0aca64824df1119a1c4aa",
+    "agent/state.py": "1eb95c4b086c28fa3a397d1bc3a159b1afe01a3163c299470e2044b8acc076df",
+    "apps/api/approvals.py": "46ce4e1c5b3f40375262baa3177cfaa1795df8623fcbc3189d9aab6a14cd4fbb",
+    "apps/api/config.py": "bb5d1a4708dfe66fb165c64628f184986c8292e4f5828b733360a78a31d09e06",
+    "apps/api/conversations.py": "920aa3f01ece96966da71e0449e721ebcf8a7dd363594f23da3f00da03ba83af",
+    "apps/api/main.py": "9ab0324148b07cfa913c61feb73c1f9085196ed3d5f87e2534ca43b3b435848c",
+    "apps/api/routers/analytics.py": "428d900b488c80fda4289b144d8075e60cd3490d1a9197aea42cd85b940025f0",
+    "apps/api/routers/memory.py": "965e0bc628c99bd28a88ee02d7b4841f797e8d5eb31e4acf4f996e2e84e4991a",
+    "apps/api/routers/messages.py": "720cbafbe96ec91c1180e1e3ad98b0de82ef3c7a17f6ef829dcb71dac22db349",
+    "apps/api/routers/pipeline.py": "7bb260aa9a88da4f44f15164db5d54185888cf9f692bb68a4b8a8218e678087f",
+    "apps/api/routers/replay.py": "0fb352c21773be6fe04cf3f061c96d9496b072fec4052a853997d00bbecd7f70",
+    "apps/api/routers/workflow.py": "816f48bdc1f346403cfe79b9813580f5e7261934b5248c661fcc712f488bab17",
+    "apps/api/schemas/api.py": "5931ca57e43ef270bc8e4f05c3b321dbdd681d23e17da6b94e3ec38fe86cb5dc",
+    "apps/web/e2e/workflow.spec.ts": "a65e0bd6fd91270b32f337334998dbb999272fa872bdf814ad8fa9f656242e1b",
+    "apps/web/src/components/ApprovalPanel.tsx": "cd40ddd419bef36dc4197113033282addc21abda871cab1bd3889383b0735392",
+    "apps/web/src/components/BidWorkspace.tsx": "c27b0fa69c2203179411befe0b330cca535adc6265336d224b13541e77f1ba7f",
+    "apps/web/src/components/Dashboard.tsx": "994356184c75f275577cfdd42ca21e46f1e6c949dd4acc5bc9f257244f449daf",
+    "apps/web/src/components/Onboarding.tsx": "11aa45aeb45fe693ad7494e443a495d10db02b31c8fcba4f4b30725c6546d4ef",
+    "apps/web/src/components/RunViewer.tsx": "5d3b0edb4b19b0e0e71c045c592603e2ce0480be44635b1eae2667f47e73ce70",
+    "apps/web/src/lib/api/schema.d.ts": "6058794e71cc5db9c244118445fed7606eda0075df7d31034c063873f92168c9",
+    "apps/web/src/lib/format.ts": "af81bb0248caff538956bb0f93916a40094f8758197733d32d1e58b52a98adf8",
+    "dev_support/mock_marketplace/service.py": "52a86a465f165f65134831242419074111695b2e0de0db2a7b5f60004dd41c7d",
+    "infra/docker-compose.yml": "4fbd6cb49e3197bcbe80e33de226cba2f05f4e25ae31a6f3e0fd9bc906e9dbb9",
+    "rag/verify.py": "bde91927a054f7bc6fbf01a5dd333268bb6f71760367ba86d410cb8f74674e59",
+    "scripts/manage.py": "88e6b1891bf45e7ec6f3f929625e1bd9bffcd1a96ea4b3ec9c53d2ec045b2407",
+    "tests/e2e_server.py": "c48a938e1d6931eee450b27f4f4c0f26005dd99ce4951ec5c67228aaa8c4b07d",
+    "tests/integration/test_approval.py": "815cbcf55ed9cc96e90027562a4ead17e813484b4436783339ff6978dd7c31f8",
+    "tests/integration/test_bid_durability.py": "a3d879e2b8fab6f77b2e72285df6a00c656be65ccd6af42f6ace2ebf69064933",
+    "tests/integration/test_phase7_conversations.py": "65374e8ef4c438b0f64677ba190f50176a11f67f10b88fc9153a8a33770c15b0",
+    "tests/integration/test_phase7_operations.py": "aaffd381567ebf48295b3e4cc1acf7b4ef41676eabf7177b5ad5468bf41f62c4",
+    "tests/integration/test_protocol_graph.py": "3f32d0ff459d414e4a18081fafa5104e2ba4e87e8d035b4b58880119aa5e951c",
+    "tests/mock_marketplace/test_scenarios.py": "deb227a8dc5b8672dc2ce9f6be33385fd251cb0fff1a10ea69e399356e37e471",
+    "tests/support.py": "5688526828a534f251aef2c65d2c9e53dee5052ba83d7f9ce123228917108999",
+    "tests/unit/test_compliance.py": "df2aeb55eafc730aab3452fccc4e34ab2d97394692b469138a016481e29f6b8f",
+    "tests/unit/test_drafting.py": "0e511526669482c80389eaa224daab75eea81249ca95618085bac6d1efea5e40",
+    "tests/unit/test_grounding.py": "b86177dbe05397e69508545a598ef5d14d78b24cf692ba8796ecdc6fe58efef7",
+    "tests/unit/test_ingest_memory.py": "ee3a5986dab52bb5e8068054e9394273bff24345c7acb553752626c13660af19",
+    "tests/unit/test_model_usage.py": "9d9ad511d0c7a8c0c5b0f11a4b2a50faa6b139f9c2954bdeafeabf8084b37367",
+    "tests/unit/test_phase5_grounding.py": "e7494ebeb5b8e9c6762c560d2faee54b0fdc47b6b5697fbc0b7c5e8bee1fe243",
+    "worker/__main__.py": "ba5b8030d966298a3074536f890221446b47a8e0ccc1ec933e31ed1124424e82",
+    "worker/pipeline.py": "cc89909214a031bcbafa53a0f63f064a70ee26afbd76399ffadab328d9f750fb",
+    "worker/replay.py": "55d8282eaba849d34b572eedc8f804a04e9e9e0a63df620c980cab0019b89027",
+    "worker/runtime.py": "d69fc86512cfec5925a63486e8045516d4cc4395ff8f0a5119d620a86fd5ddf2",
+    "worker/schedule.py": "9d8acbf1206302cdd7e94b03954c7231943f8b8eaf885261cd37f5afd0061348",
+    "worker/scout.py": "af860bf7a6b7659d2e4a668efa619da86634ebd3b492b0a071d9638aebf27e53",
+    "worker/tasks.py": "d65c1af62c7274383c912bc0c70e4857ac4832c4db8773eb381af6cb9aec9800"
+  },
+  "external_limits": [
+    "Official GigSim, persona corpora, policy pack, 2 November update and dev set remain unavailable; all outcomes are mock",
+    "Real Postgres and the full Docker Compose stack were not run; the optional Postgres test was skipped",
+    "Hosted model provider, public deployment, tracing links and human labels remain pending"
+  ],
+  "remaining_phases": {
+    "8": "Advanced RAG and reproducible experiments",
+    "9": "Official integrations when inputs become available",
+    "10": "Reliability, safety, observability, CI and packaging",
+    "11": "Signature extension and submission preparation"
+  },
+  "stopping_point": "Phase 7 implemented; two real-model issues open for the user's decision",
+  "commits_pushes_branches_prs_or_publication": "Nothing committed at check time; the user reviews and approves one Phase 7 commit. No push, branch, PR or publication."
+}

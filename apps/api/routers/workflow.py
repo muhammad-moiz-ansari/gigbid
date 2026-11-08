@@ -14,12 +14,12 @@ from apps.api.db import (
     Run,
     User,
     digest,
-    get_record,
+    now,
     put_record,
     transaction,
     uid,
 )
-from apps.api.schemas.api import ApprovalDecision, FaultInput, MessageInput, RunView, Upload
+from apps.api.schemas.api import ApprovalDecision, FaultInput, RunView, SkipInput, Upload
 from dev_support.seed import seed
 from mcp_servers.marketplace.adapters import marketplace
 from rag.ingest.loaders import delete_source, ingest_file, ingest_text
@@ -41,7 +41,7 @@ def view(run):
     return RunView(id=run.id, subject=run.subject, kind=run.kind, status=run.status,
                    state=run.state, trace_id=run.trace_id,
                    approval_status=approval.decision if approval and approval.tenant == run.tenant else None,
-                   draft_paragraphs=[p for p, _ in paragraphs(run.state.get("draft", {}).get("text", ""))])
+                   draft_paragraphs=paragraphs(run.state.get("draft", {}).get("text", "")))
 
 
 def enqueue(tenant, subject, kind="bid"):
@@ -111,14 +111,32 @@ def jobs(query: str = "", user: User = Depends(current_user)) -> list[dict]:
     except Exception as exc:
         raise HTTPException(503, str(exc)) from None
     with transaction() as db:
-        runs = list(db.scalars(select(Run).where(Run.tenant == user.id, Run.kind == "bid")))
-        by_subject = {r.subject: r for r in runs}
+        runs = {r.subject: r for r in db.scalars(select(Run).where(Run.tenant == user.id, Run.kind == "bid"))}
+        skips = {r.key: r.value for r in db.scalars(select(Record).where(Record.tenant == user.id,
+                                                                         Record.kind == "job_skip"))}
+        dupes = {r.key: r.value["of"] for r in db.scalars(select(Record).where(Record.tenant == user.id,
+                                                                               Record.kind == "duplicate_job"))}
+        auto_skip = user.profile.get("auto_skip", True)
         result = []
         for job in items:
-            run = by_subject.get(job.id)
+            run = runs.get(job.id)
+            analysis = run.state if run else {}
+            # Autonomy may archive skip recommendations automatically; it never sends anything.
+            recommended = analysis.get("decision", {}).get("action") == "skip"
+            reason = skips.get(job.id, {}).get("reason") or (analysis["decision"]["reason"] if recommended else None)
             result.append({**job.model_dump(), "run_id": run.id if run else None,
-                           "status": run.status if run else "new", "analysis": run.state if run else {}})
+                           "status": run.status if run else "new", "analysis": analysis,
+                           "duplicate_of": dupes.get(job.id), "skip_reason": reason,
+                           "skipped": job.id in skips or (recommended and auto_skip),
+                           "recommended_skip": recommended and not auto_skip and job.id not in skips})
         return sorted(result, key=lambda j: j["analysis"].get("fit", {}).get("score", -1), reverse=True)
+
+
+@router.post("/jobs/{job_id}/skip")
+def skip(job_id: str, data: SkipInput, user: User = Depends(current_user)) -> dict:
+    with transaction() as db:
+        put_record(db, user.id, "job_skip", job_id, {"reason": data.reason.strip() or "Skipped by you", "at": now()})
+    return {"skipped": job_id}
 
 
 @router.get("/jobs/{job_id}")
@@ -183,8 +201,8 @@ def decide(approval_id: str, data: ApprovalDecision, user: User = Depends(curren
             raise HTTPException(422, "A rejection reason is required")
         if data.decision == "edit" and not (data.text or "").strip():
             raise HTTPException(422, "Edited draft text is required")
-        if data.decision == "regenerate" and data.paragraph >= len(list(paragraphs(
-            run.state.get("draft", {}).get("text", "")))):
+        if data.decision == "regenerate" and data.paragraph >= len(paragraphs(
+            run.state.get("draft", {}).get("text", ""))):
             raise HTTPException(422, "Select an existing draft paragraph")
         approval.decision = {"approve": "approved", "reject": "rejected", "edit": "invalidated", "regenerate": "invalidated"}[data.decision]
         approval.reason = data.reason
@@ -254,72 +272,3 @@ def evidence_index(user: User = Depends(current_user)) -> dict:
 def remove_source(source: str, user: User = Depends(current_user)) -> dict:
     delete_source(user.id, source)
     return {"deleted": source, "pending_approvals_invalidated": True}
-
-
-@router.get("/messages")
-def messages(user: User = Depends(current_user)) -> list[dict]:
-    with transaction() as db:
-        return [r.value for r in db.scalars(select(Record).where(Record.tenant == user.id,
-                                                                 Record.kind == "message").order_by(Record.created))]
-
-
-@router.post("/dev/client-message")
-def mock_client(data: MessageInput, user: User = Depends(current_user)) -> dict:
-    if settings().marketplace_mode != "mock":
-        raise HTTPException(409, "Mock client controls unavailable in live mode")
-    with transaction() as db:
-        key = uid()
-        value = {"id": key, "conversation": data.conversation, "text": data.text,
-                 "direction": "inbound", "synthetic": True}
-        put_record(db, user.id, "message", key, value)
-    return value
-
-
-@router.post("/messages/{conversation}/draft", response_model=RunView)
-def reply(conversation: str, user: User = Depends(current_user)):
-    with transaction() as db:
-        incoming = [r for r in db.scalars(select(Record).where(Record.tenant == user.id,
-                                                              Record.kind == "message"))
-                    if r.value["conversation"] == conversation and r.value.get("direction") == "inbound"]
-        if not incoming:
-            raise HTTPException(404, "No client conversation found")
-    return enqueue(user.id, conversation, "conversation")
-
-
-@router.get("/pipeline")
-def pipeline(user: User = Depends(current_user)) -> list[dict]:
-    with transaction() as db:
-        return [r.value for r in db.scalars(select(Record).where(Record.tenant == user.id,
-                                                                 Record.kind == "pipeline"))]
-
-
-@router.get("/analytics")
-def analytics(user: User = Depends(current_user)) -> dict:
-    with transaction() as db:
-        recorded = [r.value for r in db.scalars(select(Record).where(Record.tenant == user.id,
-                                                                    Record.kind == "pipeline"))]
-        submitted = sum(r["status"] != "drafted" for r in recorded)
-        replies = sum(r["status"] in ("replied", "interview", "hired") for r in recorded)
-        hired = sum(r["status"] == "hired" for r in recorded)
-        runs = list(db.scalars(select(Run).where(Run.tenant == user.id)))
-        account = get_record(db, user.id, "account", "connects")
-        return {"mode": settings().marketplace_mode, "synthetic": settings().marketplace_mode == "mock",
-                "submitted": submitted, "replied": replies, "hired": hired,
-                "reply_rate": replies / submitted if submitted else None,
-                "hire_rate": hired / submitted if submitted else None,
-                "connects": account.value if account else {},
-                "runs": len(runs), "usage": [u for r in runs for u in r.state.get("usage", [])],
-                "official_outcomes": "pending instructor simulator"}
-
-
-@router.get("/memory")
-def memory(user: User = Depends(current_user)) -> list[dict]:
-    from agent.memory.store import list_memory
-    return list_memory(user.id)
-
-
-@router.delete("/memory/{memory_id}")
-def forget(memory_id: str, user: User = Depends(current_user)) -> dict:
-    from agent.memory.store import delete_memory
-    delete_memory(user.id, memory_id)
-    return {"deleted": memory_id}

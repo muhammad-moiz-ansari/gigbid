@@ -46,6 +46,7 @@ class OpenModel:
                 async with httpx.AsyncClient(timeout=settings().model_timeout_seconds) as client:
                     response = await client.post(f"{settings().ollama_url}/api/chat", json={
                         "model": selected, "stream": False, "format": schema.model_json_schema(),
+                        "think": cfg.get("generation", {}).get("think", False),
                         "messages": [{"role": "system", "content": prompt(node)},
                                      {"role": "user", "content": json.dumps({"untrusted_data": data})}],
                         "options": {"temperature": 0, "num_predict": cfg.get("generation", {}).get("max_tokens", 1800)},

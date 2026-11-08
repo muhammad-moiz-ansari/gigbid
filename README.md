@@ -2,9 +2,10 @@
 
 An evidence-grounded freelancer copilot with human approval before outgoing actions.
 
-**Current handoff: Phase 6 local implementation; stopped before Phase 7.** The user
-requires explicit instructions before each subsequent phase. Later-phase code
-started under the original authorization is preserved but unfinished.
+**Current handoff: Phase 7 implemented; two real-model issues await a decision
+(see the phase status).** The user requires explicit instructions before each
+subsequent phase. Later-phase code started under the original authorization is
+preserved but unfinished.
 
 Phase 2 adds typed marketplace contracts, explicit adapter readiness, a durable
 synthetic marketplace, deterministic client outcomes, fault controls and tested
@@ -44,6 +45,12 @@ the evidence-backed studio, paragraph regeneration and persisted live activity.
 SSE history/reconnect and inactive approval states use actual backend records.
 See the [web workflow guide](docs/WEB_WORKFLOW.md) and
 [Phase 6 check evidence](docs/checks/phase6.json) for actual results and limits.
+
+Phase 7 makes real open models work end to end and adds client conversations on one durable
+thread per client, event-driven pipeline stages, Celery/Redis scheduling with duplicate-posting
+detection, style and outcome memory in a LangGraph store, autonomy-controlled skip archiving,
+category analytics, and checkpoint replay with an agent run viewer. See the
+[phase status](docs/PHASE_STATUS.md) for real-model and Celery results and open issues.
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.

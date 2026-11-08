@@ -26,7 +26,7 @@ tool requires an authenticated principal and shares the tenant's rate limit.
 | get_client_history | Marketplace | constrained client ID | ClientHistory | T/F/T/T | No invented missing history |
 | get_connects_balance | Marketplace | none | ConnectsBalance | T/F/T/T | Balance, lifetime/weekly spend and weekly limit |
 | list_messages | Marketplace | constrained conversation ID | MarketplaceMessage[] | T/F/T/T | Tenant-owned conversations only |
-| list_events | Marketplace | nonnegative cursor | MarketplaceEvent[] | T/F/T/T | Increasing tenant-scoped event cursor |
+| list_events | Marketplace | nonnegative cursor | MarketplaceEvent[] | T/F/T/T | Increasing tenant-scoped event cursor; proposal statuses plus sent and received messages |
 | create_proposal_draft | Marketplace | DraftRequest | WriteResult | F/F/T/T | Preview by default; execution requires exact approval |
 | submit_proposal | Marketplace | SubmitRequest | WriteResult | F/T/T/T | Exact approval and cost/evidence revalidation; Connects spend is a destructive effect |
 | send_message | Marketplace | MessageRequest | WriteResult | F/F/T/T | Additive message write, exact approval and stable key |
@@ -138,7 +138,7 @@ Role allowlists are enforced both when presenting tools and at invocation:
 | Pricing Strategist | get_connects_balance, get_client_history |
 | Writer | search_evidence, get_case_study |
 | Verifier / Critic | get_case_study |
-| Client Liaison | list_messages, search_evidence, free_slots |
+| Client Liaison | list_messages, get_job, search_evidence, free_slots |
 | Approved-action executor | create_proposal_draft, submit_proposal, send_message, reconcile_write, create_interview_hold, create_email_draft |
 
 Agent capabilities use this MCP gateway. App authentication, durable queues,

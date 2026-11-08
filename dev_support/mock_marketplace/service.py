@@ -238,6 +238,25 @@ class MockMarketplace:
             value["message_id"] = message_id
         put_record(db, tenant, "market_event", identity, value)
 
+    def _inbound(self, db, tenant, conversation, text):
+        identity = uid()
+        value = {
+            "id": identity,
+            "conversation": conversation,
+            "text": text,
+            "direction": "inbound",
+            "synthetic": True,
+        }
+        put_record(db, tenant, "message", identity, value)
+        self._event(db, tenant, conversation, None, "received", message_id=identity)
+        return value
+
+    def receive_message(self, tenant: str, conversation: str, text: str) -> MarketplaceMessage:
+        """Local-only control: a synthetic client message and its event."""
+        with transaction() as db:
+            _lock(db, tenant)
+            return self._inbound(db, tenant, conversation, text)
+
     def _preview(self, db, tenant, request):
         action = request.action
         if action.kind not in ("draft", "proposal", "message"):
@@ -438,20 +457,7 @@ class MockMarketplace:
                         "interview": "Are you available for an interview?",
                         "hired": "We would like to proceed with this synthetic project.",
                     }
-                    identity = uid()
-                    put_record(
-                        db,
-                        tenant,
-                        "message",
-                        identity,
-                        {
-                            "id": identity,
-                            "conversation": proposal["destination"],
-                            "text": messages[next_status],
-                            "direction": "inbound",
-                            "synthetic": True,
-                        },
-                    )
+                    self._inbound(db, tenant, proposal["destination"], messages[next_status])
                 results.append(TypeAdapter(MarketplaceProposal).validate_python(record.value))
             put_record(db, tenant, "simulation_tick", tick_key, {"results": results})
             return results

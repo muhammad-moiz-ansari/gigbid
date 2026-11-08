@@ -33,3 +33,27 @@ followed by a passing focused regression, without changing graph design or budge
 Another caught issue was releasing the local operation lock before closing Qdrant;
 the close now occurs inside the lock, verified with concurrent threads and a reopened
 process. Semantic quality is not inferred from the fixed vectors used in these tests.
+
+Phase 7 (from 2026-11-08) uses Claude Code (Claude Opus) for implementation, tests and
+documentation. Step 0 affected agent/model.py, agent/config.yaml, agent/nodes/workflow.py,
+rag/verify.py, the v3 writer/liaison prompts, apps/api/routers/workflow.py,
+BidWorkspace.tsx, tests/support.py, grounding and approval tests, and these docs.
+
+A real caught mistake: every earlier check used scripted stand-in models that always write
+perfectly formatted text, so 160 tests passed while the product had never produced a
+proposal with a real model. The first real-model smoke test showed qwen3 thinking by
+default (empty answers and timeouts) and a qwen3:8b writer that never satisfied the closed
+grammar, so every draft was removed. Both were fixed in step 0: with real models the writer's draft now passes verification
+and the Critic. The Compliance model's repeated false positives were then made advisory
+warnings, and a real-model proposal reached approval and was submitted exactly once.
+
+Phase 7 steps 1-8 (Claude Code) affected the conversation graph and new `agent/nodes/liaison.py`,
+`agent/categories.py`, the memory store and promotion rules, the worker (runtime, pipeline,
+scout, schedule, tasks, replay), new API modules (`conversations.py`, messages, pipeline,
+memory, analytics and replay routers), approvals, the mock marketplace's message events,
+Compose, the web components (new `ApprovalPanel` and `RunViewer`), tests and these docs.
+
+A real caught mistake in existing code: `stage_approval` reused any approval with the same
+binding unless it was invalidated, including one that was already approved and consumed. A
+replay that recreated an identical preview would have shown a dead, already-used approval.
+Writing the replay test exposed it; reuse is now limited to still-pending approvals.

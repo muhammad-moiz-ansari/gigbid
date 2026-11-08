@@ -80,6 +80,15 @@ def recover(tenant, run_id):
             put_record(db, tenant, "run_budget", run_id, value)
 
 
+def start_replay(tenant, run_id):
+    """An operator replay gets a fresh budget; earlier totals stay in the ledger for audit."""
+    with transaction() as db:
+        value = dict(_locked(db, tenant, run_id))
+        history = value.pop("replays", [])
+        put_record(db, tenant, "run_budget", run_id, {"steps": 0, "tokens": 0, "api_usd": 0.0, "active_seconds": 0.0,
+                                                      "usage_complete": True, "replays": history + [value]})
+
+
 def read(tenant, run_id):
     with transaction() as db:
         row = get_record(db, tenant, "run_budget", run_id)

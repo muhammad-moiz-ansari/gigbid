@@ -28,8 +28,8 @@ test-model switch was added. Synthetic development examples remain visibly label
    Compliance feedback. The dry-run summary displays destination, version, price and
    Connects cost. Approval is disabled while the cover letter has unsaved edits.
 7. Save edits for rechecking, or regenerate a selected paragraph. Both invalidate
-   the old review and require new verification and approval. Multi-paragraph evidence
-   quotations stay together when indexing paragraphs. Regeneration preserves other
+   the old review and require new verification and approval. Paragraphs are separated
+   by blank lines and keep their own citations. Regeneration preserves other
    paragraphs; an invalid paragraph index is rejected before saving a decision.
 8. Approve the exact action, or reject with a reason. Evidence-invalidated reviews
    show an inactive-review message and a recheck/renew action. Backend authorization,
@@ -104,3 +104,29 @@ Phase 6 stops here. The remaining plan is Phase 7 conversations/scheduling/memor
 Phase 8 retrieval studies, Phase 9 official integrations, Phase 10 full reliability
 and packaging, and Phase 11 extension and submission artifacts. These phases remain
 unauthorized until individually requested; existing partial code is not acceptance.
+
+## Phase 7 additions
+
+- **Messages:** client messages are grouped by conversation. Each new client message queues
+  a reply turn on that conversation's single durable thread. The reply studio shows the
+  thread, the detected intent (question, negotiation, interview or scam), offered interview
+  slots and the exact reply to approve. Scam signals get no reply. A new message that arrives
+  while a reply waits for review cancels that review and redrafts.
+- **Pipeline:** cards move forward from marketplace events (drafted, submitted, viewed,
+  replied, interview, then hired or lost). Mock mode adds an "Advance simulated outcomes"
+  button; outcomes also advance on a schedule.
+- **Inbox:** skipped jobs are hidden behind a Skipped filter. With "Archive jobs the agents
+  recommend skipping" on in Settings, skip decisions are archived automatically; with it off
+  they show as Recommended skip with a Confirm button. Any job can be skipped with a reason,
+  and duplicate postings found by the scout carry a badge. Nothing is sent without approval.
+- **Analytics:** reply and hire rate by job category, Connects spent, median and 95th
+  percentile tokens, active seconds and API USD per proposal, and top rejection reasons.
+- **Settings memory:** promoted style rules (the same word removed in five approved edits)
+  and outcome notes (three recorded outcomes in one job category) with their supporting
+  observations. Forget removes the entry, records a tombstone and changes the next run.
+- **Agent runs:** `/runs` lists runs; `/runs/ID` shows live activity and saved checkpoints
+  with Replay buttons. This screen was empty before Phase 7.
+
+Browser journeys now also cover a client reply approved with offered slots, forgetting a
+memory entry and skipping a job (nine journeys in total). The memory journey seeds its rule
+through a test-only route in `tests/e2e_server.py`; production code has no such route.
