@@ -10,7 +10,16 @@ from sqlalchemy import text
 
 from apps.api.config import settings
 from apps.api.db import engine
-from apps.api.routers import analytics, auth, memory, messages, pipeline, replay, workflow
+from apps.api.routers import (
+    analytics,
+    auth,
+    integrations,
+    memory,
+    messages,
+    pipeline,
+    replay,
+    workflow,
+)
 from apps.api.safety import redact
 from apps.api.streaming import router as streaming_router
 
@@ -67,4 +76,5 @@ app.include_router(pipeline.router)
 app.include_router(memory.router)
 app.include_router(analytics.router)
 app.include_router(replay.router)
+app.include_router(integrations.router)
 app.include_router(streaming_router)

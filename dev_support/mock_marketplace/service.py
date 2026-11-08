@@ -285,6 +285,7 @@ class MockMarketplace:
             "payload": action.model_dump(),
             "connects_cost": cost,
             "status": "preview",
+            "terms": {},
         }
 
     def write(self, tenant: str, request: WriteRequest) -> WriteResult:

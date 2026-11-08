@@ -62,7 +62,8 @@ def apply_events(tenant, events):
                     replies.add(event["subject"])
                 elif event["status"] in ORDER:
                     mark(db, tenant, event["subject"], event["status"], event["id"], event.get("synthetic", False))
-                    if event["status"] in OUTCOMES:
+                    # Upwork's terms (8.6) keep its outputs out of AI memory, so live outcomes are not learned.
+                    if event["status"] in OUTCOMES and settings().marketplace_mode != "upwork":
                         groups.add(observe(db, tenant, event))
                 put_record(db, tenant, "seen_event", event["id"], {"processed": True})
             after = max(after, event["sequence"])

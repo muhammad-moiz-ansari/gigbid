@@ -79,6 +79,24 @@ thresholds:
   claim_support: 0.6
   injection_risk: 0.5
   claim_partial: 0.3
+github:
+  # GitHub's hosted MCP server in read-only mode; the import also names its two tools (X-MCP-Tools).
+  mcp_url: https://api.githubcopilot.com/mcp/readonly
+  max_files: 12
+  max_file_bytes: 50000
+  skip_dirs: [node_modules, vendor, dist, build, .venv, .git]
+  skip_suffixes: [.d.ts, .min.js]
+  # Files in these top-level folders come first; larger files are usually the core modules.
+  source_dirs: [src, app, lib, server, api, packages]
+  languages: {.py: Python, .ts: TypeScript, .tsx: TypeScript, .js: JavaScript, .go: Go, .java: Java, .rb: Ruby,
+              .rs: Rust, .sql: SQL}
+upwork:
+  # Upwork's official MCP server; sign-in is OAuth 2.1 with PKCE and dynamic client registration.
+  mcp_url: https://mcp.upwork.com/mcp
+  metadata_url: https://mcp.upwork.com/.well-known/oauth-authorization-server
+  # Fixed-price draft terms: the job's posted duration when Upwork gives one, and payment on delivery.
+  default_duration: less_than_1_month
+  payment_mode: by_project
 pricing:
   budget_share: [0.6, 1.0]  # a bid stays within this share of the job budget until market statistics exist
   connect_usd: 0.15         # value of one Connect when weighing a bid

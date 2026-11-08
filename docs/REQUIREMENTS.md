@@ -52,6 +52,12 @@ Quality review update: R5 also catches uncited past work inside plan sentences a
 sentences, screening answers cite evidence, pricing uses client history with a Connects
 check, and risk flags come from config. See the quality review in PHASE_STATUS.md.
 
+Compose update: R10's `docker compose up` runs the full stack locally, and C6's crash demo
+(kill the API while a proposal awaits approval, approve, one submission) passed on Postgres.
+A2/B1 GitHub repository import goes through GitHub's MCP server; a public URL is still pending.
+R1/A4 the Upwork adapter sits behind the same port (`MARKETPLACE_MODE=upwork`), with encrypted per-user
+tokens, live reads verified and Upwork's live-mode and retention rules applied.
+
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|
 | R1 single marketplace port | agent/marketplace_port.py; mcp_servers/marketplace/adapters | contract tests, mock idempotency | Official schemas/accounts |

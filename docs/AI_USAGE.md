@@ -82,3 +82,26 @@ quality warnings. The earlier plan-only screening answers contradicted the PDF, 
 evidence citations. And my own field names (`spend` next to `paid_per_hire`) led the pricing model
 to describe the client's $4,000 total as "per hire"; reading the price reasons caught it, and the
 fields are now `total_spend` and `average_paid_per_hire`.
+
+The Compose and integration work (Claude Code) affected infra/docker-compose.yml, the new GitHub
+import in rag/ingest/github.py, its endpoint and Settings form, agent/config.yaml, apps/api/config.py,
+the generated API client, the Playwright folder move to apps/web/tests/e2e, tests and these docs.
+A real caught mistake: in Compose the API and worker would each have kept their own embedded vector
+index inside their containers; a shared Qdrant service now serves the API, worker and Portfolio MCP
+server.
+The live GitHub import caught two more of my mistakes: the tool limit I documented was not applied
+by GitHub with the URL I chose, and the file order I wrote imported a generated file and helper
+scripts instead of the app's source; listing the server's tools and reading the imported files
+showed both.
+
+The Upwork sign-in (Claude Code) added apps/api/auth/upwork.py, apps/api/auth/tokens.py, the
+integrations router, the Settings panel, configuration and tests. A real caught mistake: appending
+the encryption key to `.env`, which had no final newline, glued it onto the GitHub token line;
+checking the variable names caught it and the line was split back before anything used it.
+Building the Upwork adapter caught three more: the shared approval check compared the job with a
+mock-only record, which would have refused every live proposal; my first readiness flag claimed the
+adapter was externally verified although no live write had run; and my first adapter tests sent
+writes that silently defaulted to dry runs. Failing tests and a review of the claims caught them.
+The live Upwork write check caught one more of mine: the adapter treated any non-error reply as a
+draft, so Upwork's "terms required" answer was reported as drafted. A reply without a preview id is now
+a refusal that shows Upwork's next step, with a test for it.

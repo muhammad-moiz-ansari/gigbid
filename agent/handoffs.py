@@ -157,3 +157,4 @@ class WriteResult(Contract):
     connects_cost: int = 0
     effect_id: str | None = None
     status: str = "preview"
+    terms: dict = {}  # marketplace terms sent with the action, shown in the preview (Upwork: duration, payment)

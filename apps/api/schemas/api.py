@@ -44,6 +44,10 @@ class Upload(BaseModel):
     outcome: Literal["unknown", "won", "replied", "ignored"] = "unknown"
 
 
+class GitHubImport(BaseModel):
+    repository: str = Field(pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", max_length=200)
+
+
 class ApprovalDecision(BaseModel):
     decision: Literal["approve", "reject", "edit", "regenerate"]
     text: str | None = Field(default=None, max_length=10000)

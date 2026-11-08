@@ -1,10 +1,13 @@
 import json
 
+import httpx
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from mcp.shared.exceptions import McpError
 from sqlalchemy import select
 from sqlalchemy.orm import object_session
 
 from agent import budgets
+from agent.marketplace_port import Unavailable
 from apps.api.approvals import lock_decision
 from apps.api.auth.service import current_user
 from apps.api.config import settings
@@ -20,9 +23,17 @@ from apps.api.db import (
     transaction,
     uid,
 )
-from apps.api.schemas.api import ApprovalDecision, FaultInput, RunView, SkipInput, Upload
+from apps.api.schemas.api import (
+    ApprovalDecision,
+    FaultInput,
+    GitHubImport,
+    RunView,
+    SkipInput,
+    Upload,
+)
 from dev_support.seed import seed
 from mcp_servers.marketplace.adapters import marketplace
+from rag.ingest.github import ingest_repository
 from rag.ingest.loaders import delete_source, ingest_file, ingest_text
 from rag.verify import paragraphs
 
@@ -117,7 +128,9 @@ def jobs(query: str = "", user: User = Depends(current_user)) -> list[dict]:
                                                                          Record.kind == "job_skip"))}
         dupes = {r.key: r.value["of"] for r in db.scalars(select(Record).where(Record.tenant == user.id,
                                                                                Record.kind == "duplicate_job"))}
-        auto_skip = user.profile.get("auto_skip", True)
+        # Upwork's terms: in live mode GigBid neither ranks jobs nor archives them for you; you decide.
+        live = settings().marketplace_mode == "upwork"
+        auto_skip = user.profile.get("auto_skip", True) and not live
         result = []
         for job in items:
             run = runs.get(job.id)
@@ -130,7 +143,7 @@ def jobs(query: str = "", user: User = Depends(current_user)) -> list[dict]:
                            "duplicate_of": dupes.get(job.id), "skip_reason": reason,
                            "skipped": job.id in skips or (recommended and auto_skip),
                            "recommended_skip": recommended and not auto_skip and job.id not in skips})
-        return sorted(result, key=lambda j: j["analysis"].get("fit", {}).get("score", -1), reverse=True)
+        return result if live else sorted(result, key=lambda j: j["analysis"].get("fit", {}).get("score", -1), reverse=True)
 
 
 @router.post("/jobs/{job_id}/skip")
@@ -262,6 +275,16 @@ async def upload_file(file: UploadFile, metadata: str = Form(default="{}"), user
         return ingest_file(user.id, content, file.filename or "upload.txt", fields)
     except (ValueError, UnicodeError):
         raise HTTPException(422, "Cannot parse uploaded file") from None
+
+
+@router.post("/evidence/github")
+async def import_repository(data: GitHubImport, user: User = Depends(current_user)) -> list[dict]:
+    try:
+        return await ingest_repository(user.id, data.repository, user.profile.get("persona", "own"))
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    except (Unavailable, McpError, httpx.HTTPError) as exc:
+        raise HTTPException(503, str(exc) or "GitHub MCP is unavailable") from None
 
 
 @router.get("/evidence/index")

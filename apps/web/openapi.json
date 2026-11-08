@@ -835,6 +835,52 @@
         }
       }
     },
+    "/evidence/github": {
+      "post": {
+        "tags": [
+          "workflow"
+        ],
+        "summary": "Import Repository",
+        "operationId": "import_repository_evidence_github_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Import Repository Evidence Github Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/evidence/index": {
       "get": {
         "tags": [
@@ -1246,6 +1292,181 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/upwork": {
+      "get": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Upwork Status",
+        "operationId": "upwork_status_integrations_upwork_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Upwork Status Integrations Upwork Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Upwork Disconnect",
+        "operationId": "upwork_disconnect_integrations_upwork_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Upwork Disconnect Integrations Upwork Delete"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/upwork/connect": {
+      "post": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Upwork Connect",
+        "operationId": "upwork_connect_integrations_upwork_connect_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Upwork Connect Integrations Upwork Connect Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/upwork/callback": {
+      "get": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Upwork Callback",
+        "operationId": "upwork_callback_integrations_upwork_callback_get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "State"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/upwork/check": {
+      "post": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Upwork Check",
+        "operationId": "upwork_check_integrations_upwork_check_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Upwork Check Integrations Upwork Check Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/upwork/acknowledge-policy": {
+      "post": {
+        "tags": [
+          "integrations"
+        ],
+        "summary": "Upwork Acknowledge Policy",
+        "description": "Records Upwork's payment-policy acknowledgement; the Settings button sends it only on the user's click.",
+        "operationId": "upwork_acknowledge_policy_integrations_upwork_acknowledge_policy_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Upwork Acknowledge Policy Integrations Upwork Acknowledge Policy Post"
                 }
               }
             }
@@ -1665,6 +1886,21 @@
           "mode"
         ],
         "title": "FaultInput"
+      },
+      "GitHubImport": {
+        "properties": {
+          "repository": {
+            "type": "string",
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+            "title": "Repository"
+          }
+        },
+        "type": "object",
+        "required": [
+          "repository"
+        ],
+        "title": "GitHubImport"
       },
       "HTTPValidationError": {
         "properties": {

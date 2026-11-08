@@ -7,10 +7,10 @@
 | Policy pack and November 2 update | Compliance, change study | Versioned provisional rules | Import actual pack; record real diff and effort; never infer update |
 | Labelled dev set | Retrieval, decisions, architecture studies | Synthetic harness only | Import dev set, record hashes and rerun; hidden set never stored |
 | Human labels/panel | Judge calibration, pairwise quality | None | Collect 30 real labels and anonymised ratings |
-| Docker | Full Compose startup and crash tests | SQLite local option | Install Docker Desktop; validate full service stack |
+| Docker | Full Compose startup and crash tests | SQLite local option | Verified 2026-11-08: full stack started, API crash demo submitted once on Postgres |
 | Model provider and hardware | Open profile and model comparison | Hosted Groq gpt-oss (key in `.env`) or local Ollama Qwen3; labelled test client in tests | Real runs recorded in PHASE_STATUS.md; local qwen3:1.7b fallback not pulled; no model comparison yet |
-| Upwork approved credentials/contract | OAuth and live capabilities | Fail-closed boundary | Verify official tools/auth, encrypted token lifecycle, no live writes without authorization |
-| GitHub MCP credentials/server | Repository ingestion | Uploaded text only | Connect scoped third-party MCP and validate actual contract |
+| Upwork account | OAuth and live capabilities | Mock marketplace by default; `MARKETPLACE_MODE=upwork` for live | Sign-in and reads verified 2026-11-08; live writes only with the user's explicit authorization |
+| GitHub token | Repository ingestion through GitHub's MCP server | Read-only `GITHUB_TOKEN` in `.env` | Verified 2026-11-08 with a live import of a public repository |
 | Trace host credentials | Public trace links | Persisted local events | Configure Langfuse and verify traces before linking |
 | Deployment/publication authorization | Public URLs/packages/article | Local artifacts only | Obtain separate explicit authorization after local review |
 
@@ -50,6 +50,6 @@ No Phase 7 work has been started.
 Real-model fixes: generation runs on hosted open-weight models through Groq with the user's key,
 kept only in the git-ignored `.env`; embeddings run locally on Ollama `nomic-embed-text`, which
 now executes for real. Free-tier rate limits apply: a rate-limited call waits at most 10 s and
-then uses the fallback model. Official inputs, Postgres, Docker and hosted traces remain blocked.
-Compose now passes the model settings and runs an Ollama service for embeddings; only
-`docker compose config` was run, because a full start downloads several images.
+then uses the fallback model. Official inputs and hosted traces remain blocked.
+Compose now passes the model settings and runs Ollama for embeddings, a shared Qdrant store
+and the MCP servers over HTTP; the full stack and the Postgres checkpoint test ran on 2026-11-08.

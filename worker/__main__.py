@@ -1,6 +1,7 @@
 import asyncio
 
 from worker.pipeline import sync_all, tick_all
+from worker.retention import purge_all
 from worker.runtime import drain_once
 from worker.scout import scout_all
 
@@ -11,6 +12,7 @@ async def main():
         await scout_all()
         await sync_all()
         tick_all()
+        await purge_all()
         if not await drain_once():
             await asyncio.sleep(2)
 

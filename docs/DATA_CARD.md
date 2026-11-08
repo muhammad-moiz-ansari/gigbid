@@ -54,10 +54,13 @@ oversized inputs fail before replacing the previous source. Scanned PDFs require
 OCR before upload; OCR is not implemented. Selectable PDF extraction is not a claim
 of layout-perfect reading, table reconstruction or image understanding.
 
-GitHub repository ingestion through a verified third-party MCP server remains
-unavailable. `rag/ingest/github.py` fails explicitly. Manually uploaded repository
-text is labelled as an upload, never represented as GitHub-verified code or a fetched
-repository snapshot. No website scraping, browser sessions or account access occurs.
+GitHub repositories are imported through GitHub's official MCP server (Settings, or
+`POST /evidence/github`): the root README and up to 12 source files in configured languages,
+taking source folders (`src`, `app`, `lib`, ...) and larger files first, and skipping vendored
+folders, generated `.d.ts` files and files over 50 KB (`github` in `agent/config.yaml`). Each file
+becomes `repository` evidence with the repository as its project and `github:owner/repo/path`
+as its source; re-importing replaces changed files. Manually uploaded repository text stays
+labelled as an upload. No website scraping, browser sessions or account access occurs.
 
 ## Hashes, chunking and aliases
 

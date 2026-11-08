@@ -18,7 +18,7 @@ def test_status_command_reports_readiness_without_connecting(mode):
     )
     data = json.loads(result.stdout)
     assert data["readiness"]["mode"] == mode
-    assert data["readiness"]["implemented"] is (mode == "mock")
+    assert data["readiness"]["implemented"] is (mode != "gigsim")
     assert data["readiness"]["externally_verified"] is False
 
 

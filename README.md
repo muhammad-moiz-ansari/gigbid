@@ -59,8 +59,9 @@ replies with the configured models on a throwaway database. See the [runbook](do
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.
-Local development uses SQLite. Postgres/Redis Compose configuration is provided;
-Docker startup has not been verified on this workstation.
+Local development uses SQLite. `docker compose up` starts the full stack on Postgres, Redis,
+Qdrant and Ollama with the three MCP servers over HTTP; it was run end to end on 2026-11-08.
+Live mode (`MARKETPLACE_MODE=upwork`) uses Upwork's official MCP server after you sign in from Settings.
 
 Phase 1 checks passed: five foundation tests, Ruff, generated API types, TypeScript
 and the production web build. Postgres/Compose execution remains an environment
@@ -71,4 +72,4 @@ See [local startup and checks](docs/RUNBOOK.md), [phase status](docs/PHASE_STATU
 
 Official GigSim, persona data, policy update, live accounts, real-model evaluations,
 human ratings and public deployment are pending. No official outcomes are claimed.
-No commits or external publication actions have been performed.
+No external publication actions have been performed.

@@ -52,11 +52,12 @@ POSTGRES_PASSWORD=choose-a-local-password docker compose --env-file .env -f infr
 ```
 
 Use a URL-safe password for the connection string. Compose reads `MODEL_PROFILE` and
-`GROQ_API_KEY` from `.env` (or your shell) and passes them to the API, worker and beat. An
-`ollama` service serves the `nomic-embed-text` embeddings, pulled once by `ollama-pull`; it
-also starts Postgres, Redis, migrations and the web app. MCP HTTP services and
-vector/tracing infrastructure are not operationally verified. Postgres acceptance remains
-pending a Docker-enabled environment.
+`GROQ_API_KEY` from `.env` (or your shell) and passes them to every app container. It starts
+Postgres, Redis, migrations, a `qdrant` vector store shared by the API, worker and Portfolio MCP
+server, an `ollama` service for the `nomic-embed-text` embeddings (pulled once by
+`ollama-pull`), the three MCP servers as HTTP services with audience-bound bearer tokens, the
+API, the Celery worker and beat, and the web app. The marketplace is the mock until GigSim
+arrives. Tracing infrastructure is not included yet.
 
 Auth uses Argon2 password hashes, random opaque session tokens stored as SHA-256
 hashes, expiry/revocation, HttpOnly SameSite cookies, exact-origin CSRF checks and
@@ -134,7 +135,8 @@ re-chunking; original text is never reconstructed by guessing.
 
 The expanded synthetic seed includes original Markdown, review and proposal fixtures.
 See DATA_CARD.md for supported formats/provenance and the Phase 4 check report for
-actual verification. GitHub MCP repository ingestion remains explicitly unavailable.
+actual verification. GitHub repository import goes through GitHub's MCP server and needs a
+read-only `GITHUB_TOKEN` in `.env`.
 
 ```powershell
 uv run python -m pytest tests/rag -q
@@ -224,3 +226,16 @@ uv run python -m scripts.manage replay --run RUN_ID --node writer
 The first command lists checkpoints; the second queues a replay from the latest checkpoint
 that runs `writer` next. The run viewer at `/runs/RUN_ID` lists the same checkpoints with
 Replay buttons. A replay gets a fresh budget and must be approved again before any send.
+
+## Connect Upwork (live mode sign-in)
+
+Put a `TOKEN_ENCRYPTION_KEY` in `.env` (see `.env.example`), open Settings and choose Connect
+Upwork. You sign in on Upwork's own page; GigBid registers itself once (dynamic client
+registration), stores the tokens encrypted per user and refreshes them. Check connection lists the
+tools Upwork offers (read-only); Disconnect revokes the token at Upwork. The default callback is
+`http://localhost:3000/api/integrations/upwork/callback`; a deployed callback address needs Upwork
+Support approval. Set `MARKETPLACE_MODE=upwork` for live mode: proposals become Upwork drafts that you
+confirm on Upwork, messages are sent only after approval, the inbox keeps Upwork's order, and live data
+is purged after 30 days and on disconnect. Before the first draft, confirm "I understand Upwork's
+policies" in Settings. Drafts are fixed-price only, carry the job's duration and payment by project
+(`upwork` in `agent/config.yaml`), and Upwork requires enough Connects in the balance even for a draft.

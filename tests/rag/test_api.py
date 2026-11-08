@@ -37,3 +37,9 @@ def test_file_metadata_and_invalid_replacement_preserve_original(client, account
     bad = client.post("/evidence/file", files={"file": ("work.txt", b"\xff", "text/plain")})
     assert bad.status_code == 422
     assert any(e["id"] == good.json()[0]["id"] for e in client.get("/evidence").json())
+
+
+def test_repository_import_endpoint_reports_missing_token_and_bad_names(client, account):
+    response = client.post("/evidence/github", json={"repository": "octo/demo"})
+    assert response.status_code == 503 and "GITHUB_TOKEN" in response.json()["detail"]
+    assert client.post("/evidence/github", json={"repository": "not a repo"}).status_code == 422

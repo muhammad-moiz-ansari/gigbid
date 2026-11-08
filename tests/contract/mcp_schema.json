@@ -681,6 +681,12 @@
             "default": "preview",
             "title": "Status",
             "type": "string"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Terms",
+            "type": "object"
           }
         },
         "required": [
@@ -851,6 +857,12 @@
             "default": "preview",
             "title": "Status",
             "type": "string"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Terms",
+            "type": "object"
           }
         },
         "required": [
@@ -1021,6 +1033,12 @@
             "default": "preview",
             "title": "Status",
             "type": "string"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Terms",
+            "type": "object"
           }
         },
         "required": [
@@ -1096,6 +1114,12 @@
                 "default": "preview",
                 "title": "Status",
                 "type": "string"
+              },
+              "terms": {
+                "additionalProperties": true,
+                "default": {},
+                "title": "Terms",
+                "type": "object"
               }
             },
             "required": [
@@ -1722,6 +1746,12 @@
             "default": "preview",
             "title": "Status",
             "type": "string"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Terms",
+            "type": "object"
           }
         },
         "required": [
@@ -1891,6 +1921,12 @@
             "default": "preview",
             "title": "Status",
             "type": "string"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Terms",
+            "type": "object"
           }
         },
         "required": [

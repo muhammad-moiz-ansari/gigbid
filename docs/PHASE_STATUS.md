@@ -625,3 +625,86 @@ Deferred by the user: choosing models by measurement at the end (with the smoke 
 the yardstick), local-only failures, an extra layer that strips injected sentences from model
 input, and moving the rule-based safety patterns into config. Nothing was committed at check
 time; no push, branch, PR or publication.
+
+## Partly-done items: Compose on Postgres, GitHub import, layout - done and verified
+
+2026-11-08: the starter kit is not available yet, so the user asked to finish the partly-done
+items first, then Phase 8, then Phase 10.
+
+Implemented:
+
+- Compose runs the whole stack: Postgres, Redis, a shared `qdrant` store, `ollama` for the
+  embeddings, the three MCP servers as HTTP services that check audience-bound bearer tokens,
+  migrations, the API, the Celery worker and beat, and the web app. Before this, the API and
+  worker would each have kept their own vector index inside their containers.
+- GitHub repository import through GitHub's official MCP server (`rag/ingest/github.py`,
+  `POST /evidence/github`, a Settings form): read-only repos toolset, only `get_repository_tree` and
+  `get_file_contents`, the README plus up to 12 source files as `repository` evidence.
+- Playwright specs moved to `apps/web/tests/e2e/`, the path the PDF lists.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 196 passed, 1 skip (the Postgres test, run separately below) |
+| Postgres checkpoint test against Compose Postgres | 19 durability tests passed, including the previously skipped one |
+| Playwright journeys from `apps/web/tests/e2e/` | 9 passed |
+| Ruff, TypeScript check, image builds (including the production web build) | Passed; 8 images built in about 12 minutes |
+| `docker compose up` | 13 services: 11 running, migrations and the embedding-model pull exited 0 |
+| End to end through the HTTP API | proposal reached approval in 6.2 s with 5 evidence items and an $850 bid; MCP servers healthy over HTTP; 44 checkpoints in Postgres; one shared Qdrant collection |
+| C6 crash demo | API killed while the proposal awaited approval, restarted, approved: submitted exactly once (1 proposal record, Connects 100 -> 92) |
+| Client reply on the stack | sent, with the interview times listed |
+| Hosted smoke (`smoke-20261108-230027.json`) | 1/1 submitted, reply sent, 0 quality warnings; one Critic rewrite for a brief screening answer (9,392 tokens) |
+| GitHub import, live (`muhammad-moiz-ansari/pakrail-remastered`) | the server offered only the two named tools; README plus 11 source files from `src/`, 167 passages in 25 s, all `repository` evidence with real file text |
+
+Upwork: the user has an account. Upwork's MCP page (updated 6 Nov) says any MCP app may connect
+with OAuth 2.1 and dynamic client registration, and that API keys are not accepted. It also says
+callback addresses for apps on a server or website need Support approval, and that agents should not
+rank, score or pick jobs by their own criteria.
+
+Upwork sign-in (`apps/api/auth/upwork.py`, Settings -> Connect Upwork): OAuth 2.1 with PKCE (S256)
+and dynamic client registration; Upwork accepted the localhost callback, the user signed in on
+Upwork's page, and the tokens are stored encrypted per user (`apps/api/auth/tokens.py`). Check
+connection opened an MCP session with the user's token and listed 33 tools, including `find_jobs`,
+`get_messages`, `manage_proposals`, `get_preview`/`confirm_preview` and `send_message`
+(`docs/checks/upwork-signin.json`). A deployed callback address would still need Upwork Support approval.
+
+Upwork adapter (`mcp_servers/marketplace/adapters/upwork_live.py`, `MARKETPLACE_MODE=upwork`): the port maps
+onto `find_jobs` (search, recommendations, details with the real Connects cost), `get_profile` (Connects),
+`get_messages`, `list_freelancer_proposals` (pipeline events) and two writes. A proposal becomes an Upwork
+draft (`manage_proposals create`) only after an approved, unconsumed GigBid approval, and Upwork spends
+Connects when the user confirms it there; a message is sent with `send_message` after approval. Any
+other tool is refused in code. A write is recorded as in flight first, so an unknown outcome is never
+retried. The shared approval check now takes the live job instead of a mock-only record.
+
+Upwork's live-mode rules: the inbox keeps Upwork's order and never auto-archives; outcomes from Upwork
+events are not learned (terms 8.6); search details are cached for at most 24 hours (8.3); live runs,
+their checkpoints and Upwork records are purged after 30 days and on disconnect (8.6, 8.7).
+
+| Check | Actual outcome |
+|---|---|
+| Adapter tests with a stand-in Upwork server | 5 passed: reads, draft-only proposal behind an approval, refused vs unknown writes, purge, unranked live inbox |
+| Live reads on the user's account | search 10 jobs (9 with skills), recommendations 10, job details with Connects cost 10, client history, balance, events (none yet); a forbidden tool refused |
+| Full Python regression | 206 passed, 1 Postgres skip |
+
+Live write check (2026-11-09, the user's throwaway account, authorized in chat): Upwork first refused
+the draft until the account acknowledged its payment policy; the user confirmed "I understand Upwork's
+policies" in chat and the acknowledgement was recorded. Upwork then answered with a next step instead
+of a draft (`terms_required`: fixed-price drafts need a duration and a payment mode), which the adapter
+had wrongly reported as drafted. With the terms sent, Upwork refused because the account has 0 Connects
+and the job costs 10; Upwork checks the balance even for an unsubmitted draft. Fixes: a reply without a
+preview id is a refusal that shows Upwork's next step; fixed-price drafts carry the job's posted duration
+(or `upwork.default_duration`) and `upwork.payment_mode` (by project), shown in the approval preview through
+a new `terms` field on write results; hourly jobs are refused clearly; Upwork's refusal text is no longer
+cut at 200 characters; and Settings has an "I understand Upwork's policies" step for new accounts. GigBid's
+pricing node already stops a run when Connects are short, so a real run never reaches that refusal.
+
+Still not verified live: a built draft and its preview format (the account needs Connects), message
+sends (no conversation exists and starting one would message a stranger) and the proposal and message
+event formats (no proposals or messages yet).
+
+The live GitHub import caught two problems that the stand-in tests could not: with the
+`/x/repos/readonly` URL GitHub ignored `X-MCP-Tools` and offered 14 tools (the `/readonly` URL
+honours it), and the shallowest-first file order imported a generated `next-env.d.ts` and helper
+scripts instead of the app's `src/` code. Both are fixed and the import was rerun.
+Nothing was committed at check time; no push, branch, PR or publication.

@@ -20,6 +20,14 @@ export default function Onboarding({ profile: savedProfile, setProfile: saveProf
   const [project, setProject] = useState(""), [industry, setIndustry] = useState(""), [date, setDate] = useState("");
   const [outcome, setOutcome] = useState<Upload["outcome"]>("unknown");
   const [mode, setMode] = useState("text"), [file, setFile] = useState<File | null>(null);
+  const [repository, setRepository] = useState("");
+  const [upwork, setUpwork] = useState<{ connected: boolean; tools: string[] }>({ connected: false, tools: [] });
+  useEffect(() => {
+    void api.GET("/integrations/upwork").then(result => result.data && setUpwork(result.data as typeof upwork));
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("upwork") === "connected") notify("Upwork connected. Use Check connection to list what it offers.");
+    if (query.get("upwork") === "error") notify(`Upwork sign-in did not complete: ${query.get("reason") || "unknown reason"}`);
+  }, []);
   const skillList = (value: string) => value.split(",").map(item => item.trim()).filter(Boolean);
   async function upload(event: React.FormEvent) {
     event.preventDefault();
@@ -103,6 +111,37 @@ export default function Onboarding({ profile: savedProfile, setProfile: saveProf
         checked(await api.POST("/dev/seed")); notify("Labelled synthetic examples loaded.");
       })}>Load synthetic examples</button>}
     </form>
+    <form className="panel" onSubmit={event => { event.preventDefault(); void act(async () => {
+      const items = checked(await api.POST("/evidence/github", { body: { repository: repository.trim() } }));
+      notify(`Imported ${items.length} passages from ${repository.trim()} through GitHub's MCP server.`);
+    }); }}><h2>Import a GitHub repository</h2>
+      <p className="muted">Reads the README and main source files through GitHub's read-only MCP server.</p>
+      <label>Repository<input required maxLength={200} pattern="[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+" value={repository}
+        onChange={e => setRepository(e.target.value)} placeholder="owner/repository"/></label>
+      <button className="secondary" disabled={busy || !repository.trim()}>Import repository</button>
+    </form>
+    <section className="panel"><h2>Upwork (live mode)</h2>
+      <p className="muted">You sign in on Upwork's own page and GigBid stores the tokens encrypted. Nothing reaches Upwork without your approval here, and proposals still need confirming on Upwork.</p>
+      <p role="status">{upwork.connected ? `Connected${upwork.tools.length ? ` · ${upwork.tools.length} tools available` : ""}` : "Not connected"}</p>
+      <div className="button-row">
+        <button className="secondary" disabled={busy} onClick={() => act(async () => {
+          const { authorize_url } = checked(await api.POST("/integrations/upwork/connect")) as { authorize_url: string };
+          window.location.assign(authorize_url);
+        })}>{upwork.connected ? "Reconnect Upwork" : "Connect Upwork"}</button>
+        {upwork.connected && <button className="secondary" disabled={busy} onClick={() => act(async () => {
+          const { tools } = checked(await api.POST("/integrations/upwork/check")) as { tools: string[] };
+          setUpwork({ connected: true, tools }); notify(`Upwork connection works: ${tools.length} tools available.`);
+        })}>Check connection</button>}
+        {upwork.connected && <button className="secondary" disabled={busy} onClick={() => act(async () => {
+          checked(await api.POST("/integrations/upwork/acknowledge-policy")); notify("Upwork policy acknowledged.");
+        })}>I understand Upwork's policies</button>}
+        {upwork.connected && <button className="danger" disabled={busy} onClick={() => act(async () => {
+          checked(await api.DELETE("/integrations/upwork")); setUpwork({ connected: false, tools: [] }); notify("Upwork disconnected.");
+        })}>Disconnect</button>}
+      </div>
+      {upwork.connected && <p className="muted">Before your first draft Upwork asks you to confirm that you understand its policies: accept payment only through Upwork, which keeps Payment Protection.</p>}
+      {upwork.tools.length > 0 && <details><summary>Tools Upwork offers</summary><p className="muted">{upwork.tools.join(", ")}</p></details>}
+    </section>
     <section className="panel"><h2>Evidence sources</h2>
       {[...new Set(portfolio.map(item => item.source))].map(source => <div className="list-row" key={source}><span>{source}</span>
         <button className="danger" disabled={busy} aria-label={`Delete source ${source}`} onClick={() => act(async () => {
