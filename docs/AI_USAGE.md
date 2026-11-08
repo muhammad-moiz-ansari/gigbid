@@ -57,3 +57,28 @@ A real caught mistake in existing code: `stage_approval` reused any approval wit
 binding unless it was invalidated, including one that was already approved and consumed. A
 replay that recreated an identical preview would have shown a dead, already-used approval.
 Writing the replay test exposed it; reuse is now limited to still-pending approvals.
+
+The real-model fixes and hosted profile (Claude Code) affected agent/model.py, agent/config.yaml,
+agent/handoffs.py, agent/budgets.py, agent/nodes/workflow.py and liaison.py, new prompts (writer
+v4, answer v2, pricing v2, risk v2), apps/api/config.py, the retry endpoint, BidWorkspace.tsx, the
+new `scripts/smoke.py`, the Makefile, `.env.example`, tests and these docs.
+
+A real caught mistake: the first forced-fallback check against Groq marked the run's usage as
+unknown although the provider had rejected the request (404) and generated nothing, which would
+have stopped a healthy run as needs_attention. Rejected 4xx requests now count as known zero
+usage while timeouts and 5xx stay unknown, with a test for each case and a repeated real check.
+Another: gpt-oss-120b failed Groq's strict JSON-schema validation at an 800-token cap, so the
+provider now uses JSON mode with the schema in the system prompt and larger caps; eight of eight
+real calls then validated.
+
+The quality review (Claude Code) affected rag/verify.py, agent/nodes/workflow.py and liaison.py,
+agent/handoffs.py, agent/model.py, agent/config.yaml, agent/graphs/bid_graph.py, new prompts
+(writer v5, answer v3, liaison v4, pricing v3, risk v3, json_mode v1), the mock jobs fixture,
+infra/docker-compose.yml, scripts/smoke.py, tests and these docs.
+
+Real caught mistakes: the smoke check counted submissions, so a reply sent without its interview
+slots and $50 bids on a $900 job passed unnoticed until the drafts were read; it now reports
+quality warnings. The earlier plan-only screening answers contradicted the PDF, which asks for
+evidence citations. And my own field names (`spend` next to `paid_per_hire`) led the pricing model
+to describe the client's $4,000 total as "per hire"; reading the price reasons caught it, and the
+fields are now `total_spend` and `average_paid_per_hire`.

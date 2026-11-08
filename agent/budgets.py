@@ -5,7 +5,7 @@ from sqlalchemy import select, text
 from agent.errors import BudgetExceeded
 from agent.handoffs import NodeUsage
 from agent.model import config
-from apps.api.db import Event, Run, get_record, put_record, transaction
+from apps.api.db import Event, Run, get_record, now, put_record, transaction
 
 
 def _locked(db, tenant, run_id):
@@ -87,6 +87,16 @@ def start_replay(tenant, run_id):
         history = value.pop("replays", [])
         put_record(db, tenant, "run_budget", run_id, {"steps": 0, "tokens": 0, "api_usd": 0.0, "active_seconds": 0.0,
                                                       "usage_complete": True, "replays": history + [value]})
+
+
+def acknowledge(tenant, run_id):
+    """A human retry accepts the unknown usage of interrupted steps; the ledger keeps a record of it."""
+    with transaction() as db:
+        value = dict(_locked(db, tenant, run_id))
+        if not value["usage_complete"]:
+            accepted = {"nodes": value.pop("interrupted_nodes", []), "at": now()}
+            value.update(usage_complete=True, acknowledged=value.get("acknowledged", []) + [accepted])
+            put_record(db, tenant, "run_budget", run_id, value)
 
 
 def read(tenant, run_id):

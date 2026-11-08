@@ -14,7 +14,7 @@ class TestModels:
     async def complete(self, node, data, schema):
         await asyncio.sleep(0.005)
         if node == "analyst":
-            value = data
+            value = {**data, "id": "hidden", "client_id": "hidden"}
         elif node == "risk":
             value = {"score": 0.1, "flags": [], "reasons": ["Synthetic test double"]}
         elif node == "pricing":

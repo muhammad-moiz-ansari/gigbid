@@ -6,8 +6,8 @@ repository were preserved; this phase does not extend conversations or schedulin
 
 ## Use the local workflow
 
-Start the API, web and worker using RUNBOOK.md. Real generation requires the
-configured Ollama models, and dense V0 requires its embedding model. No production
+Start the API, web and worker using RUNBOOK.md. Real generation uses the configured
+model profile (hosted Groq by default), and dense V0 requires its local embedding model. No production
 test-model switch was added. Synthetic development examples remain visibly labelled.
 
 1. Register or sign in. Settings opens for a new account.

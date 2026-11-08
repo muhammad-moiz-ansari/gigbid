@@ -2,8 +2,8 @@
 
 An evidence-grounded freelancer copilot with human approval before outgoing actions.
 
-**Current handoff: Phase 7 implemented; two real-model issues await a decision
-(see the phase status).** The user requires explicit instructions before each
+**Current handoff: Phase 7 and its real-model fixes are done; generation now uses hosted
+open-weight models (see the phase status).** The user requires explicit instructions before each
 subsequent phase. Later-phase code started under the original authorization is
 preserved but unfinished.
 
@@ -51,6 +51,11 @@ thread per client, event-driven pipeline stages, Celery/Redis scheduling with du
 detection, style and outcome memory in a LangGraph store, autonomy-controlled skip archiving,
 category analytics, and checkpoint replay with an agent run viewer. See the
 [phase status](docs/PHASE_STATUS.md) for real-model and Celery results and open issues.
+
+Generation defaults to hosted open-weight models on Groq (`MODEL_PROFILE=open`, with
+`GROQ_API_KEY` in the git-ignored `.env`); `open_local` runs the same graphs on Ollama.
+Embeddings stay local with `nomic-embed-text`. `make smoke` runs approved proposals and client
+replies with the configured models on a throwaway database. See the [runbook](docs/RUNBOOK.md).
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.

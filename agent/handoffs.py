@@ -1,6 +1,8 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from agent.model import config
 
 
 class Contract(BaseModel):
@@ -25,6 +27,15 @@ class RiskReport(Contract):
     score: float = Field(ge=0, le=1)
     flags: list[str]
     reasons: list[str]
+
+    @field_validator("flags")
+    @classmethod
+    def configured(cls, flags):
+        """Flags come from the policy list in config.yaml, so a policy update needs no code change."""
+        unknown = sorted(set(flags) - set(config()["policy"]["risk_flags"]))
+        if unknown:
+            raise ValueError(f"Unknown risk flags: {unknown}")
+        return flags
 
 
 class FitReport(Contract):

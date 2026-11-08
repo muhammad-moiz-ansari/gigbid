@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import object_session
 
+from agent import budgets
 from apps.api.approvals import lock_decision
 from apps.api.auth.service import current_user
 from apps.api.config import settings
@@ -168,11 +169,12 @@ def run_detail(run_id: str, user: User = Depends(current_user)):
 @router.post("/runs/{run_id}/retry", response_model=RunView)
 def retry_run(run_id: str, user: User = Depends(current_user)):
     with transaction() as db:
-        run = owned_run(db, user.id, run_id)
-        if run.status not in ("recoverable", "needs_attention"):
+        if owned_run(db, user.id, run_id).status not in ("recoverable", "needs_attention"):
             raise HTTPException(409, "Only failed or recoverable runs may be retried")
-        run.status = "queued"
-        run.lease_until = 0
+    budgets.acknowledge(user.id, run_id)  # The user accepts the unknown usage of an interrupted step.
+    with transaction() as db:
+        run = owned_run(db, user.id, run_id)
+        run.status, run.lease_until = "queued", 0
         result = view(run)
     dispatch(run_id)
     return result

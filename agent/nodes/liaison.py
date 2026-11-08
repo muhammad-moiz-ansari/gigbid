@@ -2,6 +2,7 @@
 from agent.handoffs import IntentReport, ProposalDraft
 from agent.mcp_client import ToolFailure
 from agent.memory.store import recall
+from agent.nodes.workflow import brief, unlabeled
 from apps.api.safety import risks
 
 
@@ -29,7 +30,7 @@ class Liaison:
 
     async def classify(self, state):
         text = next(m["text"] for m in state["messages"] if m["id"] == state["reply_to"])
-        result, usage = await self.model.complete("intent", {"message": text, "job": state["job"]}, IntentReport)
+        result, usage = await self.model.complete("intent", {"message": text, "job": unlabeled(state["job"])}, IntentReport)
         result = IntentReport.model_validate(result).model_dump()
         flags = risks(text)
         if set(flags) & {"off_platform", "free_work"}:
@@ -41,8 +42,9 @@ class Liaison:
     async def draft(self, state):
         slots = await self.tools.call("liaison", "free_slots", {}) if state["intent"] == "interview" else []
         result, usage = await self.model.complete("liaison", {
-            "messages": state["messages"], "intent": state["intent"], "job": state["job"], "slots": slots,
-            "evidence": state["fit"]["evidence"], "memory": await recall(state["tenant"], "style"),
+            "messages": state["messages"], "intent": state["intent"], "job": unlabeled(state["job"]),
+            "interview_times_listed": bool(slots),
+            "evidence": brief(state["fit"]["evidence"]), "memory": await recall(state["tenant"], "style"),
             "minimum_price": state["profile"].get("floor_fixed")}, ProposalDraft)
         draft = {**result, "version": state["draft"]["version"] + 1, "screening_answers": {}}
         return {"draft": ProposalDraft.model_validate(draft).model_dump(), "slots": slots, "usage": [usage]}

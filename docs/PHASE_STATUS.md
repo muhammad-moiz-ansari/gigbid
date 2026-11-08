@@ -506,3 +506,122 @@ Open issues awaiting the user:
 
 Known benign warning: LangGraph's async SQLite store can log "Task was destroyed but it is
 pending" when a run's store closes. No commits, pushes, branches, PRs or publication occurred.
+
+## Real-model fixes and hosted open models - implemented and verified
+
+2026-11-08: after the Phase 7 commit the user supplied a Groq API key and asked for the 11
+fixes from the real-model review, with hosted open-weight models from now on and everything
+else local. Both open Phase 7 issues are closed (fixes 1 and 2).
+
+Implemented:
+
+1. Screening answers are plans only ("I would ..."), from writer v4 and answer v2; evidence
+   claims stay in the cover letter.
+2. Retry on a run stopped by unknown usage records the user's acknowledgement (nodes and time)
+   in the budget ledger and continues within the remaining budget. The studio explains this.
+3. Evidence sent to models is trimmed to id, text, project, skills, date and outcome.
+4. Per-node output caps in each profile; the local profile keeps Ollama models loaded (`keep_alive`).
+5. Budgets were re-measured on hosted runs; no change was needed (below).
+6. Risk flags come from a fixed list. Planted instructions raise risk to at least 0.5
+   (`thresholds.injection_risk`) so the reviewer sees them, without forcing a skip.
+7. Each model falls back to a different real model: gpt-oss-120b and gpt-oss-20b back each
+   other up; locally qwen3:8b -> qwen3:4b -> qwen3:1.7b.
+8. Marketplace job and client IDs are removed from every model input.
+9. Pricing receives computed facts (budget, minimum bid, Connects cost, balance and weekly
+   allowance, category outcomes) and returns an amount within them with a one-sentence rationale.
+10. `make smoke` (`scripts/smoke.py`) runs approved proposals and replies with the configured
+    models on a throwaway database and writes `evals/results/smoke-<time>.json`.
+11. `MODEL_PROFILE=open` (the default) calls Groq's OpenAI-compatible API in JSON mode:
+    gpt-oss-20b for the small nodes and gpt-oss-120b for the writer, Critic and liaison, with API
+    cost from published prices. `open_local` keeps Ollama. Embeddings stay local
+    (`nomic-embed-text`). The key is kept only in the git-ignored `.env`.
+
+Usage rule: a rate-limited (429) or rejected (other 4xx) request generated nothing, so it counts
+as known zero usage and the fallback model runs; a rate limit waits at most 10 s first. Timeouts
+and 5xx responses leave usage unknown, which stops the run until Retry.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 185 passed, 1 Postgres skip (48.7 s) |
+| Playwright journeys in installed Chrome | 9 passed (58.7 s) |
+| Ruff, TypeScript check, production build | Passed |
+
+Hosted runs (Groq, mock marketplace, V0 retrieval with local `nomic-embed-text`, Apple M3 24 GB):
+
+| Run | Actual outcome |
+|---|---|
+| Baseline before trimming and ID removal (`make smoke`) | proposal submitted, reply sent; proposal 6,478 tokens with a 1,931-token writer prompt; the injected job reached review |
+| After all fixes (`make smoke RUNS=3`) | 3/3 proposals submitted once, 3/3 replies sent; per proposal p50/p95 5,438/5,583 tokens, 14.5/14.7 active s, $0.00096/$0.00097; writer prompt about 1,180 tokens (-39%); scam and injected jobs skipped |
+| Forced fallback (unknown primary model name) | 404, then gpt-oss-120b answered; usage complete, $0.00015 |
+| Celery kill and Retry (Redis, `--pool=solo`, mock-web) | killed 9.0 s in, during the writer; recovered at 334 s as needs_attention; Retry recorded the acknowledgement for `writer`; only the writer ran again; approved and submitted once (Connects 100 -> 90) |
+
+At p95 a proposal uses 47% of the 12,000-token budget, 8% of the 180 s active budget and about
+1% of the $0.10 API budget, so budgets stay unchanged. Results are in
+`evals/results/smoke-20261108-193512.json` and `smoke-20261108-193808.json`; commands, hashes
+and details are in `docs/checks/real-model-fixes.json`.
+
+Limits: Groq free-tier rate limits apply; the local qwen3:1.7b fallback was not pulled or run;
+hosted output varies between runs, and the injected job was skipped by the model's own risk
+score. Nothing was committed at check time; no push, branch, PR or publication.
+
+## Quality review of hosted outputs - fixed and verified
+
+2026-11-08: reading the actual drafts and sent messages, not just the pass count, showed problems
+the smoke check had missed, plus four places that differed from the assignment PDF. The user
+asked to fix them for the hosted models only; local-model behaviour and choosing the best models
+come at the end.
+
+Found in the hosted runs: one sent reply asked the client to pick "from the following interview
+slots" with no slots (the claim checker removed the slot list); two of three bids were the $50
+minimum on a $900 job; plan sentences with curly apostrophes ("I’d", "I’m") were removed as
+claims; one proposal kept no evidence at all and another kept an orphaned "This work was
+delivered..." sentence. PDF differences: plan-only screening answers (the PDF asks for evidence
+citations), pricing without client spend or a Connects decision, a hard-coded risk-flag list, and
+a Compose file that could not run the models.
+
+Implemented:
+
+- Interview times are added to the reply by code from the calendar tool when the action is built,
+  so the approval preview and the sent message always list them; liaison v4 never writes times.
+- The claim checker reads curly quotes and non-breaking hyphens as plain text, treats a plan that
+  names a portfolio project or says "as demonstrated in" as a claim that needs a citation, and
+  removes a "This/That/It..." sentence that follows a removed one.
+- The Critic sends back a model draft whose cover letter cites no evidence, quoting up to two
+  removed sentences and why; human edits and regenerated paragraphs are reviewed as written.
+  Writer v5 and answer v3 reuse the evidence's own wording.
+- Screening answers cite evidence for experience questions and use "I would" plans otherwise; the
+  mock API job now also asks "Describe a similar API you have delivered."
+- Pricing gets the client's total spend, hires and average paid per hire, and code keeps the bid
+  within 60-100% of the job budget (`pricing.budget_share`, never below the floor). When fit x bid
+  is below Connects x $0.15 x 20 (`pricing.connect_usd`, `pricing.min_return`) the run stops as
+  "watch" with the reason. Market statistics wait for GigSim's historical jobs.
+- Risk flags are validated against `policy.risk_flags` in config and passed to the risk model.
+- The Groq JSON instruction moved to `agent/prompts/json_mode.v1.md`.
+- Compose passes `MODEL_PROFILE`, `GROQ_API_KEY` and `OLLAMA_URL` to the API, worker and beat and
+  adds an `ollama` service that pulls `nomic-embed-text`.
+- `make smoke` reports cited sentences, bid share, unanswered questions and whether the interview
+  times reached the reply, with a warning for each problem.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 193 passed, 1 Postgres skip (50.1 s) |
+| Playwright journeys in installed Chrome | 9 passed (58.8 s) |
+| Ruff, TypeScript check, production build | Passed |
+| `docker compose config` with dummy values | Valid; model settings reach api, worker, beat and migrate |
+
+Hosted runs (`make smoke RUNS=3`):
+
+| Run | Actual outcome |
+|---|---|
+| First run with the new rules (`smoke-20261108-214105.json`) | 2/3 proposals submitted; the second hit the token budget (12,150 of 12,000) after two rewrites, because the writer embellished its evidence sentences ("a full suite of integration tests") and the Critic's note did not say what was removed |
+| After the wording and feedback fix (`smoke-20261108-214552.json`) | 3/3 submitted with no rewrites, 3/3 replies with the interview times, 0 quality warnings; but every price reason read the client's $4,000 total as "per hire" |
+| After renaming the client fields (`smoke-20261108-214840.json`) | 3/3 submitted with no rewrites, 3/3 replies with the interview times, 0 quality warnings; p50/p95 6,105/6,324 tokens, 15.4/15.7 active s, $0.0011/$0.0012; bid $850 (94% of budget) with the reason "near the top of the 540-900 range ... despite the client's average paid per hire of 500" |
+
+Deferred by the user: choosing models by measurement at the end (with the smoke quality fields as
+the yardstick), local-only failures, an extra layer that strips injected sentences from model
+input, and moving the rule-based safety patterns into config. Nothing was committed at check
+time; no push, branch, PR or publication.

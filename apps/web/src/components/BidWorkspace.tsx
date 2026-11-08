@@ -96,6 +96,8 @@ export default function BidWorkspace({ run, job, busy, act, analyse, onUpdate }:
           {["submitted", "sent"].includes(run.status) && <p className="feedback" role="status">Approved action completed. Effect: {state.outcome?.effect_id || "Recorded by marketplace"}.</p>}
         </>}
         {state.error && <p role="alert" className="error">{state.error}</p>}
+        {["recoverable", "needs_attention"].includes(run.status) && state.budget?.usage_complete === false &&
+          <p className="muted">A step was interrupted, so its model usage is unknown. Retry records your acknowledgement and continues within the remaining budget.</p>}
         {["recoverable", "needs_attention"].includes(run.status) && <div className="button-row">
           <button className="secondary" disabled={busy} onClick={() => act(async () => {
             checked(await api.POST("/runs/{run_id}/retry", { params: { path: { run_id: run.id } } }));

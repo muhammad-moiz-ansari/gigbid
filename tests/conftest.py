@@ -10,6 +10,7 @@ TEST_ROOT.mkdir(parents=True)
 os.environ["DATABASE_URL"] = f"sqlite:///{(TEST_ROOT / 'test.db').as_posix()}"
 os.environ["CHECKPOINT_URL"] = str(TEST_ROOT / "checkpoints.db")
 os.environ["MCP_CALLS_PER_MINUTE"] = "10000"
+os.environ["GROQ_API_KEY"] = ""  # Tests never call a hosted model; provider tests mock the HTTP transport.
 
 from apps.api.db import Base, engine  # noqa: E402
 

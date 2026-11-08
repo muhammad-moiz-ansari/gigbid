@@ -32,6 +32,16 @@ async def test_client_messages_continue_one_thread(client, account):
     assert [m["direction"] for m in client.get("/messages").json()] == ["inbound", "outbound", "inbound", "outbound"]
 
 
+async def test_interview_reply_lists_the_calendar_times(client, account):
+    tenant = account["id"]
+    run = await turn(client, tenant, "Can we schedule an interview about the API?")
+    assert "Tue 10 Nov, 10:00 UTC (30 min)" not in run["state"]["draft"]["text"]
+    assert "Tue 10 Nov, 10:00 UTC (30 min)" in run["state"]["preview"]["payload"]["text"]
+    assert (await approve(client, tenant, run))["status"] == "sent"
+    sent = [m["text"] for m in client.get("/messages").json() if m["direction"] == "outbound"]
+    assert "Available interview times:\n- Tue 10 Nov, 10:00 UTC (30 min)" in sent[-1]
+
+
 async def test_new_message_during_review_redrafts(client, account):
     tenant = account["id"]
     first = await turn(client, tenant, "Could you share your approach?")

@@ -45,17 +45,18 @@ The TypeScript schema is generated from FastAPI OpenAPI; never hand-edit
 `src/lib/api/schema.d.ts`. The small client wrapper uses openapi-fetch with these
 generated paths and adds the in-memory CSRF token.
 
-Optional foundation Compose (not executed here; Docker is unavailable):
+Optional Compose (not started here; `docker compose config` validates the file):
 
-```powershell
-$env:POSTGRES_PASSWORD = 'choose-a-local-password'
-docker compose -f infra/docker-compose.yml up --build
+```bash
+POSTGRES_PASSWORD=choose-a-local-password docker compose --env-file .env -f infra/docker-compose.yml up --build
 ```
 
-Use a URL-safe password for the connection string. This Phase 1 Compose starts
-Postgres, Redis, migrations, API and web only. Worker, models, MCP HTTP services and
-vector/tracing infrastructure belong to later phases and are not operationally
-verified. Postgres acceptance remains pending a Docker-enabled environment.
+Use a URL-safe password for the connection string. Compose reads `MODEL_PROFILE` and
+`GROQ_API_KEY` from `.env` (or your shell) and passes them to the API, worker and beat. An
+`ollama` service serves the `nomic-embed-text` embeddings, pulled once by `ollama-pull`; it
+also starts Postgres, Redis, migrations and the web app. MCP HTTP services and
+vector/tracing infrastructure are not operationally verified. Postgres acceptance remains
+pending a Docker-enabled environment.
 
 Auth uses Argon2 password hashes, random opaque session tokens stored as SHA-256
 hashes, expiry/revocation, HttpOnly SameSite cookies, exact-origin CSRF checks and
@@ -97,8 +98,8 @@ authenticated user's source/corpus/index manifests and pending physical cleanup.
 The generated frontend schema was refreshed; no new screen or graph was added.
 
 Default retrieval is V0, the fixed-chunk dense baseline, pending future evaluation.
-It requires the configured open Ollama embedding model. This workstation's real
-Ollama probe timed out; test vectors do not substitute for a real-model smoke check.
+It requires the configured open Ollama embedding model, which ran for real in the
+2026-11-08 smoke checks; test vectors do not substitute for that check.
 Initialize the service/model in your own environment before requesting V0 retrieval:
 
 ```powershell
@@ -141,17 +142,50 @@ uv run python -m pytest -q
 uv run python -m ruff check .
 ```
 
-## Phase 7 worker, schedules and replay
+## Models and the smoke check
 
-Real generation needs Ollama with the configured models. `agent/config.yaml` sets
-`generation.think: false` for Qwen3, and the per-request model timeout defaults to
-120 seconds (`MODEL_TIMEOUT_SECONDS`).
+Generation defaults to hosted open-weight models on Groq. Put the key in the git-ignored `.env`:
+
+```bash
+MODEL_PROFILE=open
+GROQ_API_KEY=your-groq-key
+```
+
+`agent/config.yaml` maps each node to `openai/gpt-oss-20b` or `openai/gpt-oss-120b` and sets a
+fallback model, per-node output caps and the published prices used for API cost. Embeddings stay
+local, so V0 retrieval still needs Ollama:
+
+```bash
+ollama pull nomic-embed-text
+```
+
+`MODEL_PROFILE=open_local` runs generation on Ollama instead, with Qwen3 thinking off and models
+kept loaded (`keep_alive`):
 
 ```bash
 ollama pull qwen3:4b
 ollama pull qwen3:8b
-ollama pull nomic-embed-text
+ollama pull qwen3:1.7b
 ```
+
+The per-request model timeout defaults to 120 seconds (`MODEL_TIMEOUT_SECONDS`). A rate-limited
+(429) or rejected (4xx) request generated nothing, so it counts as zero usage and the fallback
+model runs; a rate limit waits at most `retries.max_rate_limit_wait_seconds` first. A timeout or
+server error leaves usage unknown and the run stops as needs_attention. Retry records your
+acknowledgement of that usage in the budget ledger and continues within the remaining budget.
+
+The smoke check runs approved proposals and client replies with the configured models on a
+throwaway database under `.cache/smoke`, and writes `evals/results/smoke-<time>.json`:
+
+```bash
+make smoke
+make smoke RUNS=3
+```
+
+Each run also reports cited sentences, the bid as a share of the budget, unanswered screening
+questions and whether the interview times reached the reply, with a warning for each problem.
+
+## Phase 7 worker, schedules and replay
 
 Both worker modes use the same idempotent run processing:
 
@@ -177,7 +211,7 @@ than its profile interval, and never more often than every 5 minutes in mock mod
 day. Event sync runs every 60 s and mock outcomes advance every 120 s. A worker killed
 mid-run leaves the run leased for 300 s; the recovery task then resumes it from its last
 checkpoint, so finished nodes do not run again and stable action keys prevent a second
-submission. The scout skips postings it has seen and marks duplicate postings (same title,
+submission. If the killed step's model usage is unknown, the run waits for Retry. The scout skips postings it has seen and marks duplicate postings (same title,
 description and client under another ID) without analysing them.
 
 Replay a run from a saved checkpoint as a new branch (an operator and debugging tool):

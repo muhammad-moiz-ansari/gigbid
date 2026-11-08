@@ -22,7 +22,7 @@ def build_bid_graph(tools, model, checkpointer, store=None):
     builder.add_edge(["analyst", "risk", "matcher"], "reconcile")
     builder.add_conditional_edges("reconcile", lambda s: "pricing" if s["decision"]["action"] == "bid" else END,
                                   ["pricing", END])
-    builder.add_edge("pricing", "writer")
+    builder.add_conditional_edges("pricing", lambda s: "writer" if s["status"] == "running" else END, ["writer", END])
     builder.add_edge("writer", "verifier")
     builder.add_edge("regenerate", "verifier")
     builder.add_edge("verifier", "critic")

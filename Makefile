@@ -1,4 +1,4 @@
-.PHONY: dev migrate test seed demo lint client
+.PHONY: dev migrate test seed demo lint client smoke
 dev:
 	uv run python -m scripts.manage dev
 migrate:
@@ -14,3 +14,5 @@ lint:
 client:
 	uv run python -m scripts.openapi
 	cd apps/web && npm run generate
+smoke:
+	uv run python -m scripts.smoke --runs $(or $(RUNS),1)

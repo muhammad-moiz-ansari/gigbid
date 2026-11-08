@@ -8,7 +8,7 @@
 | Labelled dev set | Retrieval, decisions, architecture studies | Synthetic harness only | Import dev set, record hashes and rerun; hidden set never stored |
 | Human labels/panel | Judge calibration, pairwise quality | None | Collect 30 real labels and anonymised ratings |
 | Docker | Full Compose startup and crash tests | SQLite local option | Install Docker Desktop; validate full service stack |
-| Ollama models/hardware | Open profile and model comparison | Test-only deterministic client | Pull configured open models; run real inference and record hardware |
+| Model provider and hardware | Open profile and model comparison | Hosted Groq gpt-oss (key in `.env`) or local Ollama Qwen3; labelled test client in tests | Real runs recorded in PHASE_STATUS.md; local qwen3:1.7b fallback not pulled; no model comparison yet |
 | Upwork approved credentials/contract | OAuth and live capabilities | Fail-closed boundary | Verify official tools/auth, encrypted token lifecycle, no live writes without authorization |
 | GitHub MCP credentials/server | Repository ingestion | Uploaded text only | Connect scoped third-party MCP and validate actual contract |
 | Trace host credentials | Public trace links | Persisted local events | Configure Langfuse and verify traces before linking |
@@ -46,3 +46,10 @@ implemented. Browser runs use isolated SQLite, a real graph worker and labelled
 model doubles. The core UI, replay and approval paths are locally verified; this
 does not resolve real-model, official-integration, hosted-trace or Postgres blockers.
 No Phase 7 work has been started.
+
+Real-model fixes: generation runs on hosted open-weight models through Groq with the user's key,
+kept only in the git-ignored `.env`; embeddings run locally on Ollama `nomic-embed-text`, which
+now executes for real. Free-tier rate limits apply: a rate-limited call waits at most 10 s and
+then uses the fallback model. Official inputs, Postgres, Docker and hosted traces remain blocked.
+Compose now passes the model settings and runs an Ollama service for embeddings; only
+`docker compose config` was run, because a full start downloads several images.

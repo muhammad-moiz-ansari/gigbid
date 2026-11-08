@@ -20,6 +20,24 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  # Embeddings stay on an open model served locally; hosted models handle generation.
+  ollama:
+    image: ollama/ollama:0.40.15
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: [CMD, ollama, list]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  ollama-pull:
+    image: ollama/ollama:0.40.15
+    environment:
+      OLLAMA_HOST: ollama:11434
+    command: [pull, nomic-embed-text]
+    depends_on:
+      ollama:
+        condition: service_healthy
   migrate:
     build:
       context: ..
@@ -31,6 +49,9 @@ services:
       MARKETPLACE_MODE: mock
       QUEUE_MODE: celery
       REDIS_URL: redis://redis:6379/0
+      MODEL_PROFILE: ${MODEL_PROFILE:-open}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OLLAMA_URL: http://ollama:11434
     command: [python, -m, alembic, upgrade, head]
     depends_on:
       postgres:
@@ -43,6 +64,8 @@ services:
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       migrate:
+        condition: service_completed_successfully
+      ollama-pull:
         condition: service_completed_successfully
     healthcheck:
       test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
@@ -60,6 +83,8 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
   beat:
     build:
       context: ..
@@ -81,3 +106,4 @@ services:
         condition: service_healthy
 volumes:
   postgres_data:
+  ollama_data:

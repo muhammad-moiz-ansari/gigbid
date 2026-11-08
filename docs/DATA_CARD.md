@@ -132,8 +132,8 @@ IDs/hashes/filter metadata, while inspectable passage text remains in tenant-sco
 Tests use real local Qdrant engines, including persistent storage accessed from threads
 and a reopened process. Dense tests inject explicitly labelled fixed vectors and mark
 index manifests `test_double=true`; they verify index correctness, not semantic quality.
-The actual local Ollama probe timed out, so real open-model embedding execution is
-pending. No official retrieval metrics, model rankings, reply/hire rates or human
+Real `nomic-embed-text` embeddings have since run locally in the 2026-11-08 smoke checks.
+No official retrieval metrics, model rankings, reply/hire rates or human
 quality scores are reported.
 
 See `docs/checks/phase4.json` for actual test/build outcomes, source/fixture hashes,

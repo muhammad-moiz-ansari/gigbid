@@ -1,15 +1,42 @@
 version: 1
 prompts:
-  writer: v3
-  liaison: v3
+  writer: v5
+  liaison: v4
   compliance: v2
+  answer: v3
+  pricing: v3
+  risk: v3
 generation:
-  max_tokens: 1800
   node_timeout_seconds: 150
-  think: false
 profiles:
+  # Required open profile: open-weight models on a hosted provider, so the deployed link works without a GPU.
   open:
+    provider: groq
+    base_url: https://api.groq.com/openai/v1
+    reasoning_effort: low
+    nodes:
+      scout: openai/gpt-oss-20b
+      analyst: openai/gpt-oss-20b
+      risk: openai/gpt-oss-20b
+      matcher: openai/gpt-oss-20b
+      pricing: openai/gpt-oss-20b
+      writer: openai/gpt-oss-120b
+      answer: openai/gpt-oss-20b
+      critic: openai/gpt-oss-120b
+      compliance: openai/gpt-oss-20b
+      intent: openai/gpt-oss-20b
+      liaison: openai/gpt-oss-120b
+    fallbacks: {openai/gpt-oss-120b: openai/gpt-oss-20b, openai/gpt-oss-20b: openai/gpt-oss-120b}
+    max_tokens: {default: 1000, writer: 2000, liaison: 1500}
+    # Groq published prices in USD per million input and output tokens, checked 2026-11-08.
+    usd_per_million_tokens:
+      openai/gpt-oss-20b: [0.075, 0.30]
+      openai/gpt-oss-120b: [0.15, 0.60]
+  # The same open-weight roles on a laptop through Ollama.
+  open_local:
     provider: ollama
+    think: false
+    keep_alive: 30m
     nodes:
       scout: qwen3:4b
       analyst: qwen3:4b
@@ -22,7 +49,8 @@ profiles:
       compliance: qwen3:4b
       intent: qwen3:4b
       liaison: qwen3:8b
-    fallback: qwen3:4b
+    fallbacks: {qwen3:8b: qwen3:4b, qwen3:4b: qwen3:1.7b}
+    max_tokens: {default: 400, writer: 900, liaison: 700}
   paid:
     enabled: false
     reason: Optional; no paid provider is required or configured.
@@ -49,7 +77,12 @@ thresholds:
   critic_revisions: 2
   corrective_queries: 2
   claim_support: 0.6
+  injection_risk: 0.5
   claim_partial: 0.3
+pricing:
+  budget_share: [0.6, 1.0]  # a bid stays within this share of the job budget until market statistics exist
+  connect_usd: 0.15         # value of one Connect when weighing a bid
+  min_return: 20            # fit x bid must be at least this multiple of the Connects cost
 scheduling:
   mock_min_interval_seconds: 300
   live_min_interval_seconds: 14400
@@ -65,6 +98,7 @@ retries:
   read_attempts: 3
   write_attempts: 1
   model_attempts: 2
+  max_rate_limit_wait_seconds: 10
 policy:
   provenance: provisional-development-only
   version: dev-1
@@ -72,4 +106,7 @@ policy:
   rules: [No off-platform contact or payment, No fabricated experience or credentials,
           No guarantees of results, Nothing is sent without human approval]
   banned_phrases: [telegram, whatsapp, wire transfer, guaranteed results, guarantee success]
+  # Risk flags a report may use; keep the rule-based flags from apps/api/safety.py in this list.
+  risk_flags: [off_platform, free_work, prompt_injection, guarantee, contact_details, unverified_client,
+               low_budget, vague_scope, scam]
   max_proposal_words: 350

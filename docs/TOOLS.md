@@ -207,5 +207,5 @@ The existing Portfolio tools now read versioned, incrementally maintained SQL/BM
 and Qdrant indexes. Tool output schemas and role permissions are unchanged. Upload
 metadata, source aliases, replacement/deletion and cache cleanup are described in
 DATA_CARD.md and RUNBOOK.md. V0's real Qdrant path is tested through an in-memory MCP
-session using explicitly labelled test vectors. Real Ollama semantic execution is
-still pending; GitHub ingestion remains unavailable. No Phase 5 graph work was added.
+session using explicitly labelled test vectors. Real Ollama embeddings have since run in
+the 2026-11-08 smoke checks; GitHub ingestion remains unavailable. No Phase 5 graph work was added.

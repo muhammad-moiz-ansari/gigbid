@@ -41,6 +41,25 @@ def test_citation_variants_and_client_acknowledgement():
     assert verify(slots, evidence)["text"] == slots
 
 
+def test_curly_apostrophes_and_hyphens_are_read_as_plain_text():
+    evidence = [{"id": "e1x2y3", "text": "Built a tenant-scoped API."}]
+    result = verify("I\u2019d start with tenant isolation. I built a tenant\u2011scoped API. [e1x2y3]", evidence)
+    assert [claim["label"] for claim in result["claims"]] == ["plan", "supported"]
+
+
+def test_plans_cannot_carry_uncited_past_work():
+    evidence = [{"id": "e1x2y3", "text": "Built a prototype.", "project": "Maple Search"}]
+    for text in ("I would add citations, as demonstrated in my earlier search work.",
+                 "I would reuse the retrieval design from Maple Search."):
+        assert verify(text, evidence)["text"] == ""
+
+
+def test_sentences_that_refer_to_a_removed_claim_are_removed():
+    evidence = [{"id": "e1x2y3", "text": "Built a prototype. Documented the deployment for Cedar Tasks."}]
+    result = verify("I built a large platform for a bank. This work was documented for Cedar Tasks. [e1x2y3]", evidence)
+    assert result["text"] == "" and result["claims"][1]["reason"] == "Refers to a sentence that was removed"
+
+
 async def test_critic_requires_every_screening_answer():
     from agent.nodes.workflow import Nodes
     from tests.support import TestModels
@@ -48,6 +67,16 @@ async def test_critic_requires_every_screening_answer():
              "draft": {"text": "I would test the API.", "screening_answers": {}}}
     result = await Nodes(None, TestModels()).critic(state)
     assert not result["critique"]["passed"] and result["critique"]["comments"] == ["Answer the screening question: How will you test?"]
+
+
+async def test_critic_sends_back_a_proposal_without_cited_evidence():
+    from agent.nodes.workflow import Nodes
+    from tests.support import TestModels
+    state = {"tenant": "t", "job": {"screening_questions": []}, "verification": {}, "fit": {"evidence": [{"id": "e1x2y3"}]},
+             "draft": {"text": "I would test the API.", "screening_answers": {}}}
+    result = await Nodes(None, TestModels()).critic(state)
+    assert not result["critique"]["passed"]
+    assert result["critique"]["comments"] == ["Show fit with at least one sentence about past work that cites evidence"]
 
 
 def test_numeric_token_metrics_survive_secret_redaction():

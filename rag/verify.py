@@ -23,6 +23,13 @@ COURTESY = re.compile(r"^(?:hi|hello|dear|thanks|thank you|best|regards|kind reg
                       r"|^I (?:understand|see|noticed|read|saw) (?:that )?your?\b|^(?:please )?let me know\b", re.I)
 CLIENT = re.compile(r"\byour?\b", re.I)
 FIRST_PERSON = re.compile(r"\b(?:I|me|my|we|our)\b", re.I)
+REFERENCE = re.compile(r"\bas (?:demonstrated|shown|seen|proven|done|delivered|built|used) (?:in|on|for|at|with|by)\b"
+                       r"|\b(?:my|our) (?:previous|past|prior|earlier|recent) (?:projects?|roles?|jobs?|clients?|work)\b"
+                       r"|\bpreviously\b", re.I)
+ORPHAN = re.compile(r"^(?:this|that|these|those|it|they)\b", re.I)
+# Models write curly quotes and non-breaking hyphens; the checks compare plain text.
+PLAIN = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u2010": "-", "\u2011": "-",
+                       "\u2013": "-", "\u2014": "-", "\u00a0": " "})
 STOP = {"i", "me", "my", "we", "our", "a", "an", "the", "and", "or", "but", "of", "to", "in", "on", "for",
         "with", "at", "by", "from", "as", "is", "are", "was", "were", "be", "been", "it", "its", "this",
         "that", "these", "those", "have", "has", "had", "you", "your", "also", "which", "who", "s"}
@@ -38,7 +45,7 @@ def strip_citations(text):
 
 
 def support(sentence, passages):
-    evidence = " ".join(passages).lower()
+    evidence = " ".join(passages).lower().translate(PLAIN)
     words = set(WORD.findall(sentence.lower())) - STOP
     if any(number not in evidence for number in NUMBER.findall(sentence)):
         return "unsupported", "A number is not in the cited evidence"
@@ -54,10 +61,13 @@ def support(sentence, passages):
     return "unsupported", "Does not match the cited evidence"
 
 
-def classify(sentence, passages):
+def classify(sentence, passages, projects=()):
+    sentence = sentence.translate(PLAIN)
     if risks(sentence):
         return "unsupported", "Unsafe content: contact details, guarantees, off-platform or injected text"
-    claim = bool(EXPERIENCE.search(sentence))
+    # A plan that names a portfolio project or earlier work still claims past work.
+    claim = bool(EXPERIENCE.search(sentence) or REFERENCE.search(sentence)
+                 or any(re.search(rf"\b{re.escape(project)}\b", sentence) for project in projects))
     if not claim and sentence.endswith("?"):
         return "question", "Question for the client"
     if not claim and PLAN.search(sentence):
@@ -71,12 +81,16 @@ def classify(sentence, passages):
 
 def check(text, by_id):
     claims, kept = [], []
+    projects = {item["project"] for item in by_id.values() if item.get("project")}
     for paragraph in paragraphs(text):
         cited = [i for i in CITATION.findall(paragraph) if i in by_id]
         passages = [by_id[i]["text"] for i in cited]
-        accepted, supported = [], False
+        accepted, supported, dropped = [], False, False
         for sentence in (s.strip() for s in SENTENCE.split(strip_citations(paragraph).strip()) if s.strip()):
-            label, reason = classify(sentence, passages)
+            label, reason = classify(sentence, passages, projects)
+            if dropped and label in KEPT and ORPHAN.match(sentence):
+                label, reason = "unsupported", "Refers to a sentence that was removed"
+            dropped = label not in KEPT
             claims.append({"text": sentence, "label": label, "reason": reason,
                            "evidence_ids": cited if label == "supported" else []})
             if label in KEPT:

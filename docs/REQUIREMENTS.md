@@ -43,6 +43,15 @@ style and outcome memory in a LangGraph store with explicit promotion rules and 
 forgetting, autonomy-controlled skip archiving, category analytics and checkpoint replay
 are implemented. See PHASE_STATUS.md and checks/phase7.json.
 
+Real-model fixes update: generation defaults to hosted open-weight models (Groq) with local
+embeddings. R5 screening answers are plans only; R8 budgets record real tokens and API cost
+from published prices, and Retry records an acknowledgement for interrupted steps. See
+PHASE_STATUS.md and checks/real-model-fixes.json.
+
+Quality review update: R5 also catches uncited past work inside plan sentences and orphaned
+sentences, screening answers cite evidence, pricing uses client history with a Connects
+check, and risk flags come from config. See the quality review in PHASE_STATUS.md.
+
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|
 | R1 single marketplace port | agent/marketplace_port.py; mcp_servers/marketplace/adapters | contract tests, mock idempotency | Official schemas/accounts |

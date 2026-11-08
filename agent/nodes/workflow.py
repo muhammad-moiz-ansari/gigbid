@@ -1,6 +1,7 @@
 import asyncio
 import re
 import time
+from datetime import datetime, timezone
 from difflib import unified_diff
 
 from langgraph.types import interrupt
@@ -30,10 +31,34 @@ from agent.model import config, usage_sink
 from apps.api.approvals import approval_context, stage_approval, validate_resume
 from apps.api.db import Approval, put_record, transaction
 from apps.api.safety import risks
+from rag.verify import CITATION, strip_citations, verify
 from rag.verify import paragraphs as draft_paragraphs
-from rag.verify import strip_citations, verify
 
 PRICE = re.compile(r"\$\s?(\d[\d,]*(?:\.\d+)?)")
+EVIDENCE_FIELDS = ("id", "text", "project", "skills", "date", "outcome")
+
+
+def brief(evidence):
+    """What a model needs from evidence: no hashes, tenants, locations or retrieval scores."""
+    return [{key: item[key] for key in EVIDENCE_FIELDS if key in item} for item in evidence]
+
+
+def unlabeled(record):
+    """Content without marketplace IDs, which can leak labels such as mock-scam to a model."""
+    return {key: value for key, value in record.items() if key not in ("id", "client_id")}
+
+
+def bid_range(budget, floor, share):
+    """A bid stays within a configured share of the job budget and never below the user's floor."""
+    high = budget * share[1]
+    return min(max(budget * share[0], floor), high), high
+
+
+def slot_list(slots):
+    """Interview times come from the calendar tool, so the model never writes dates."""
+    times = [f"- {datetime.fromisoformat(s['start']).astimezone(timezone.utc):%a %d %b, %H:%M} UTC ({s['minutes']} min)"
+             for s in slots]
+    return "Available interview times:\n" + "\n".join(times)
 
 
 def tracked(name, function):
@@ -73,7 +98,7 @@ class Nodes:
         return {"job": JobSpec.model_validate(job).model_dump(), "status": "running"}
 
     async def analyst(self, state):
-        result, usage = await self.model.complete("analyst", state["job"], JobSpec)
+        result, usage = await self.model.complete("analyst", unlabeled(state["job"]), JobSpec)
         # Immutable marketplace fields cannot be invented by the model.
         result = {**result, **{k: state["job"][k] for k in
                               ("id", "title", "description", "skills", "budget", "connects", "client_id", "screening_questions")}}
@@ -82,12 +107,16 @@ class Nodes:
 
     async def risk(self, state):
         client = await self.tools.call("risk", "get_client_history", {"client_id": state["job"]["client_id"]})
-        result, usage = await self.model.complete("risk", {"job": state["job"], "client": client}, RiskReport)
+        result, usage = await self.model.complete("risk", {"job": unlabeled(state["job"]), "client": unlabeled(client),
+                                                           "allowed_flags": config()["policy"]["risk_flags"]}, RiskReport)
         result = RiskReport.model_validate(result).model_dump()
         deterministic = risks(state["job"]["description"])
         result["flags"] = sorted(set(result["flags"] + deterministic))
         if set(deterministic) & {"off_platform", "free_work"}:
             result["score"] = max(result["score"], 0.95)
+        if "prompt_injection" in result["flags"]:
+            # Planted instructions raise risk to a configured floor without forcing a skip.
+            result["score"] = max(result["score"], config()["thresholds"]["injection_risk"])
         # Injection is treated as untrusted content; it cannot authorize actions.
         return {"analyses": [RiskHandoff(result=result).model_dump()], "usage": [usage]}
 
@@ -128,21 +157,31 @@ class Nodes:
         return [entry for entry in await recall(state["tenant"], "outcome") if entry.get("category") == job]
 
     async def pricing(self, state):
+        job, floor, rules = state["job"], state["profile"].get("floor_fixed", 50), config()["pricing"]
         balance = await self.tools.call("pricing", "get_connects_balance", {})
-        if balance["balance"] < state["job"]["connects"]:
+        if balance["balance"] < job["connects"]:
             raise BudgetExceeded("Insufficient Connects balance")
-        result, usage = await self.model.complete("pricing", {"job": state["job"], "profile": state["profile"],
-                                                              "balance": balance, "outcomes": await self.outcomes(state)},
-                                                  PriceQuote)
+        client = await self.tools.call("pricing", "get_client_history", {"client_id": job["client_id"]})
+        low, high = bid_range(job["budget"], floor, rules["budget_share"])
+        facts = {"job": unlabeled(job), "budget": job["budget"], "minimum_bid": floor, "bid_range": [low, high],
+                 "fit": state["fit"]["score"], "client": {"total_spend": client["spend"], "hires": client["hires"],
+                 "average_paid_per_hire": round(client["spend"] / client["hires"]) if client["hires"] else None},
+                 "connects_cost": job["connects"], "connects_balance": balance["balance"],
+                 "weekly_connects_left": balance["weekly_limit"] - balance["weekly_spent"],
+                 "outcomes": await self.outcomes(state)}
+        result, usage = await self.model.complete("pricing", facts, PriceQuote)
         result = PriceQuote.model_validate(result).model_dump()
-        result["amount"] = max(state["profile"].get("floor_fixed", 50),
-                               min(result["amount"], state["job"]["budget"]))
-        result["connects"] = state["job"]["connects"]
-        return {"price": PriceQuote.model_validate(result).model_dump(), "usage": [usage]}
+        result["amount"], result["connects"] = min(max(result["amount"], low), high), job["connects"]
+        update = {"price": PriceQuote.model_validate(result).model_dump(), "usage": [usage]}
+        # Connects are worth spending only when fit x bid clears the configured return on their cost.
+        if state["fit"]["score"] * result["amount"] < job["connects"] * rules["connect_usd"] * rules["min_return"]:
+            update.update(status="watch", decision=BidDecision(
+                action="watch", reason="Expected value does not justify the Connects cost").model_dump())
+        return update
 
     async def writer(self, state):
         result, usage = await self.model.complete("writer", {
-            "job": state["job_spec"], "evidence": state["fit"]["evidence"], "price": state["price"],
+            "job": unlabeled(state["job_spec"]), "evidence": brief(state["fit"]["evidence"]), "price": state["price"],
             "critique": state.get("critique"), "memory": await recall(state["tenant"], "style"),
             "outcomes": await self.outcomes(state),
             "version": state.get("draft", {}).get("version", 0) + 1,
@@ -153,8 +192,8 @@ class Nodes:
         for question in state["job_spec"].get("screening_questions", []):
             if not answers.get(question, "").strip():
                 # Small models often skip screening answers, so ask for each missing one directly.
-                answer, extra = await self.model.complete("answer", {"question": question, "job": state["job_spec"],
-                                                                     "evidence": state["fit"]["evidence"]}, ScreeningAnswer)
+                answer, extra = await self.model.complete("answer", {"question": question, "job": unlabeled(state["job_spec"]),
+                                                                     "evidence": brief(state["fit"]["evidence"])}, ScreeningAnswer)
                 answers[question], usages = answer["answer"], usages + [extra]
         result["screening_answers"] = answers
         return {"draft": ProposalDraft.model_validate(result).model_dump(), "usage": usages}
@@ -191,7 +230,7 @@ class Nodes:
                 "fit": {**state["fit"], "evidence": evidence}}
 
     async def critic(self, state):
-        result, usage = await self.model.complete("critic", {"job": state["job"], "draft": state["draft"],
+        result, usage = await self.model.complete("critic", {"job": unlabeled(state["job"]), "draft": state["draft"],
                                                             "verification": state["verification"]}, Critique)
         result = Critique.model_validate(result).model_dump()
         answers = state["draft"].get("screening_answers", {})
@@ -200,6 +239,13 @@ class Nodes:
                    if re.search(rf"\b{re.escape(m['word'])}\b", state["draft"]["text"], re.I)]
         comments = [f"Answer the screening question: {q}" for q in missing] + [
             f"Avoid '{word}', which you removed in earlier approved edits" for word in avoided]
+        # Verified paragraphs keep their [id] only when a sentence in them is supported. Applies to model
+        # drafts only; a human edit or a regenerated paragraph is reviewed as written.
+        model_draft = state.get("status", "running") == "running"
+        if model_draft and state.get("fit", {}).get("evidence") and not CITATION.search(state["draft"]["text"]):
+            removed = [f"Removed: {c['text']} ({c['reason']})" for c in state["verification"].get("claims", [])
+                       if c["label"] in ("partly_supported", "unsupported")][:2]
+            comments += ["Show fit with at least one sentence about past work that cites evidence"] + removed
         if comments:
             result = {"passed": False, "comments": comments}
         if not state["draft"]["text"].strip():
@@ -233,6 +279,8 @@ class Nodes:
         draft = state["draft"]
         # Citations stay in the studio; the client receives plain text.
         text = strip_citations(draft["text"])
+        if state.get("slots"):
+            text += "\n\n" + slot_list(state["slots"])
         for question, answer in draft.get("screening_answers", {}).items():
             text += f"\n\nScreening question: {question}\n{strip_citations(answer)}"
         return Action(kind="message" if state.get("conversation") else "proposal",
@@ -276,7 +324,7 @@ class Nodes:
 
     async def regenerate(self, state):
         result, usage = await self.model.complete("writer", {
-            "job": state.get("job_spec", {}), "evidence": state["fit"]["evidence"],
+            "job": unlabeled(state.get("job_spec", {})), "evidence": brief(state["fit"]["evidence"]),
             "price": state.get("price", {}), "version": state["draft"]["version"] + 1,
             "regenerate_paragraph": state["edit"]["paragraph"], "previous_draft": state["draft"]}, ProposalDraft)
         result = ProposalDraft.model_validate(result).model_dump()

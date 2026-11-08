@@ -26,15 +26,15 @@ for the intended Postgres deployment. Existing Compose settings already supply b
 Checkpoint setup requires schema creation privileges. Postgres and Compose runtime
 are unverified here because no service/Docker installation is available.
 
-From the project root, after configuring the database, Ollama models and portfolio:
+From the project root, after configuring the database, model profile and portfolio:
 
 ```powershell
 uv run python -m scripts.manage worker
 ```
 
 This runs the existing queue drainer. It does not start or connect real marketplace
-accounts. Open generation requires the configured qwen3 models; V0 retrieval also
-requires nomic-embed-text. Explicit BM25 remains a diagnostic development option.
+accounts. Open generation uses the configured model profile (hosted Groq by default, or
+local Ollama); V0 retrieval requires local nomic-embed-text. Explicit BM25 remains a diagnostic development option.
 No production model double or silent retrieval/model substitution is provided.
 
 ## Approval boundary
@@ -75,10 +75,14 @@ time is summed, so it is intentionally different from wall-clock latency. Human
 approval wait is excluded. Limits and model timeouts/output caps live in config.yaml.
 Retries do not reset counters. Missing/malformed inference usage or a reservation
 left unfinished by process death causes needs_attention before further generation
-or new writes. Recovery reads can still confirm an already completed effect.
+or new writes. A human Retry then records an acknowledgement of that unknown usage
+(the interrupted nodes and the time) in the ledger and continues within the remaining
+budget. A rate-limited or rejected (4xx) request counts as known zero usage.
+Recovery reads can still confirm an already completed effect.
 The budget ledger is authoritative; checkpoint usage lists summarize completed
 nodes. Attempt-level budget events include failures and preserve numeric metrics.
-API USD is unreported/null for local Ollama calls; hardware cost is not measured.
+API USD comes from the hosted profile's published per-token prices. It is null for
+local Ollama calls, whose hardware cost is not measured.
 
 Phase 7 step 0 replaced the earlier closed grammar, which a real qwen3:8b writer never
 satisfied: in the 2026-11-08 smoke test every draft was removed and the run was blocked.
@@ -98,6 +102,26 @@ guarantees, contact details, injected text, banned phrases, the word limit and a
 Critique. The compliance model (prompt v2) reviews the plain outgoing text and its concerns
 appear in the studio as warnings for the human reviewer; it cannot block or approve. In real
 runs a small model without portfolio access repeatedly flagged verified claims as fabricated.
+
+Models receive only what each node needs. Evidence is trimmed to id, text, project, skills,
+date and outcome, and marketplace job and client IDs are removed from every model input.
+Screening answers cite evidence for experience questions and are "I would" plans otherwise.
+Risk flags are validated against `policy.risk_flags` in config, and planted instructions raise
+the risk score to at least `thresholds.injection_risk` (0.5) so the reviewer sees them, without
+forcing a skip.
+
+The claim checker reads curly quotes and non-breaking hyphens as plain text. A plan sentence that
+names a portfolio project or says "as demonstrated in" counts as a claim and needs a citation,
+and a "This/That/It..." sentence after a removed one is removed too. The Critic sends back a
+model draft whose cover letter cites no evidence, quoting up to two removed sentences; a human
+edit or a regenerated paragraph is reviewed as written.
+
+Pricing gets the client's total spend, hires and average paid per hire, the fit score and the
+Connects facts. Code keeps the bid within `pricing.budget_share` of the job budget (60-100%,
+never below the floor), and when fit x bid is below Connects x `connect_usd` x `min_return` the
+run stops as "watch" with the reason. Market statistics wait for GigSim's historical jobs.
+Interview times come from the calendar tool and are added to the reply when the action is
+built, so the approval preview shows exactly what is sent.
 
 ## Checks and limits
 

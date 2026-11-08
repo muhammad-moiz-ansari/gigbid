@@ -81,3 +81,67 @@ def test_scout_skips_duplicate_postings(account):
     assert duplicate_of(account["id"], jobs["mock-api-duplicate"]) == "mock-api"
     with transaction() as db:
         assert get_record(db, account["id"], "duplicate_job", "mock-api-duplicate").value == {"of": "mock-api"}
+
+
+async def test_retry_acknowledges_an_interrupted_step(client, account):
+    from agent import budgets
+    tenant = account["id"]
+    run_id = client.post("/jobs/mock-api/analyse").json()["id"]
+    budgets.reserve(tenant, run_id, "writer")  # A step that was running when its worker died.
+    await process_run(run_id, TestTools(tenant), TestModels())
+    stuck = client.get(f"/runs/{run_id}").json()
+    assert stuck["status"] == "needs_attention" and "unknown_model_usage" in stuck["state"]["error"]
+    assert client.post(f"/runs/{run_id}/retry").status_code == 200
+    await process_run(run_id, TestTools(tenant), TestModels())
+    done = client.get(f"/runs/{run_id}").json()
+    assert done["status"] == "awaiting_approval"
+    assert done["state"]["budget"]["acknowledged"][0]["nodes"] == ["writer"]
+
+
+async def test_models_never_see_marketplace_ids_or_evidence_hashes(client, account):
+    import json
+    seen = []
+
+    class Recording(TestModels):
+        async def complete(self, node, data, schema):
+            seen.append(json.dumps(data))
+            return await super().complete(node, data, schema)
+    run_id = client.post("/jobs/mock-api/analyse").json()["id"]
+    await process_run(run_id, TestTools(account["id"]), Recording())
+    assert client.get(f"/runs/{run_id}").json()["status"] == "awaiting_approval"
+    assert seen and not any(marker in data for data in seen for marker in ("mock-api", "mock-client", "content_hash", account["id"]))
+
+
+async def test_planted_instructions_raise_risk_without_forcing_a_skip(client, account):
+    run_id = client.post("/jobs/mock-injection/analyse").json()["id"]
+    await process_run(run_id, TestTools(account["id"]), TestModels())
+    state = client.get(f"/runs/{run_id}").json()["state"]
+    assert "prompt_injection" in state["risk"]["flags"] and state["risk"]["score"] == 0.5
+    assert state["decision"]["action"] == "bid"
+
+
+async def test_pricing_stays_in_the_budget_range_and_sees_client_history(client, account):
+    seen = {}
+
+    class LowBidder(TestModels):
+        async def complete(self, node, data, schema):
+            result, usage = await super().complete(node, data, schema)
+            if node == "pricing":
+                seen.update(data)
+                result["amount"] = 50
+            return result, usage
+    run_id = client.post("/jobs/mock-api/analyse").json()["id"]
+    await process_run(run_id, TestTools(account["id"]), LowBidder())
+    state = client.get(f"/runs/{run_id}").json()["state"]
+    assert seen["bid_range"] == [540, 900]
+    assert seen["client"] == {"total_spend": 4000.0, "hires": 8, "average_paid_per_hire": 500}
+    assert state["price"]["amount"] == 540
+
+
+async def test_connects_not_worth_spending_moves_the_job_to_watch(client, account, monkeypatch):
+    from agent.model import config
+    monkeypatch.setitem(config()["pricing"], "min_return", 1000)
+    run = await analysed(client, account["id"], "mock-api")
+    assert run["status"] == "watch" and not run["state"].get("draft")
+    assert run["state"]["decision"] == {"action": "watch", "reason": "Expected value does not justify the Connects cost"}
+    assert MockMarketplace().balance(account["id"])["spent"] == 0
