@@ -1,0 +1,32 @@
+.skip-link{position:fixed;left:16px;top:-70px;padding:12px 18px;background:var(--green);color:white;z-index:100;border-radius:6px}
+.skip-link:focus{top:12px}
+.sidebar{overflow-y:auto}
+.action-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0}
+.action-summary>div{border-left:2px solid #dce6d5;padding-left:12px;min-width:0}
+.action-summary dt{font-size:11px;color:#667568}.action-summary dd{font-size:16px;margin:3px 0 0;font-weight:600;overflow-wrap:anywhere}
+.proposal-preview article{border-bottom:1px solid var(--line);padding:18px 0}.proposal-preview p{white-space:pre-wrap;font-family:Georgia,serif;font-size:14px;line-height:1.9;overflow-wrap:anywhere}
+.citation-row{display:flex;flex-wrap:wrap;gap:8px}.citation{display:inline-block;position:relative;max-width:100%;margin:5px 0}
+.citation>a{display:inline-block;color:#315a40;background:#edf4e8;border:1px solid #d6e4ca;border-radius:5px;padding:5px 9px;font-size:11px;overflow-wrap:anywhere}
+.citation-tooltip{display:none;position:absolute;bottom:100%;left:0;z-index:10;width:320px;max-width:calc(100vw - 60px);padding:15px;border:1px solid #b6c9ab;background:#fff;box-shadow:0 6px 24px #17331e25;border-radius:8px;color:var(--ink);font-size:12px;max-height:300px;overflow:auto}
+.citation-tooltip strong,.citation-tooltip span{display:block}.citation-tooltip span{margin-top:10px;white-space:pre-wrap}
+.citation:hover .citation-tooltip,.citation:focus-within .citation-tooltip{display:block}
+.filter-row{display:flex;align-items:center;gap:12px;margin:0 0 18px;flex-wrap:wrap}.filter-row label{margin:0;font-size:12px}.filter-row select{width:auto;min-width:150px;font-size:12px}
+.onboarding li{margin-bottom:9px}.panel h3{font-size:14px;margin-top:22px}.panel>button.secondary{margin:12px 0}.matrix{padding-bottom:12px}.matrix h3{margin:10px 0 4px}
+.button-row button[aria-pressed=true]{background:#e7efdd;border-color:#789864}.evidence:target{outline:3px solid #a2bd81;outline-offset:3px}
+.detail-heading .badge{font-size:11px}.feedback p,.muted{overflow-wrap:anywhere}.panel,.panel aside{min-width:0}.job-footer{flex-wrap:wrap}
+.timeline{max-height:520px;overflow-y:auto;scrollbar-gutter:stable}.timeline li{padding-right:8px}.timeline .dot{background:#6f8e53}.timeline strong{overflow-wrap:anywhere}
+@media(max-width:1000px){.studio-layout{grid-template-columns:minmax(0,1fr)}.citation-tooltip{width:280px}.page-heading{flex-wrap:wrap}}
+@media(max-width:700px){
+  .shell{display:block}.sidebar{position:relative;height:auto;width:100%;padding:14px 16px;border-right:0;border-bottom:1px solid var(--line);display:block;overflow-y:visible}
+  .sidebar>.brand{padding:0;font-size:23px}.sidebar .workspace,.sidebar .nav-label,.sidebar .sidebar-note{display:none}
+  .sidebar nav{display:flex;gap:6px;overflow-x:auto;margin-top:14px;padding:3px 3px 10px}.sidebar nav a{white-space:nowrap;padding:8px 12px;font-size:12px;min-height:40px}.sidebar nav a>span{display:none}
+  .sidebar .sidebar-bottom{display:flex;align-items:center;justify-content:space-between;padding:7px 0 0}.sidebar-bottom small{font-size:11px}.sidebar-bottom .text-button{font-size:12px;padding:5px}
+  .topbar{padding:0 18px;height:64px;font-size:12px}.topbar>div{gap:8px}.topbar .top-avatar{display:none}.topbar .badge{font-size:9px}.topbar .text-button{padding:5px;font-size:11px}
+  .content{padding:24px 16px 0}.page-heading{gap:12px}.page-heading .primary{padding:11px 14px;font-size:12px}
+  .mode-note{font-size:11px;align-items:flex-start}.panel{padding:20px}.panel p,.feedback p,.panel summary{font-size:13px}.panel h2{font-size:19px}
+  .form-grid{grid-template-columns:1fr}.action-summary dd{font-size:16px}.job-top h3{font-size:15px}.job-top small{font-size:11px}.job-description{font-size:13px}.job-footer{font-size:12px;gap:10px}.job-footer small{font-size:10px}.job-footer .secondary{font-size:12px;min-height:40px}.skills>span{font-size:11px}.job-top>.badge{font-size:10px}
+  .primary,.secondary,.danger{min-height:42px;font-size:12px}.draft-editor{padding:14px;font-size:16px}input,textarea,select{font-size:16px;min-height:42px}
+  .section-heading{align-items:flex-start;flex-direction:column}.section-heading input{max-width:none;width:100%;font-size:14px}.filter-row select{width:100%}.citation>a{font-size:12px}.timeline li strong{font-size:12px}.timeline small{font-size:11px}
+  .auth-story{padding:28px}.auth-form{padding:28px;max-width:480px}.auth-story h1{font-size:36px}.auth-form label{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}

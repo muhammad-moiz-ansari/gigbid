@@ -1078,6 +1078,69 @@
         }
       }
     },
+    "/runs/{run_id}/history": {
+      "get": {
+        "summary": "Run History",
+        "operationId": "run_history_runs__run_id__history_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "default": 0,
+              "title": "After"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/runs/{run_id}/events": {
       "get": {
         "summary": "Run Events",
@@ -1098,6 +1161,8 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 9223372036854775807,
+              "minimum": 0,
               "default": 0,
               "title": "After"
             }
@@ -1213,6 +1278,32 @@
         ],
         "title": "Credentials"
       },
+      "EventPage": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/RunEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "next_cursor": {
+            "type": "integer",
+            "title": "Next Cursor"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          }
+        },
+        "type": "object",
+        "required": [
+          "events",
+          "next_cursor",
+          "has_more"
+        ],
+        "title": "EventPage"
+      },
       "FaultInput": {
         "properties": {
           "mode": {
@@ -1318,10 +1409,96 @@
             "minimum": 300.0,
             "title": "Interval Seconds",
             "default": 14400
+          },
+          "hourly_rate": {
+            "type": "number",
+            "maximum": 10000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Hourly Rate",
+            "default": 50
+          },
+          "min_budget": {
+            "type": "number",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Min Budget",
+            "default": 0
+          },
+          "max_connects": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Connects"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Required Skills",
+            "default": []
+          },
+          "marketplace_mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "mock",
+                  "gigsim",
+                  "upwork"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marketplace Mode"
           }
         },
         "type": "object",
         "title": "Profile"
+      },
+      "RunEvent": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          },
+          "created": {
+            "type": "number",
+            "title": "Created"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "payload",
+          "created",
+          "trace_id"
+        ],
+        "title": "RunEvent"
       },
       "RunView": {
         "properties": {
@@ -1349,6 +1526,25 @@
           "trace_id": {
             "type": "string",
             "title": "Trace Id"
+          },
+          "draft_paragraphs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Draft Paragraphs",
+            "default": []
+          },
+          "approval_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Status"
           }
         },
         "type": "object",

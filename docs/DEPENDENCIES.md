@@ -39,4 +39,10 @@ locally with SQLite and the original mock. AsyncPostgresSaver and advisory locki
 are implemented; real Postgres verification is an explicit optional skipped check
 until a disposable service is supplied. Model HTTP contract tests use labelled
 responses, not real inference. Open-model generation/hardware measurements and
-official backend exactly-once guarantees remain unverified. Phase 6 is not started.
+official backend exactly-once guarantees remain unverified.
+
+Phase 6: real local HTTP/SSE and installed Chrome browser checks are available and
+implemented. Browser runs use isolated SQLite, a real graph worker and labelled
+model doubles. The core UI, replay and approval paths are locally verified; this
+does not resolve real-model, official-integration, hosted-trace or Postgres blockers.
+No Phase 7 work has been started.

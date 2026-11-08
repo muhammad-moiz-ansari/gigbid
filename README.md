@@ -2,7 +2,7 @@
 
 An evidence-grounded freelancer copilot with human approval before outgoing actions.
 
-**Current handoff: Phase 5 implemented locally; stopped before Phase 6.** The user
+**Current handoff: Phase 6 local implementation; stopped before Phase 7.** The user
 requires explicit instructions before each subsequent phase. Later-phase code
 started under the original authorization is preserved but unfinished.
 
@@ -38,6 +38,12 @@ and real open-model runtime verification remain pending. See the
 [graph and approval guide](docs/BID_WORKFLOW.md) and
 [Phase 5 evidence](docs/checks/phase5.json). Full regression: 154 passed, one
 Postgres skip. Final focused checks: 27 passed, with the same skip; counts overlap.
+
+Phase 6 completes onboarding metadata, saved inbox filters, structured job details,
+the evidence-backed studio, paragraph regeneration and persisted live activity.
+SSE history/reconnect and inactive approval states use actual backend records.
+See the [web workflow guide](docs/WEB_WORKFLOW.md) and
+[Phase 6 check evidence](docs/checks/phase6.json) for actual results and limits.
 
 The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
 storage, migrations, generated API types, and visibly labelled synthetic examples.

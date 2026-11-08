@@ -24,7 +24,13 @@ Phase 5 update: durable parallel bid routing, validated handoffs, bounded verifi
 rewrites, durable budgets, saved human decision receipts and context-bound approval
 are implemented. Separate worker-process crash checks verify one mock effect/debit;
 forged resumes and material changes fail closed. Postgres and real-model execution
-remain pending. See BID_WORKFLOW.md and checks/phase5.json. Phase 6 is not started.
+remain pending. See BID_WORKFLOW.md and checks/phase5.json.
+
+Phase 6 update: onboarding, metadata-preserving uploads, saved filters, structured
+job details, evidence citations, the proposal studio and paragraph regeneration are
+implemented. Typed history and authenticated SSE expose actual saved graph activity
+with replay, de-duplication and session revocation. See WEB_WORKFLOW.md and
+checks/phase6.json for browser/backend results. Phase 7 is not started.
 
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|

@@ -26,6 +26,7 @@ from agent.model import config, usage_sink
 from apps.api.approvals import approval_context, stage_approval, validate_resume
 from apps.api.db import Approval, put_record, transaction
 from apps.api.safety import risks
+from rag.verify import paragraphs as draft_paragraphs
 from rag.verify import verify
 
 
@@ -244,9 +245,13 @@ class Nodes:
             "job": state.get("job_spec", {}), "evidence": state["fit"]["evidence"],
             "price": state.get("price", {}), "version": state["draft"]["version"] + 1,
             "regenerate_paragraph": state["edit"]["paragraph"], "previous_draft": state["draft"]}, ProposalDraft)
-        paragraphs = state["draft"]["text"].split("\n\n")
-        index = min(state["edit"]["paragraph"], len(paragraphs) - 1)
-        paragraphs[index] = result["text"].split("\n\n")[0]
+        result = ProposalDraft.model_validate(result).model_dump()
+        paragraphs = [p for p, _ in draft_paragraphs(state["draft"]["text"])]
+        replacement = [p for p, _ in draft_paragraphs(result["text"])]
+        index = state["edit"]["paragraph"]
+        if not replacement or index >= len(paragraphs):
+            raise ValueError("Regeneration requires an existing paragraph and non-empty replacement")
+        paragraphs[index] = replacement[0]
         return {"draft": {**state["draft"], "text": "\n\n".join(paragraphs),
                           "version": state["draft"]["version"] + 1}, "usage": [usage]}
 

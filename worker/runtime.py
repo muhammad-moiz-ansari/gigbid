@@ -85,6 +85,7 @@ async def _process_run(run_id, tool_gateway=None, model=None):
                             if node != "__interrupt__":
                                 record_event(tenant, run_id, f"node:{node}", {
                                     "completed": True, "status": payload.get("status"),
+                                    "node": node, "phase": "completed",
                                     "usage": payload.get("usage", []), "steps": payload.get("steps", 0)}, trace_id)
                         with transaction() as db:
                             db.get(Run, run_id).lease_until = now() + 300

@@ -74,6 +74,8 @@ def logout(response: Response, session: Session = Depends(current_session)) -> d
 
 @router.put("/profile", response_model=Profile)
 def update_profile(data: Profile, user: User = Depends(current_user)):
+    if data.marketplace_mode is not None and data.marketplace_mode != settings().marketplace_mode:
+        raise HTTPException(409, "This marketplace is unavailable in the current workspace")
     if settings().marketplace_mode != "mock" and data.interval_seconds < 14400:
         raise HTTPException(422, "Live search interval must be at least four hours")
     with transaction() as db:

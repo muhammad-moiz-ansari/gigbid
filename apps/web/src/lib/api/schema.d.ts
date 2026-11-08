@@ -515,6 +515,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/runs/{run_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run History */
+        get: operations["run_history_runs__run_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/runs/{run_id}/events": {
         parameters: {
             query?: never;
@@ -572,6 +589,15 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** EventPage */
+        EventPage: {
+            /** Events */
+            events: components["schemas"]["RunEvent"][];
+            /** Next Cursor */
+            next_cursor: number;
+            /** Has More */
+            has_more: boolean;
         };
         /** FaultInput */
         FaultInput: {
@@ -631,6 +657,40 @@ export interface components {
              * @default 14400
              */
             interval_seconds: number;
+            /**
+             * Hourly Rate
+             * @default 50
+             */
+            hourly_rate: number;
+            /**
+             * Min Budget
+             * @default 0
+             */
+            min_budget: number;
+            /** Max Connects */
+            max_connects?: number | null;
+            /**
+             * Required Skills
+             * @default []
+             */
+            required_skills: string[];
+            /** Marketplace Mode */
+            marketplace_mode?: ("mock" | "gigsim" | "upwork") | null;
+        };
+        /** RunEvent */
+        RunEvent: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Created */
+            created: number;
+            /** Trace Id */
+            trace_id: string;
         };
         /** RunView */
         RunView: {
@@ -648,6 +708,13 @@ export interface components {
             };
             /** Trace Id */
             trace_id: string;
+            /**
+             * Draft Paragraphs
+             * @default []
+             */
+            draft_paragraphs: string[];
+            /** Approval Status */
+            approval_status?: string | null;
         };
         /** SessionView */
         SessionView: {
@@ -1580,6 +1647,40 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_history_runs__run_id__history_get: {
+        parameters: {
+            query?: {
+                after?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventPage"];
                 };
             };
             /** @description Validation Error */

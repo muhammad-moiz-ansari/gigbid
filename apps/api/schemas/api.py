@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Credentials(BaseModel):
@@ -17,6 +17,7 @@ class Credentials(BaseModel):
 
 
 class Profile(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
     name: str = Field(default="Freelancer", min_length=1, max_length=100)
     persona: Literal["own", "full-stack", "ai-ml", "data-analyst"] = "own"
     floor_fixed: float = Field(default=50, gt=0, le=1_000_000)
@@ -24,6 +25,11 @@ class Profile(BaseModel):
     auto_skip: bool = True
     saved_query: str = Field(default="", max_length=200)
     interval_seconds: int = Field(default=14400, ge=300)
+    hourly_rate: float = Field(default=50, gt=0, le=10000)
+    min_budget: float = Field(default=0, ge=0, le=1_000_000)
+    max_connects: int | None = Field(default=None, ge=0, le=10000)
+    required_skills: list[str] = Field(default=[], max_length=100)
+    marketplace_mode: Literal["mock", "gigsim", "upwork"] | None = None
 
 
 class Upload(BaseModel):
@@ -52,6 +58,22 @@ class RunView(BaseModel):
     status: str
     state: dict
     trace_id: str
+    draft_paragraphs: list[str] = []
+    approval_status: str | None = None
+
+
+class RunEvent(BaseModel):
+    id: int
+    name: str
+    payload: dict
+    created: float
+    trace_id: str
+
+
+class EventPage(BaseModel):
+    events: list[RunEvent]
+    next_cursor: int
+    has_more: bool
 
 
 class SessionView(BaseModel):

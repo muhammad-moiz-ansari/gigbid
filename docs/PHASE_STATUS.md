@@ -347,3 +347,90 @@ feat: implement durable bid graph with grounded approvals
 Stopped at Phase 5. Phase 6 was not started. No commits, pushes, branches, PRs,
 Git configuration changes, deployments, publications or real-account connections
 were performed.
+
+## Phase 6 - implemented and locally verified; stopped before Phase 7
+
+2026-11-08: the user requested completion of Phase 6 only and asked how much remains.
+Implemented the core web workflow and actual persisted event streaming. Existing
+later-phase pages and services were preserved without adding Phase 7 capabilities.
+
+Implemented:
+
+- Onboarding for persona, fixed/hourly rates, weekly Connects budget, saved search,
+  skill/budget/application-cost filters and the configured marketplace. Unavailable
+  official integrations are disabled and rejected by profile validation.
+- Text/file portfolio uploads with source/type/project/skills/persona/date/industry/
+  outcome metadata. Browser refresh retains saved profile and evidence.
+- Inbox filtering and fit ranking, risk/action/price/cost information, structured
+  job analysis, pricing reasoning and requirement-to-evidence matches.
+- Proposal preview/editor, focus/hover evidence passages, claim/Critic/Compliance
+  feedback, exact dry-run review, reasoned rejection and safe approval. Unsaved
+  edits disable approval and regeneration. Stale reviews show a renewal path.
+- Paragraph selection and regeneration, with whole multi-paragraph quotations kept
+  intact. Other paragraphs are preserved and verification/Critic/Compliance run
+  again before a new approval. Invalid paragraph indices are rejected by the API.
+- Typed paginated event history and authenticated SSE with persisted IDs,
+  Last-Event-ID replay, de-duplication, reconnect state and revocation/expiry checks.
+  Node starts/completions come from actual execution. Public trace links are not
+  invented; local trace IDs remain inspectable.
+- Responsive layouts, keyboard citations, skip navigation, visible empty/error/
+  loading/degraded states and a scrollable desktop sidebar. Workspace caches are
+  cleared on sign-out, and old in-flight responses cannot populate a new session.
+- Isolated Chrome journeys against the actual local API, Next UI and graph worker,
+  plus real HTTP/SSE tests and generated OpenAPI/TypeScript types.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 160 passed, 1 explicit Postgres skip; 362.51 seconds |
+| Core Chrome journeys | 5 passed, no retries or skips; 90.00 seconds |
+| Final stale-review/account-switching Chrome journey | 1 passed, no retries or skips; 38.35 seconds |
+| TypeScript and optimized Next.js build | Passed |
+| Ruff, whitespace and offline lockfile consistency | Passed |
+| OpenAPI export and generated client | Regenerated from actual API |
+| Desktop studio and 390px mobile inbox screenshots | Captured from exercised flows and visually inspected |
+
+The six browser journeys are distinct; their two runs reflect the final sidebar
+correction after the core five passed. Full Python regression is independent of
+these browser counts. Source hashes, commands, timings and provenance are recorded
+in `docs/checks/phase6.json`. Tests use original mock effects and clearly labelled
+model doubles, not real inference or official data. Pytest emits 13 upstream
+LangSmith/Python 3.14 deprecation warnings. Next development emitted color-setting
+warnings and generated its `apps/web/AGENTS.md` guidance; it remains local.
+
+Browser testing caught selector/assertion assumptions and a genuine sticky-sidebar
+overflow that made sign-out unreachable at desktop height. Those were corrected
+before the final passing checks. A test-only path initially created disposable
+databases one directory above the project; verified synthetic test data were removed
+and the harness now confines every test database to the project cache. No failed
+invocation is represented as passing evidence. Generated build-cache noise was
+restored to its initial bytes.
+
+Limits: real Ollama/model quality, Postgres/Compose runtime, official integrations,
+instructor corpora/policy/evaluations and hosted trace links remain pending. Saved
+hourly rate is profile input; the current bid graph produces fixed-price proposals.
+Only the configured marketplace backend can be selected. No real accounts were
+connected and no external publication was performed.
+
+Suggested commit (text only):
+
+```text
+feat: add evidence-backed proposal studio and live run viewer
+
+- complete onboarding, metadata uploads, and saved inbox filters
+- show structured job analysis, pricing, and inspectable evidence citations
+- add cover-letter editing and verified paragraph regeneration
+- enforce exact approval, rejection reasons, and inactive-review handling
+- stream actual node activity with persisted SSE history and reconnect replay
+- improve responsive layouts, keyboard access, and session cache isolation
+- add real API/SSE tests and six isolated browser journeys
+- regenerate API types and document Phase 6 checks and runtime limits
+```
+
+Stopped at Phase 6. Five phases remain: 7 conversations/scheduling/memory;
+8 advanced retrieval/experiments; 9 official integrations; 10 reliability/CI/packaging;
+11 extension/submission. Partial existing code still needs completion and acceptance.
+Phase 9 and parts of the evaluation/reporting work depend on unavailable official
+inputs, real model runs and human labels. No next phase was started. No commits,
+pushes, branches, PRs, Git configuration changes or publishing were performed.

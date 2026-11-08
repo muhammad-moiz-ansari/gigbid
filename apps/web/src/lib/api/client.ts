@@ -5,6 +5,9 @@ import type { paths } from "./schema";
 let csrf = "";
 export function setCsrf(value: string) { csrf = value; }
 export const api = createClient<paths>({ baseUrl: "/api", credentials: "include" });
+export class ApiError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
 api.use({ onRequest({ request }) {
   if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) request.headers.set("X-CSRF-Token", csrf);
   return request;
@@ -12,7 +15,7 @@ api.use({ onRequest({ request }) {
 export function checked<T>(result: { data?: T; error?: unknown; response: Response }): T {
   if (result.error || !result.response.ok) {
     const error = result.error as { detail?: unknown } | undefined;
-    throw new Error(typeof error?.detail === "string" ? error.detail : `Request failed (${result.response.status})`);
+    throw new ApiError(typeof error?.detail === "string" ? error.detail : `Request failed (${result.response.status})`, result.response.status);
   }
   return result.data as T;
 }

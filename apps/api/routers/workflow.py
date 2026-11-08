@@ -2,6 +2,7 @@ import json
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy import select
+from sqlalchemy.orm import object_session
 
 from apps.api.approvals import lock_decision
 from apps.api.auth.service import current_user
@@ -22,6 +23,7 @@ from apps.api.schemas.api import ApprovalDecision, FaultInput, MessageInput, Run
 from dev_support.seed import seed
 from mcp_servers.marketplace.adapters import marketplace
 from rag.ingest.loaders import delete_source, ingest_file, ingest_text
+from rag.verify import paragraphs
 
 router = APIRouter(tags=["workflow"])
 
@@ -34,8 +36,12 @@ def owned_run(db, tenant, run_id):
 
 
 def view(run):
+    session = object_session(run)
+    approval = session.get(Approval, run.state.get("approval_id")) if session and run.state.get("approval_id") else None
     return RunView(id=run.id, subject=run.subject, kind=run.kind, status=run.status,
-                   state=run.state, trace_id=run.trace_id)
+                   state=run.state, trace_id=run.trace_id,
+                   approval_status=approval.decision if approval and approval.tenant == run.tenant else None,
+                   draft_paragraphs=[p for p, _ in paragraphs(run.state.get("draft", {}).get("text", ""))])
 
 
 def enqueue(tenant, subject, kind="bid"):
@@ -177,6 +183,9 @@ def decide(approval_id: str, data: ApprovalDecision, user: User = Depends(curren
             raise HTTPException(422, "A rejection reason is required")
         if data.decision == "edit" and not (data.text or "").strip():
             raise HTTPException(422, "Edited draft text is required")
+        if data.decision == "regenerate" and data.paragraph >= len(list(paragraphs(
+            run.state.get("draft", {}).get("text", "")))):
+            raise HTTPException(422, "Select an existing draft paragraph")
         approval.decision = {"approve": "approved", "reject": "rejected", "edit": "invalidated", "regenerate": "invalidated"}[data.decision]
         approval.reason = data.reason
         run.resume = {**data.model_dump(), "approval_id": approval.id}

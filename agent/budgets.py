@@ -39,6 +39,9 @@ def reserve(tenant, run_id, node):
         value["steps"] += 1
         value["pending"] = {**value.get("pending", {}), node: True}
         put_record(db, tenant, "run_budget", run_id, value)
+        run = db.get(Run, run_id)
+        db.add(Event(tenant=tenant, run_id=run_id, trace_id=run.trace_id,
+                     name="node:started", payload={"node": node, "phase": "started"}))
         return value
 
 
