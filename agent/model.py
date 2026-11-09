@@ -95,7 +95,7 @@ class OpenModel:
         caps = selected.get("max_tokens", {})
         messages = [{"role": "system", "content": prompt(node)},
                     {"role": "user", "content": json.dumps({"untrusted_data": data})}]
-        started, error, usages = time.monotonic(), None, []
+        started, error, usages, limited = time.monotonic(), None, [], False
         for attempt in range(cfg["retries"]["model_attempts"]):
             model = primary if attempt == 0 else selected.get("fallbacks", {}).get(primary, primary)
             recorded = False
@@ -125,7 +125,7 @@ class OpenModel:
                 usages.append({**rejected, "generated_tokens": 0, "generation_seconds": 0})
                 if usage_sink.get() is not None:
                     usage_sink.get().append(rejected)
-                error = exc
+                error, limited = exc, True
                 await asyncio.sleep(min(exc.retry_after, cfg["retries"].get("max_rate_limit_wait_seconds", 10)))
             except (asyncio.CancelledError, httpx.HTTPError, ValueError, KeyError, TypeError, AttributeError) as exc:
                 # A request the provider rejected (4xx) produced no answer; timeouts and 5xx leave usage unknown.
@@ -140,5 +140,7 @@ class OpenModel:
                 error = exc
                 if attempt + 1 < cfg["retries"]["model_attempts"]:
                     await asyncio.sleep(0.25 * 2**attempt)
-        raise RuntimeError(f"Open-model generation unavailable or invalid ({type(error).__name__}); "
+        # Naming an earlier rate limit lets evaluation runners treat the failure as quota, not as a result.
+        after = ", after a rate limit" if limited and not isinstance(error, RateLimited) else ""
+        raise RuntimeError(f"Open-model generation unavailable or invalid ({type(error).__name__}{after}); "
                            f"check the {selected['provider']} model profile")

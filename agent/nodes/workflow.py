@@ -31,7 +31,7 @@ from agent.model import config, usage_sink
 from apps.api.approvals import approval_context, stage_approval, validate_resume
 from apps.api.db import Approval, put_record, transaction
 from apps.api.safety import risks
-from rag.verify import CITATION, strip_citations, verify
+from rag.verify import CITATION, closest, strip_citations, verify
 from rag.verify import paragraphs as draft_paragraphs
 
 PRICE = re.compile(r"\$\s?(\d[\d,]*(?:\.\d+)?)")
@@ -243,7 +243,9 @@ class Nodes:
         # drafts only; a human edit or a regenerated paragraph is reviewed as written.
         model_draft = state.get("status", "running") == "running"
         if model_draft and state.get("fit", {}).get("evidence") and not CITATION.search(state["draft"]["text"]):
-            removed = [f"Removed: {c['text']} ({c['reason']})" for c in state["verification"].get("claims", [])
+            # Quoting the nearest evidence sentence gives the rewrite supported wording instead of new details.
+            removed = [f"Removed: {c['text']} ({c['reason']}). Closest evidence to reuse: "
+                       f"{closest(c['text'], state['fit']['evidence'])}" for c in state["verification"].get("claims", [])
                        if c["label"] in ("partly_supported", "unsupported")][:2]
             comments += ["Show fit with at least one sentence about past work that cites evidence"] + removed
         if comments:

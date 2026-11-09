@@ -108,6 +108,21 @@ async def test_hosted_rate_limit_falls_back_with_known_zero_usage(monkeypatch, h
     assert usage["attempts"] == 2 and usage["usage_complete"] and observations[0]["tokens"] == 0
 
 
+@pytest.mark.parametrize("first,named", [(429, True), (200, False)])
+async def test_only_a_failure_after_a_rate_limit_names_it(monkeypatch, hosted, first, named):
+    calls = []
+    def respond(request):
+        calls.append(request)
+        if first == 429 and len(calls) == 1:
+            return httpx.Response(429, headers={"retry-after": "0.01"}, json={"error": {"code": "rate_limit_exceeded"}})
+        return groq_reply('{"score":"high"}')
+    transport(monkeypatch, respond)
+    with pytest.raises(RuntimeError, match="ValidationError") as failure:
+        await complete()
+    # The decision runner stops on errors that mention a rate limit instead of saving them as results.
+    assert ("rate limit" in str(failure.value)) is named and len(calls) == 2
+
+
 async def test_invalid_risk_flag_is_rejected_by_the_contract(monkeypatch, hosted):
     transport(monkeypatch, lambda request: groq_reply('{"score":0.1,"flags":["Off-Platform Payment"],"reasons":[]}'))
     with pytest.raises(RuntimeError, match="invalid"):

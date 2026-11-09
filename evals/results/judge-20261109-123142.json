@@ -1,0 +1,55 @@
+{
+  "study": "judge",
+  "timestamp": "20261109-123142",
+  "code": {
+    "commit": "a82de51",
+    "uncommitted_changes": true
+  },
+  "dataset": {
+    "name": "synthetic",
+    "sha256": "15356448130890922a0f9bbfa5a8890351a863b11671202fb8daa305226c45d5",
+    "use": "harness validation only"
+  },
+  "config_sha256": "c69728665378707c216a0b3938759b97e38e5afcd100ac88192bfe705ff58f96",
+  "hypotheses_sha256": "c43bbd76bd0d7686a1faa02357d7ede854b04a81a981cfb2a67eb1ff7b96646b",
+  "judge_model": "qwen/qwen3.8-27b",
+  "rows_file": "judge-qwen3.8-27b.jsonl",
+  "prompt_version": "v1",
+  "sources": {
+    "decisions-open-15356448-before-budget-fix": {
+      "proposals": 1,
+      "score": 3.8,
+      "labels": {
+        "acceptable": 1
+      }
+    },
+    "decisions-open-15356448-before-evidence-hint": {
+      "proposals": 3,
+      "score": 3.33,
+      "labels": {
+        "poor": 2,
+        "acceptable": 1
+      }
+    },
+    "decisions-open-15356448-first-run": {
+      "proposals": 9,
+      "score": 4.04,
+      "labels": {
+        "poor": 2,
+        "good": 6,
+        "acceptable": 1
+      }
+    }
+  },
+  "invalid_verdicts": 0,
+  "calibration": {
+    "human": {
+      "status": "pending",
+      "reason": "0 of 30 items carry a label and a verdict"
+    }
+  },
+  "panel": {
+    "status": "pending",
+    "reason": "No panel sheet yet; run with --panel"
+  }
+}

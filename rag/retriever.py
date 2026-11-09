@@ -5,6 +5,7 @@ from rag.index.corpus import snapshot
 from rag.variants import v0_naive, v1_decomposition, v2_hybrid, v3_rerank, v4_outcome, v8_corrective
 
 FILTERS = {"persona", "type", "project", "industry", "outcome"}
+PARTS = {"BM25", "V0", "V1", "V2", "V3", "V4", "V8"}
 
 
 def retrieve(tenant, requirement, k=5, filters=None, variant=None):
@@ -19,7 +20,9 @@ def retrieve(tenant, requirement, k=5, filters=None, variant=None):
         raise ValueError("Unsupported evidence filter")
     cfg = config()["retrieval"]
     chosen = variant or settings().retrieval_variant or cfg["variant"]
-    if chosen not in {"BM25", "V0", "V1", "V2", "V3", "V4", "V8"}:
+    # Each ID adds one component to the V0 dense baseline; "+" joins components into one pipeline.
+    parts = set(chosen.split("+"))
+    if not parts <= PARTS:
         raise ValueError("Unknown retrieval variant")
     # A final canonical snapshot check prevents stale cache or vector payloads
     # from returning removed evidence during concurrent source replacement.
@@ -40,20 +43,16 @@ def retrieve(tenant, requirement, k=5, filters=None, variant=None):
         def hybrid(q):
             return v2_hybrid.fuse(bm25(q), dense(q))
 
-        if chosen == "BM25":
-            ranking = bm25(requirement)
-        elif chosen == "V0":
-            ranking = dense(requirement)
-        elif chosen == "V1":
-            ranking = v1_decomposition.rank(requirement, dense)
-        elif chosen == "V2":
-            ranking = hybrid(requirement)
-        elif chosen == "V3":
-            ranking = v3_rerank.rank(requirement, hybrid(requirement)[:20], cfg["reranker"])
-        elif chosen == "V4":
-            ranking = v4_outcome.rank(hybrid(requirement))
-        else:
-            ranking = v8_corrective.retrieve(requirement, bm25)
+        def search(q):
+            ranking = bm25(q) if "BM25" in parts else hybrid(q) if "V2" in parts else dense(q)
+            return v3_rerank.rank(q, ranking[:20], cfg["reranker"]) if "V3" in parts else ranking
+
+        def corrected(q):
+            return v8_corrective.retrieve(q, search) if "V8" in parts else search(q)
+
+        ranking = v1_decomposition.rank(requirement, corrected) if "V1" in parts else corrected(requirement)
+        if "V4" in parts:
+            ranking = v4_outcome.rank(ranking)
         _, current = snapshot(tenant)
         if current == fingerprint:
             return [

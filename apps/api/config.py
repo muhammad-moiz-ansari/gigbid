@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/processed/gigbid.db"
     checkpoint_url: str = "data/processed/checkpoints.db"
     marketplace_mode: Literal["mock", "gigsim", "upwork"] = "mock"
-    model_profile: Literal["open", "open_local", "paid"] = "open"
+    model_profile: Literal["open", "open_small", "open_local", "paid"] = "open"
     groq_api_key: str = ""
     github_token: str = ""
     token_encryption_key: str = ""

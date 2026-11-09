@@ -29,8 +29,8 @@ def main():
     elif args.command == "lint":
         subprocess.run([sys.executable, "-m", "ruff", "check", "."], check=True)
     elif args.command == "eval":
-        from evals.runners.smoke import main as evaluate
-        evaluate()
+        subprocess.run([sys.executable, "-m", "evals.runners.retrieval"], check=True)
+        subprocess.run([sys.executable, "-m", "evals.tables"], check=True)
     elif args.command == "demo":
         print("Start API, worker and web; sign up; load labelled synthetic data. See docs/DEMO_SCRIPT.md.")
     elif args.command == "client":

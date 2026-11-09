@@ -58,6 +58,13 @@ A2/B1 GitHub repository import goes through GitHub's MCP server; a public URL is
 R1/A4 the Upwork adapter sits behind the same port (`MARKETPLACE_MODE=upwork`), with encrypted per-user
 tokens, live reads verified and Upwork's live-mode and retention rules applied.
 
+Phase 8 update: R6/B2-B5 run on a labelled synthetic dev set (51 jobs; harness validation only) with
+composable pipelines; the measured winner, V2 hybrid retrieval, ships. The decision study covers all
+51 jobs, and the failure taxonomy inspects more than 20 failed jobs with attempted fixes. Study B is
+measured; studies A and C, judge labels and the final run with every fix wait on the model quota of
+2026-11-10. The model comparison is set aside for now (the deployed profile is used), and GigSim
+outcomes and the human panel stay pending. See EVALUATION.md and PHASE_STATUS.md.
+
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|
 | R1 single marketplace port | agent/marketplace_port.py; mcp_servers/marketplace/adapters | contract tests, mock idempotency | Official schemas/accounts |

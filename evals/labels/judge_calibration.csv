@@ -1,0 +1,192 @@
+item,job_title,job_post,screening_questions,proposal,screening_answers,label,notes
+1,Move slow LLM summarisation into a background task queue (Celery + Redis),"Our FastAPI app lets users upload contracts (10-80 pages) and returns an LLM summary. The summary is generated inside the request, so anything over ~30 pages times out, users retry, and our API bill doubles.
+We need someone to:
+- move summarisation into Celery workers with Redis as the broker
+- add retries with backoff for provider rate limits, without charging users twice
+- add a periodic job that cleans up stuck or abandoned tasks
+- expose a status endpoint the frontend can poll
+Small team, clean code, tests exist. We are new to the platform but ready to start this week.
+",How would you make a retried task safe to run twice?,"I would move the summarisation into Celery workers using Redis as the broker, add exponential‑backoff retries for provider rate limits, and implement a beat schedule that re‑queues stuck tasks every 15 minutes. I would also add a cleanup job to purge abandoned tasks and ensure late acknowledgement so a crash never loses a page. This approach mirrors the pipeline I built for Corrigan‑Vale Freight, where a pool of Python workers pulled tasks from a Redis broker, used automatic retries, late acknowledgement, and a beat schedule that re‑queued stuck documents every 15 minutes. [89c1fc9e9d2e44c8dd12f31f]
+
+To make a retried task safe to run twice, I would use idempotent task logic and late acknowledgement.
+
+Next steps: I would review your current FastAPI code, set up a Celery configuration with Redis, and write the summarisation task with retry and backoff logic. Then I would implement the status endpoint and the periodic cleanup job. Does your current deployment use Docker or a cloud service that I should integrate with?","How would you make a retried task safe to run twice?
+I would use idempotent task logic and late acknowledgement to ensure a task only commits results after successful completion, preventing duplicate processing if a retry occurs.",,
+2,Move slow LLM summarisation into a background task queue (Celery + Redis),"Our FastAPI app lets users upload contracts (10-80 pages) and returns an LLM summary. The summary is generated inside the request, so anything over ~30 pages times out, users retry, and our API bill doubles.
+We need someone to:
+- move summarisation into Celery workers with Redis as the broker
+- add retries with backoff for provider rate limits, without charging users twice
+- add a periodic job that cleans up stuck or abandoned tasks
+- expose a status endpoint the frontend can poll
+Small team, clean code, tests exist. We are new to the platform but ready to start this week.
+",How would you make a retried task safe to run twice?,"I would set up a Celery app in the FastAPI project, configure Redis as the broker and result backend, and refactor the current in‑request summarisation into a task that returns a task ID. I would then create a status endpoint that queries Celery’s AsyncResult for that ID and returns the current state and result once ready. I would implement a beat schedule that runs a cleanup task every 15 minutes to re‑queue any tasks that have been in the “PENDING” or “RETRY” state for longer than a threshold, ensuring no abandoned work remains.
+
+For retries I would use Celery’s `autoretry_for` with `retry_backoff=True` and `max_retries=5`, and set `acks_late=True` so that a worker crash does not lose a task. I would adapt those patterns to the summarisation workflow, ensuring that each retry is idempotent by using the same task ID and by designing the summarisation function to be safe to run twice.
+
+I would write unit tests for the Celery configuration, the retry logic, and the status endpoint, reusing the existing test suite structure. I would also add integration tests that simulate a rate‑limit error and verify that the task is retried with backoff and that the user is not charged twice. Finally, I would document the new background‑task architecture and provide a quick‑start guide for the team to deploy the workers on their platform.
+
+How would you make a retried task safe to run twice? I would design the task to be idempotent by using the same task ID for each retry and ensuring that the summarisation function does not produce side effects that depend on external state.","How would you make a retried task safe to run twice?
+I would design the task to be idempotent by using the same task ID for each retry and ensuring that the summarisation function does not produce side effects that depend on external state.",,
+3,Analyse results of our pricing page A/B test,"We ran an A/B test on our SaaS pricing page for three weeks: the variant shows the annual plan first, the control shows monthly first. Our PM has watched the dashboard daily and wants to call it a win, but the traffic split looks uneven and I'm not convinced. We need an independent analyst to check whether the split was healthy, measure the effect on paid sign-ups and on revenue per visitor with proper significance testing, compare new and returning visitors, and tell us honestly whether we can ship it or should rerun. Raw event data is in BigQuery (about 180k visitors). Deliverable: a short written readout plus the SQL and Python you used.
+",How would you check that the traffic split was healthy?,"You need an independent analyst to verify the traffic split, measure the impact on sign‑ups and revenue per visitor, and provide a concise readout with the SQL and Python code used.
+
+For a recent checkout experiment I built an extract.sql that created one row per account with its assigned arm and outcomes, then used a Python script to first check the allocation ratio with a chi‑square goodness‑of‑fit test and later compare conversion with a two‑proportion z‑test and bootstrap intervals, also handling new versus returning customers. [16215e7fbe87a2604e1c2cb6]
+
+I would start by pulling the raw event data into a staging table, run a chi‑square test on the observed traffic split, then compute conversion and revenue per visitor for each variant using two‑proportion z‑tests and bootstrap confidence intervals, segmenting by new and returning visitors. I would document the code and produce a short written readout.
+
+Could you confirm the exact schema of the event table (field names for visitor ID, variant assignment, sign‑up flag, and revenue) and whether you have any pre‑test period data for variance reduction techniques?","How would you check that the traffic split was healthy?
+I used a chi‑square goodness‑of‑fit test on the allocation ratio in a checkout experiment, as described in the checkout‑readout project. [16215e7fbe87a2604e1c2cb6]",,
+4,Snowflake and dbt revenue models with Power BI finance reporting,"We're a DTC skincare brand selling through Shopify (Stripe checkout), Amazon and wholesale, and our finance team still builds the monthly P&L from CSV exports. Raw data already lands in Snowflake via Fivetran. We need an analyst or analytics engineer to:
+1. Build dbt models (staging to marts) for orders, refunds, fees and payouts, with tests.
+2. Reconcile net revenue to Stripe payouts within 0.5% for each of the last 12 months.
+3. Build a Power BI report: revenue bridge, contribution margin by channel, refund rate by product.
+4. Write a data dictionary that defines every metric.
+5. Run a one-hour handover session with our finance lead.
+Please only apply if you have done finance or revenue modelling before, not just marketing dashboards.
+","Describe a revenue reconciliation you built and how closely it matched payouts.
+Which dbt tests would you add first, and why?","You need a finance‑focused analytics solution that moves raw Shopify, Stripe and Amazon data from Snowflake into reliable dbt models, reconciles revenue to payouts, and delivers a Power BI finance report with a full data dictionary. I recently delivered the Larkspur revenue reporting project where I loaded Shopify orders, refunds and Stripe payouts into Snowflake, built staging, intermediate and mart dbt models with tests on every key, and created a Power BI dataset with a revenue bridge and contribution margin by channel. [7e222d75d59a8e89f4b38102]
+
+I would start by reviewing your current Snowflake schema and Fivetran pipelines, then design the dbt staging and mart models to match your finance definitions. After the models are in place I would develop the Power BI report and data dictionary, and finally run a one‑hour handover session with your finance lead. Could you share a sample of the raw CSV exports you currently use, and confirm whether refunds and fees are already captured in separate tables?
+
+I would also set up automated tests in dbt to catch any drift in revenue calculations and schedule daily runs to keep the Power BI dataset fresh. Do you have any existing naming conventions for Snowflake objects that I should follow?","Describe a revenue reconciliation you built and how closely it matched payouts.
+In the Larkspur revenue reporting project I reconciled net revenue to Stripe payouts within 0.3% each month. [7e222d75d59a8e89f4b38102]
+
+Which dbt tests would you add first, and why?
+",,
+5,tRPC + Prisma developer to speed up our dashboard and fix type errors,"Our Next.js app was started from the T3 stack (tRPC, Prisma, NextAuth, Tailwind) and has grown to
+about 60 procedures. The main dashboard now takes 6 to 8 seconds to load; we suspect N+1 queries
+in Prisma and a few routers that fetch whole tables. Since upgrading to tRPC v11 we have around
+200 TypeScript errors hidden behind ts-expect-error comments. We need someone who knows tRPC and
+Prisma well to profile the slow procedures, rewrite the worst queries (with indexes and
+migrations where needed), clear the type errors properly and leave short notes on the patterns
+we should follow. Postgres on a managed host.
+",Which tRPC and Prisma projects have you shipped?,"You need to cut the dashboard load time from 6‑8 seconds to under 2 seconds and eliminate the dozens of ts‑expect‑error comments in your T3‑stack Next.js app. I have directly shipped a tRPC + Prisma codebase where the front end lives in a Next.js App Router and the API layer is organized in tRPC routers with a Prisma schema and raw SQL migrations for the parts Prisma cannot express. Every procedure runs in a transaction that sets the tenant and uses Postgres policies for isolation, matching the multi‑tenant pattern you described. [481631b68d4e4112c7fff1b3]
+
+I would start by cloning the repository and running the Docker compose setup to reproduce the current performance baseline. Then I would add query logging and a profiling tool to identify the top‑cost procedures, followed by incremental query optimizations and type‑error clean‑up. After each change I would run the test suite and measure dashboard load time to ensure we stay on target. Does the project have any existing performance monitoring or CI steps that I should integrate with?","Which tRPC and Prisma projects have you shipped?
+",,
+6,Snowflake and dbt revenue models with Power BI finance reporting,"We're a DTC skincare brand selling through Shopify (Stripe checkout), Amazon and wholesale, and our finance team still builds the monthly P&L from CSV exports. Raw data already lands in Snowflake via Fivetran. We need an analyst or analytics engineer to:
+1. Build dbt models (staging to marts) for orders, refunds, fees and payouts, with tests.
+2. Reconcile net revenue to Stripe payouts within 0.5% for each of the last 12 months.
+3. Build a Power BI report: revenue bridge, contribution margin by channel, refund rate by product.
+4. Write a data dictionary that defines every metric.
+5. Run a one-hour handover session with our finance lead.
+Please only apply if you have done finance or revenue modelling before, not just marketing dashboards.
+","Describe a revenue reconciliation you built and how closely it matched payouts.
+Which dbt tests would you add first, and why?","You need end‑to‑end finance analytics: dbt models in Snowflake for orders, refunds, fees and payouts; a revenue reconciliation within 0.5% of Stripe payouts; a Power BI finance report; a full data dictionary; and a handover session.
+
+For Larkspur Home Goods I loaded Shopify orders, refunds and Stripe payouts into Snowflake and rebuilt the logic as dbt models in staging, intermediate and mart layers, adding tests on every key. A Power BI dataset then provided a revenue bridge, refunds by reason and contribution margin by channel, and net revenue now reconciles to Stripe payouts within 0.3% each month. [89ce71db0a02da2c678b61c1]
+
+I would begin by reviewing your current Snowflake tables and Fivetran pipelines, then design staging models that standardise raw fields before building intermediate and mart models with the required tests. After the models are validated I would create the Power BI dataset, build the revenue bridge and margin visuals, and draft the data dictionary. Could you share the schema of the Stripe payout tables and any existing logic you use to calculate net revenue? What level of detail do you need in the data dictionary for each metric?
+
+I would also schedule the one‑hour handover session with your finance lead, providing recorded walkthroughs and documentation for future maintenance. Are there any specific security or row‑level access requirements for the Power BI report?","Describe a revenue reconciliation you built and how closely it matched payouts.
+For Larkspur Home Goods I built dbt models that reconciled net revenue to Stripe payouts within 0.3% each month. [89ce71db0a02da2c678b61c1]
+
+Which dbt tests would you add first, and why?
+I would add unique and not_null tests on key fields in the staging layer to ensure data integrity before building downstream models.",,
+7,RAG assistant for internal HR and policy documents (Slack + web),"We're a 900-person engineering firm with HR, IT and travel policies spread over roughly 1,200 PDFs and SharePoint pages across three countries. Staff keep asking HR the same questions. We want an internal assistant that:
+1. Ingests the PDFs and a SharePoint export and re-syncs weekly
+2. Answers with citations to the exact policy section, filtered by the employee's country
+3. Works inside Slack and on a simple web page behind our SSO
+4. Comes with an evaluation set (we can supply ~200 real questions) and an accuracy report
+5. Runs in our AWS account (Docker, ECS preferred) with handover docs
+We would rather get ""I don't know"" than a wrong answer. Please describe a similar system you built and how you measured accuracy.
+","Describe a similar system you built and how you measured answer accuracy.
+How do you stop the assistant from answering without a source?","We will ingest the 1,200 PDFs and SharePoint export, index them in a vector store, and build a RAG pipeline that filters results by employee country. I would set up a weekly sync pipeline using AWS ECS and Docker, and provide a handover guide for your ops team. For evaluation, I would run your 200-question set, compute precision‑at‑k and overall accuracy, and deliver a detailed report.
+
+I would implement the Slack integration using a Bolt app that forwards messages to the RAG service and posts replies with citation blocks. The web interface would be a lightweight FastAPI app behind your SSO, exposing the same query endpoint.
+
+I would deploy the entire stack in your AWS account: the vector store on S3 or a managed service, the inference container on ECS, and the scheduler for weekly re‑ingestion.
+
+I would provide a monitoring dashboard that logs query latency, source hit rates, and a weekly accuracy summary. This will help you track performance and adjust the retrieval parameters as needed.
+
+Screening Answers:
+Describe a similar system you built and how you measured answer accuracy. I would build a RAG assistant that ingests policy documents, filters by region, and returns citations, then evaluate it with a held‑out question set measuring precision‑at‑k and overall accuracy. How do you stop the assistant from answering without a source? I would set a confidence threshold on the retrieval score and only return an answer when the top‑k sources exceed that threshold; otherwise the bot replies with ""I don’t know"".","Describe a similar system you built and how you measured answer accuracy.
+I would build a RAG assistant that ingests policy documents, filters by region, and returns citations, then evaluate it with a held‑out question set measuring precision‑at‑k and overall accuracy.
+
+How do you stop the assistant from answering without a source?
+I would set a confidence threshold on the retrieval score and only return an answer when the top‑k sources exceed that threshold; otherwise the bot replies with ""I don’t know"".",,
+8,Migrate semantic search from Chroma to Qdrant with tenant filtering,"Early-stage legal-tech startup. Our document search runs on Chroma inside the API container: about 1.8M chunks across 60 customer workspaces, and it is getting slow and hard to back up. We want to move to Qdrant (self-hosted, Docker) with:
+- payload filtering so one workspace can never see another's chunks
+- a migration script that reuses our existing embeddings (no re-embedding)
+- recall@10 on our 150 test queries at least as good as today
+- updated ingestion code and a short runbook
+The codebase is FastAPI + Postgres and reasonably tidy. This is our first hire on the platform; the payment method is being added this week.
+",Have you run Qdrant in production and what did you use payload indexes for?,"You need to migrate a 1.8M‑chunk semantic search from Chroma to a self‑hosted Qdrant Docker deployment, add tenant‑level payload filtering, and provide a migration script that reuses existing embeddings while preserving recall@10.
+
+policy-qa: the retrieval service behind the Pellmont assistant. Ingest splits every wording into clause‑sized chunks, keeps headings as metadata, embeds them with bge‑small and stores them in Qdrant with payload fields for product, year and tenant. A query runs BM25 and dense search in parallel, fuses the lists with reciprocal rank fusion, and a cross‑encoder reranks the top 30. The answer step must quote clause ids; a response without a valid id is rejected and regenerated. [98b7ccdb81d7d7d7d19ad236]
+
+Darian Quellwood, freelance AI/ML engineer: 7 years in industry, the last 4 freelancing. I build LLM applications that hold up in production: retrieval‑augmented assistants over messy document collections, fine‑tuned open‑weight models that run on a single GPU, and the pipelines that keep models fresh after launch. Tools: Python, PyTorch, Hugging Face Transformers, LangChain, FastAPI, Docker, MLflow, scikit‑learn, OpenCV, PostgreSQL, Redis, AWS (ECS, S3, SageMaker), Qdrant and pgvector. [eb324efa9f5adb258d07b1a0]
+
+I would start by cloning the repository, adding a Qdrant Docker compose service, and configuring a collection with a tenant filter payload. Then I would write a migration script that reads each Chroma chunk, copies its embedding vector and metadata into the new collection without re‑embedding. After migration I would run the 150 test queries to compare recall@10 against the current baseline and iterate on index parameters. Finally I would update the ingestion pipeline to write new chunks directly to Qdrant and draft a short runbook covering deployment, backup, and troubleshooting. Could you share the current Chroma schema and any existing CI/CD scripts for the FastAPI service?","Have you run Qdrant in production and what did you use payload indexes for?
+policy-qa: the retrieval service behind the Pellmont assistant stores them in Qdrant with payload fields for product, year and tenant. [98b7ccdb81d7d7d7d19ad236]",,
+9,Enforce tenant isolation in Postgres with row-level security,"We run a B2B invoicing SaaS on Next.js, Prisma and Postgres. Today every query filters by org_id
+in application code. Last month a new endpoint forgot the filter and one customer briefly saw
+another customer's invoices. We want the database itself to enforce isolation with Postgres
+row-level security: policies on our 35 tenant tables, the org id set per request inside a
+transaction (we use Prisma with a connection pooler), a safe path for background jobs and our
+admin tooling, and automated tests proving one org cannot read or write another org's rows.
+Please also write a short explanation we can hand to our SOC 2 auditor.
+",How would you set the tenant for each request when Prisma shares pooled connections?,"You need PostgreSQL row‑level security policies on all 35 tenant tables, a per‑request tenant context that works with Prisma's pooled connections, a safe approach for background jobs and admin tools, and an automated test suite proving isolation, plus a brief SOC 2 write‑up.
+
+In the Quillmoor clinic booking platform we built a monorepo where each Prisma transaction first sets the current tenant with `SELECT set_config('app.tenant_id', ${ctx.tenantId}, true)`, and every table has a policy like `CREATE POLICY tenant_isolation ON appointment USING (tenant_id = current_setting('app.tenant_id')::uuid);` This enforced isolation at the database level and the GitHub Actions pipeline ran cross‑tenant isolation tests on every PR. [481631b68d4e4112c7fff1b3]
+
+I would create similar migrations for all of your tenant tables, integrate the `set_config` call into your Prisma middleware so the tenant is set for each request, and extend the pattern for background workers by setting the tenant at the start of each job. I would also draft a concise SOC 2 explanation describing the RLS policies, the tenant‑setting mechanism, and the test coverage.
+
+To ensure everything works, I would write integration tests that attempt to read and write across tenants and verify they are blocked, and run them in your CI pipeline. Does your current CI already include a PostgreSQL test database, or should I add one? What format do you prefer for the auditor write‑up?","How would you set the tenant for each request when Prisma shares pooled connections?
+I would add Prisma middleware that runs `SELECT set_config('app.tenant_id', ctx.tenantId, true)` at the start of each transaction, mirroring the approach used in the Quillmoor platform.",,
+10,"Full-stack developer for scheduling SaaS MVP (Next.js, Stripe)","We are building a scheduling and invoicing tool for small home-cleaning companies and need an
+experienced full-stack developer to take it from finished Figma designs to a paid beta. Scope:
+1. Company workspaces: an owner invites cleaners and office staff with different permissions,
+   and one company must never see another company's customers.
+2. Subscription billing with Stripe: a monthly price per active cleaner, 14-day trial, upgrades
+   and downgrades, and customers updating their own card.
+3. A job calendar with drag-and-drop rescheduling and reminder emails to households.
+4. A small internal admin panel for us to look up accounts and issue refunds.
+5. Docker-based deployment with a CI pipeline that runs the tests on every pull request.
+Preferred stack is Next.js, TypeScript and Postgres. Please answer both screening questions.
+","Describe a product you built where several companies share one database, and how you kept their data apart.
+How would you set up per-seat pricing in Stripe?","I would start by setting up the tenant isolation policies and Stripe Connect integration, then build the calendar and admin panel, and finally configure Docker and CI pipelines. Do you have a preferred CI platform or any specific deployment constraints?
+
+I would also need access to your Figma designs and any existing data models to ensure a smooth handoff. Are there any particular email templates or reminder workflows already defined?","Describe a product you built where several companies share one database, and how you kept their data apart.
+
+
+How would you set up per-seat pricing in Stripe?
+I would start by setting up the tenant isolation policies and Stripe Connect integration, then build the calendar and admin panel, and finally configure Docker and CI pipelines. Do you have a preferred CI platform or any specific deployment constraints?",,
+11,"Improve our Prophet demand forecast (40 SKUs, weekly)","We sell coffee beans and brewing kit online and through two cafes. Last year our ops manager built a Prophet model in a Jupyter notebook, but it ignores promotions and bank holidays, so we keep over-ordering green beans. We'd like someone to rework it: weekly forecasts for about 40 SKUs, 12 weeks ahead, with promo flags and UK holidays as regressors, a proper backtest so we know the error per SKU, and a CSV output our buyer can open in Excel. Python only please. We'd like to keep Prophet unless you can show something clearly better on the backtest.
+",Have you used Prophet with extra regressors? Give an example.,"You need a reworked Prophet model that adds promotion flags and UK holidays as regressors, provides a 12‑week backtest per SKU, and outputs a CSV for your buyer. I can deliver a clean Python notebook that meets these specs within 2‑3 weeks.
+
+For a similar challenge I built a daily bake‑quantity model for a multi‑site bakery using Prophet with weekly and yearly seasonality, UK bank holidays, school terms, and next‑day maximum temperature as an extra regressor. The solution included a rolling‑origin backtest over 12 weeks reporting MAPE and bias per site, and wrote forecasts to a warehouse table each afternoon. [589b89f1f81b4ca032db5f88]
+
+I will start by reviewing your current notebook, then add the promo and holiday regressors, configure a proper cross‑validation backtest for each of the 40 SKUs, and generate the required CSV. I will also document the workflow so your buyer can easily open and adjust the file in Excel. Does the current data include a binary column for promotions, or should I create one from sales events?
+
+Finally, I will run a comparative backtest against a baseline model to confirm Prophet remains the best choice, and provide a concise error report per SKU. Are there any additional business rules (e.g., minimum order quantities) that need to be encoded in the forecast?","Have you used Prophet with extra regressors? Give an example.
+I built a daily bake‑quantity model for a multi‑site bakery that added UK bank holidays, school terms, and next‑day maximum temperature as extra regressors to Prophet, with a 12‑week rolling backtest reporting MAPE per site. [589b89f1f81b4ca032db5f88]",,
+12,Migrate semantic search from Chroma to Qdrant with tenant filtering,"Early-stage legal-tech startup. Our document search runs on Chroma inside the API container: about 1.8M chunks across 60 customer workspaces, and it is getting slow and hard to back up. We want to move to Qdrant (self-hosted, Docker) with:
+- payload filtering so one workspace can never see another's chunks
+- a migration script that reuses our existing embeddings (no re-embedding)
+- recall@10 on our 150 test queries at least as good as today
+- updated ingestion code and a short runbook
+The codebase is FastAPI + Postgres and reasonably tidy. This is our first hire on the platform; the payment method is being added this week.
+",Have you run Qdrant in production and what did you use payload indexes for?,"I understand you need to migrate a 1.8M‑chunk semantic search from Chroma to Qdrant, adding tenant‑level payload filtering, a migration script that reuses existing embeddings, and a recall@10 benchmark. I would first analyze the current Chroma schema, design the Qdrant collection with tenant payloads, then implement a script that streams chunks, copies embeddings, and verifies recall on the 150 test queries. Afterward I would update the ingestion pipeline to write new chunks directly to Qdrant and produce a short runbook for ops. Do you have a preferred method for validating recall during migration, and can you share the current Chroma schema or any constraints on the Docker deployment?","Have you run Qdrant in production and what did you use payload indexes for?
+",,
+13,RAG assistant for internal HR and policy documents (Slack + web),"We're a 900-person engineering firm with HR, IT and travel policies spread over roughly 1,200 PDFs and SharePoint pages across three countries. Staff keep asking HR the same questions. We want an internal assistant that:
+1. Ingests the PDFs and a SharePoint export and re-syncs weekly
+2. Answers with citations to the exact policy section, filtered by the employee's country
+3. Works inside Slack and on a simple web page behind our SSO
+4. Comes with an evaluation set (we can supply ~200 real questions) and an accuracy report
+5. Runs in our AWS account (Docker, ECS preferred) with handover docs
+We would rather get ""I don't know"" than a wrong answer. Please describe a similar system you built and how you measured accuracy.
+","Describe a similar system you built and how you measured answer accuracy.
+How do you stop the assistant from answering without a source?","You need an internal HR and policy assistant that ingests thousands of PDFs and SharePoint pages, syncs weekly, and answers employee questions in Slack and a web UI with precise citations filtered by country.
+
+I would set up a weekly ETL pipeline that pulls the latest PDFs and SharePoint exports, extracts text with OCR/layout models, and updates the vector index in Amazon OpenSearch or Qdrant inside your ECS cluster.
+
+I would implement the Slack integration using the Slack Events API and a FastAPI web service that queries the vector store, applies a country filter, and formats responses with markdown citations. The web UI would be a minimal React app behind your SSO, calling the same backend.
+
+I would create an evaluation harness that runs your ~200 real questions, compares the assistant’s cited sections to a ground‑truth answer key, and produces a detailed accuracy report (precision, recall, citation correctness).
+
+Next steps: I would draft a detailed project plan with milestones for data ingestion, indexing, Slack/web integration, evaluation, and handover documentation. Could you confirm the preferred vector store and any existing CI/CD pipelines for Docker images?","Describe a similar system you built and how you measured answer accuracy.
+
+
+How do you stop the assistant from answering without a source?
+I would enforce a rule in the response generation step that requires a retrieved document chunk with a confidence score above a threshold; if none is found, the assistant returns ""I don’t know.""",,

@@ -37,6 +37,12 @@ dependencies = [
   "reportlab==5.1.0"
 ]
 
+[project.optional-dependencies]
+# V3 cross-encoder reranking on the CPU; the API image leaves it out.
+rerank = ["sentence-transformers==6.2.0", "torch==2.15.0"]
+# Baselines for the tool and architecture studies: a tool-calling chat model and the prebuilt supervisor.
+eval = ["langchain-groq==1.1.3", "langgraph-supervisor==0.0.31"]
+
 [project.scripts]
 gigbid = "scripts.manage:main"
 gigbid-portfolio = "mcp_servers.portfolio.server:main"

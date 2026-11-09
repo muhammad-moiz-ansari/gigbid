@@ -708,3 +708,37 @@ The live GitHub import caught two problems that the stand-in tests could not: wi
 honours it), and the shallowest-first file order imported a generated `next-env.d.ts` and helper
 scripts instead of the app's `src/` code. Both are fixed and the import was rerun.
 Nothing was committed at check time; no push, branch, PR or publication.
+
+## Phase 8 - evaluation harness, retrieval and decision studies done; final runs on 2026-11-10
+
+Implemented on 2026-11-09 (see [evaluation](EVALUATION.md) for setup, metrics and the failure taxonomy):
+
+- A labelled synthetic dev set in `evals/datasets/synthetic/`: three personas, 48 evidence items, 51 jobs
+  with bid, scam, graded evidence, price-band and canary labels, validated by `evals/dataset.py`.
+- Composable retrieval: each variant adds one component to V0 and `+` joins them; V3 scores are cached
+  per query, V4's boost is sign-safe, and V8 grades passages by shared content words.
+- Runners for retrieval, decisions (every job decided and priced, 12 drafted), architecture (ReAct and
+  `langgraph-supervisor`), tool granularity and the rubric judge with blind labelling and panel sheets;
+  `make eval`, `make eval-all` and `make tables`, with every table naming its results file.
+- The rerank and evaluation extras and the reranker's weights install into `.venv` only; the shared uv and
+  Hugging Face caches were checked unchanged afterwards.
+
+| Check | Result |
+|---|---|
+| Retrieval study, 13 pipelines on 51 jobs (no tokens) | V2 best: Recall@5 0.752 vs 0.630 for V0, nDCG@10 0.812 vs 0.763; V3 4.9 s per query with no gain; 3 of 4 hypotheses held |
+| Decision study, production profile, 51 jobs | 0 errors; bid F1 0.935 (precision 1.0); scam recall 1.0; price in band 0.69; 6 of 9 drafts reach approval; unsupported claims 1.44 before and 0 after verification |
+| Fixes measured on affected jobs | Token budget 24K: no budget failures since; closest-evidence hint: 2 of 3 blocked drafts recovered; risk prompt v4: 13 of 15 risk jobs right (11 before), one subtle scam now reaches approval |
+| Judge (qwen3.8-27b) | 13 proposals scored, no invalid verdicts |
+| Architecture runner plumbing, scripted model | Real MCP tool calls, evidence capture, write-attempt count and claim check work for both designs; rows deleted afterwards |
+
+Decisions recorded: V2 ships as `retrieval.variant`; risk prompt v4 stays as it is (the user's decision);
+the model comparison is set aside while the deployed profile is used; the judge's human calibration stays
+pending until people label the sheet.
+
+Pending for 2026-11-10 and 11, when Groq's daily limits reset: the decision study reruns with every fix, then
+the two R&D C baselines, the R&D A tool study and the judge, which writes the 30-item sheet for labelling. They
+run one study at a time because together they need more than a day's quota; an attempt on the afternoon of
+2026-11-09 ran out of it (see the failure taxonomy in EVALUATION.md).
+GigSim outcomes and the classmates' panel wait on outside inputs. Free-tier limits (200K tokens per model per
+day, and 1,000 output tokens per minute for qwen3.8-27b) shaped the study sizes; EVALUATION.md lists them.
+Nothing was committed at check time.

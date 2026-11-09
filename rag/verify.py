@@ -84,6 +84,9 @@ def check(text, by_id):
     projects = {item["project"] for item in by_id.values() if item.get("project")}
     for paragraph in paragraphs(text):
         cited = [i for i in CITATION.findall(paragraph) if i in by_id]
+        # A project is described several ways (case study, README, review), so a citation stands for all of them.
+        named = {by_id[i].get("project") for i in cited} - {None, "Own portfolio"}
+        cited += [i for i, item in by_id.items() if item.get("project") in named and i not in cited]
         passages = [by_id[i]["text"] for i in cited]
         accepted, supported, dropped = [], False, False
         for sentence in (s.strip() for s in SENTENCE.split(strip_citations(paragraph).strip()) if s.strip()):
@@ -99,6 +102,17 @@ def check(text, by_id):
         if accepted:
             kept.append(" ".join(accepted) + ("".join(f" [{i}]" for i in cited) if supported else ""))
     return claims, "\n\n".join(kept)
+
+
+def closest(sentence, evidence):
+    """The evidence sentence sharing most words with a removed claim, with its id: wording a rewrite can reuse."""
+    words = set(WORD.findall(sentence.lower().translate(PLAIN))) - STOP
+    options = [(len(words & set(WORD.findall(part.lower().translate(PLAIN)))), part.strip(), item["id"])
+               for item in evidence for part in SENTENCE.split(item.get("text", "")) if part.strip()]
+    if not options:
+        return ""
+    _, part, item_id = max(options, key=lambda option: option[0])
+    return f'"{part}" [{item_id}]'
 
 
 def verify(text: str, evidence: list[dict]):

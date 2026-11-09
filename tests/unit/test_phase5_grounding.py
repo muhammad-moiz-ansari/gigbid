@@ -79,6 +79,31 @@ async def test_critic_sends_back_a_proposal_without_cited_evidence():
     assert result["critique"]["comments"] == ["Show fit with at least one sentence about past work that cites evidence"]
 
 
+
+async def test_critic_quotes_the_closest_evidence_for_a_removed_claim():
+    from agent.nodes.workflow import Nodes
+    from tests.support import TestModels
+    evidence = [{"id": "e1x2y3", "text": "Built a Qdrant index with tenant payload filters. Wrote the migration runbook."}]
+    claim = {"text": "I built a production Qdrant service with tenant filtering for an insurer.",
+             "label": "partly_supported", "reason": "Only partly matches the cited evidence; removed", "evidence_ids": []}
+    state = {"tenant": "t", "job": {"screening_questions": []}, "verification": {"claims": [claim]},
+             "fit": {"evidence": evidence}, "draft": {"text": "I would test the API.", "screening_answers": {}}}
+    comments = (await Nodes(None, TestModels()).critic(state))["critique"]["comments"]
+    assert comments[1].endswith('Closest evidence to reuse: "Built a Qdrant index with tenant payload filters." [e1x2y3]')
+
+
+
+def test_a_citation_stands_for_every_description_of_its_project():
+    from rag.verify import verify
+    evidence = [{"id": "case01", "project": "Quillmoor", "text": "Built the Quillmoor booking platform for clinics."},
+                {"id": "repo01", "project": "Quillmoor", "text": "Row level policies keep each clinic's rows apart in Postgres."},
+                {"id": "cv0001", "project": "Curriculum vitae", "text": "Tableau dashboards for retail clients."}]
+    result = verify("I built the Quillmoor booking platform where Postgres policies keep each clinic apart. [case01]", evidence)
+    assert result["unsupported_before"] == 0 and result["claims"][0]["evidence_ids"] == ["case01", "repo01"]
+    result = verify("I built Tableau dashboards for retail clients and the Quillmoor platform. [case01]", evidence)
+    assert result["unsupported_before"] == 1
+
+
 def test_numeric_token_metrics_survive_secret_redaction():
     assert redact({"tokens": 123, "generated_tokens": 20, "access_token": "secret"}) == {
         "tokens": 123, "generated_tokens": 20, "access_token": "[REDACTED]"}

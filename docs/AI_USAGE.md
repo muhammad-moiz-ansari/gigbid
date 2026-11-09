@@ -105,3 +105,10 @@ writes that silently defaulted to dry runs. Failing tests and a review of the cl
 The live Upwork write check caught one more of mine: the adapter treated any non-error reply as a
 draft, so Upwork's "terms required" answer was reported as drafted. A reply without a preview id is now
 a refusal that shows Upwork's next step, with a test for it.
+
+Phase 8 (Claude Code, 2026-11-09) added the evaluation harness, composable retrieval pipelines and the studies.
+Three Claude subagents wrote the synthetic dev set, one persona each, to a written specification; their gold
+labels are therefore AI-authored, which the data card states. The tool-study tasks, rubric judge prompt and
+hypotheses were written by Claude before any run. Evaluation itself made AI mistakes visible: the outcome-aware
+boost reversed its order when BM25 scores were negative (found by a new test), and the first real run showed the
+12,000-token thread budget could not fit even one of the two critic revisions the graph allows.

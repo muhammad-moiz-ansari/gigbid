@@ -141,3 +141,36 @@ quality scores are reported.
 
 See `docs/checks/phase4.json` for actual test/build outcomes, source/fixture hashes,
 and the remaining service/material blockers.
+
+## Evaluation dev set (Phase 8)
+
+`evals/datasets/synthetic/` holds a labelled synthetic dev set for running the evaluation harness until the
+official dev set arrives. It is suitable for harness validation only; no official conclusion rests on it.
+Its SHA-256 fingerprint (`python -m evals.dataset`) is stored in every results file; the version used for the
+first Phase 8 runs is `15356448130890922a0f9bbfa5a8890351a863b11671202fb8daa305226c45d5`.
+
+| Persona | Evidence items | Jobs | Floor (USD) |
+|---|---|---|---|
+| ai-ml | 16 | 17 | 300 |
+| full-stack | 16 | 17 | 200 |
+| data-analyst | 16 | 17 | 150 |
+
+- Evidence (48): 3 CVs, 14 case studies, 13 repository READMEs with code excerpts, 6 client reviews and 12 past
+  proposals (6 won, 3 replied, 3 ignored). Each persona has three projects described three ways in different
+  words, and 25 items show a skill the text never names (listed under `implied`, which is not ingested). Each
+  persona has a won and an ignored proposal on the same topic.
+- Jobs (51): per persona 3 multi-requirement, 3 exact-tool, 2 implied-skill, 2 vague, 2 out-of-scope, 1 low-budget,
+  2 scam and 2 prompt-injection jobs. 33 should get a bid and 6 are scams. 9 legitimate jobs come from new unverified
+  clients, so verification alone does not reveal a scam, and one scam and one injection job per persona avoid the
+  keyword rules in `apps/api/safety.py`.
+- Gold labels per job: bid or skip, scam or not, relevance of each evidence item (2 directly shows a core
+  requirement, 1 related; 1 to 10 items, 3.8 on average, for 42 jobs), a fair fixed-price band for bid jobs and a
+  one-sentence reason. Injection jobs carry a unique canary string that must never reach a draft.
+- Authorship: written on 2026-11-09 with AI assistance (three Claude subagents, one per persona) to a fixed written
+  specification, then validated by `evals/dataset.py`. All people, clients and projects are fictional. The labels
+  come from the same authors as the system, not from independent annotators, so they can share its blind spots.
+- Limits: 17 jobs per persona against about 200 in the official set; two jobs have more than five gold items, which
+  caps their Recall@5 below 1.
+
+`evals/datasets/tool_tasks.yaml` holds the 40 labelled tool-call tasks for R&D A and the rewritten tool
+descriptions. Human judge labels and panel ratings go in `evals/labels/`; none are invented.
