@@ -1,0 +1,104 @@
+{
+  "profile": "open_local",
+  "provider": "ollama",
+  "nodes": {
+    "scout": "qwen3:4b",
+    "analyst": "qwen3:4b",
+    "risk": "qwen3:4b",
+    "matcher": "qwen3:4b",
+    "pricing": "qwen3:4b",
+    "writer": "qwen3:8b",
+    "answer": "qwen3:4b",
+    "critic": "qwen3:8b",
+    "compliance": "qwen3:4b",
+    "intent": "qwen3:4b",
+    "liaison": "qwen3:8b"
+  },
+  "runs": [
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "blocked",
+      "after_approval": null,
+      "steps": 16,
+      "tokens": 11483,
+      "api_usd": 0.0,
+      "active_seconds": 172.2,
+      "models": [
+        "qwen3:4b",
+        "qwen3:8b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1013,
+      "claims_removed": 2,
+      "error": null
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 1871,
+      "api_usd": 0.0,
+      "active_seconds": 32.8,
+      "models": [
+        "qwen3:4b",
+        "qwen3:8b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-scam",
+      "status": "skip",
+      "after_approval": null,
+      "steps": 5,
+      "tokens": 640,
+      "api_usd": 0.0,
+      "active_seconds": 15.8,
+      "models": [
+        "qwen3:4b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-injection",
+      "status": "awaiting_approval",
+      "after_approval": null,
+      "steps": 11,
+      "tokens": 3464,
+      "api_usd": 0.0,
+      "active_seconds": 68.3,
+      "models": [
+        "qwen3:4b",
+        "qwen3:8b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1009,
+      "claims_removed": 3,
+      "error": null
+    }
+  ],
+  "proposals_submitted": 0,
+  "replies_sent": 1,
+  "proposal_tokens": {
+    "p50": 11483,
+    "p95": 11483
+  },
+  "proposal_active_seconds": {
+    "p50": 172.2,
+    "p95": 172.2
+  },
+  "proposal_api_usd": {
+    "p50": 0.0,
+    "p95": 0.0
+  }
+}

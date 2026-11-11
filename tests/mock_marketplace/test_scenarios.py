@@ -97,10 +97,14 @@ def test_all_success_outcomes_messages_and_monotonic_events(world, authorize):
         assert MockMarketplace().advance(tenant, f"success-tick-{i}") == results
     assert mock.advance(tenant, "finished-tick") == []
     events = mock.events(tenant)
-    assert [e["status"] for e in events] == ["submitted", "viewed", "replied", "interview", "hired"]
-    assert [e["sequence"] for e in events] == list(range(1, 6))
-    assert len({e["id"] for e in events}) == 5
-    assert all(e["synthetic"] and e["proposal_id"] == submitted.effect_id for e in events)
+    proposals = [e for e in events if e["kind"] == "proposal"]
+    assert [e["status"] for e in proposals] == ["submitted", "viewed", "replied", "interview", "hired"]
+    assert [e["sequence"] for e in events] == list(range(1, 9))
+    assert len({e["id"] for e in events}) == 8
+    assert all(e["synthetic"] and e["proposal_id"] == submitted.effect_id for e in proposals)
+    received = [e for e in events if e["kind"] == "message"]
+    assert [e["status"] for e in received] == ["received"] * 3
+    assert {e["message_id"] for e in received} == {m["id"] for m in mock.messages(tenant, "mock-api")}
     assert mock.proposal(tenant, submitted.effect_id)["status"] == "hired"
     assert len(mock.messages(tenant, "mock-api")) == 3
     assert all(

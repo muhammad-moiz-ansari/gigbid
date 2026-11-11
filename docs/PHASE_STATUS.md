@@ -434,3 +434,311 @@ Stopped at Phase 6. Five phases remain: 7 conversations/scheduling/memory;
 Phase 9 and parts of the evaluation/reporting work depend on unavailable official
 inputs, real model runs and human labels. No next phase was started. No commits,
 pushes, branches, PRs, Git configuration changes or publishing were performed.
+
+## Phase 7 - implemented; two real-model issues await the user's decision
+
+2026-11-08: the user authorized Phase 7 with Claude Code. Step 0 (real-model fixes and the
+writer/verifier redesign) came first; steps 0c and 1-8 then ran in one pass at the user's
+request, with a single commit planned once the phase is complete.
+
+Implemented:
+
+- Real models: Qwen3 thinking off through config, 120 s model request timeout, sentence-level
+  claim verification with `[id]` citations, advisory compliance-model warnings, and a separate
+  model call for any screening question the writer leaves unanswered.
+- Conversations: one durable thread per client conversation (intake, small-model intent
+  classification with a rule-based scam override, draft, verifier, compliance, approval, send).
+  Each new client message starts the next turn; a message arriving during review cancels that
+  review. Interview requests offer free Workspace slots. Compliance blocks prices below the
+  user's minimum.
+- Events and pipeline: the mock records an event for each client message; the worker reads
+  events from a saved cursor, moves pipeline cards forward only, marks proposals awaiting
+  review as drafted and queues replies. Mock outcomes advance on a schedule and on demand.
+- Scheduling: Celery tasks and beat entries for recovery, scouting, event sync and mock
+  outcomes, with matching schedules in the database worker; worker and beat Compose services.
+  The scout records duplicate postings instead of analysing them.
+- Memory: a LangGraph SQLite/Postgres store with per-tenant style and outcome namespaces, read by
+  nodes through `get_store()`. Style rules come from approved text edits only; outcome notes come
+  from outcome events by job category. Forgetting is durable. The Critic flags style violations.
+- Autonomy and inbox: skip decisions are archived or shown as recommendations depending on the
+  setting; any job can be skipped with a reason. Sending always needs approval.
+- Analytics by job category, per-proposal token, active-second and API cost percentiles, and top
+  rejection reasons. Checkpoint replay through `scripts.manage replay` and the API. The previously
+  empty Agent runs screen now shows activity and checkpoints with Replay buttons.
+- `stage_approval` now reuses only a still-pending approval; before, an identical replayed
+  preview could pick up an approval that was already consumed.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 177 passed, 1 Postgres skip (54.7 s) |
+| Playwright journeys in installed Chrome | 9 passed: 6 existing and 3 new (client reply with slots, forgetting memory, inbox skip) |
+| Ruff, TypeScript check, production build | Passed |
+| OpenAPI export and generated client; MCP schema snapshot | Regenerated; the snapshot change is the new `received` event status |
+
+Real-model runs (Ollama 0.40.15, Apple M3 24 GB, qwen3:4b and qwen3:8b, mock marketplace, V0):
+
+| Run | Actual outcome |
+|---|---|
+| Before step 0, code as committed | needs_attention after 92 s; all four model attempts timed out in thinking mode |
+| Before step 0, thinking disabled in the test driver | blocked; all three drafts removed by the closed grammar |
+| Step 0 with advisory compliance | proposal reached approval, approved and submitted once; Connects 100 -> 92 |
+| Step 0 after the timeout change | blocked: the writer left screening answers empty in all three drafts |
+| Phase 7, proposal and reply | proposal needs_attention at the 180 s active budget; reply failed because `intent.v1.md` was missing (added, with a test that every node has a prompt) |
+| Phase 7, second run | proposal needs_attention at 14,498 of 12,000 tokens after two rewrites, because its screening answer was removed as partly supported each time; reply failed at the MCP preview on an empty approval id (fixed, with an MCP-level test) and its slot sentence was removed (fixed) |
+
+Celery and Redis check (Redis 8.10.3, `--pool=solo`, real models, the dashboard job): the worker
+was killed with SIGKILL 22.6 s in, after intake, analyst, risk, matcher, reconcile and pricing had
+completed and the writer had started. After the 300 s lease the recovery task resumed the run at
+338 s. No completed node ran again and nothing was submitted or spent. The run then stopped as
+needs_attention: the killed writer's token usage is unknown, the existing budget rule blocks
+further generation, and Retry cannot clear it.
+
+Open issues awaiting the user:
+
+1. Screening answers: qwen3:8b writes one sentence that mixes a plan with a past-work claim; the
+   verifier removes it as partly supported, the Critic asks again, and two rewrites exceed the
+   token budget. Proposed fix: screening answers are plans only, and evidence claims stay in the
+   cover letter.
+2. Interrupted model calls: a run killed mid-call can never continue. Proposed fix: Retry records
+   a human acknowledgement of the unknown usage and continues within the remaining budget.
+
+Known benign warning: LangGraph's async SQLite store can log "Task was destroyed but it is
+pending" when a run's store closes. No commits, pushes, branches, PRs or publication occurred.
+
+## Real-model fixes and hosted open models - implemented and verified
+
+2026-11-08: after the Phase 7 commit the user supplied a Groq API key and asked for the 11
+fixes from the real-model review, with hosted open-weight models from now on and everything
+else local. Both open Phase 7 issues are closed (fixes 1 and 2).
+
+Implemented:
+
+1. Screening answers are plans only ("I would ..."), from writer v4 and answer v2; evidence
+   claims stay in the cover letter.
+2. Retry on a run stopped by unknown usage records the user's acknowledgement (nodes and time)
+   in the budget ledger and continues within the remaining budget. The studio explains this.
+3. Evidence sent to models is trimmed to id, text, project, skills, date and outcome.
+4. Per-node output caps in each profile; the local profile keeps Ollama models loaded (`keep_alive`).
+5. Budgets were re-measured on hosted runs; no change was needed (below).
+6. Risk flags come from a fixed list. Planted instructions raise risk to at least 0.5
+   (`thresholds.injection_risk`) so the reviewer sees them, without forcing a skip.
+7. Each model falls back to a different real model: gpt-oss-120b and gpt-oss-20b back each
+   other up; locally qwen3:8b -> qwen3:4b -> qwen3:1.7b.
+8. Marketplace job and client IDs are removed from every model input.
+9. Pricing receives computed facts (budget, minimum bid, Connects cost, balance and weekly
+   allowance, category outcomes) and returns an amount within them with a one-sentence rationale.
+10. `make smoke` (`scripts/smoke.py`) runs approved proposals and replies with the configured
+    models on a throwaway database and writes `evals/results/smoke-<time>.json`.
+11. `MODEL_PROFILE=open` (the default) calls Groq's OpenAI-compatible API in JSON mode:
+    gpt-oss-20b for the small nodes and gpt-oss-120b for the writer, Critic and liaison, with API
+    cost from published prices. `open_local` keeps Ollama. Embeddings stay local
+    (`nomic-embed-text`). The key is kept only in the git-ignored `.env`.
+
+Usage rule: a rate-limited (429) or rejected (other 4xx) request generated nothing, so it counts
+as known zero usage and the fallback model runs; a rate limit waits at most 10 s first. Timeouts
+and 5xx responses leave usage unknown, which stops the run until Retry.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 185 passed, 1 Postgres skip (48.7 s) |
+| Playwright journeys in installed Chrome | 9 passed (58.7 s) |
+| Ruff, TypeScript check, production build | Passed |
+
+Hosted runs (Groq, mock marketplace, V0 retrieval with local `nomic-embed-text`, Apple M3 24 GB):
+
+| Run | Actual outcome |
+|---|---|
+| Baseline before trimming and ID removal (`make smoke`) | proposal submitted, reply sent; proposal 6,478 tokens with a 1,931-token writer prompt; the injected job reached review |
+| After all fixes (`make smoke RUNS=3`) | 3/3 proposals submitted once, 3/3 replies sent; per proposal p50/p95 5,438/5,583 tokens, 14.5/14.7 active s, $0.00096/$0.00097; writer prompt about 1,180 tokens (-39%); scam and injected jobs skipped |
+| Forced fallback (unknown primary model name) | 404, then gpt-oss-120b answered; usage complete, $0.00015 |
+| Celery kill and Retry (Redis, `--pool=solo`, mock-web) | killed 9.0 s in, during the writer; recovered at 334 s as needs_attention; Retry recorded the acknowledgement for `writer`; only the writer ran again; approved and submitted once (Connects 100 -> 90) |
+
+At p95 a proposal uses 47% of the 12,000-token budget, 8% of the 180 s active budget and about
+1% of the $0.10 API budget, so budgets stay unchanged. Results are in
+`evals/results/smoke-20261108-193512.json` and `smoke-20261108-193808.json`; commands, hashes
+and details are in `docs/checks/real-model-fixes.json`.
+
+Limits: Groq free-tier rate limits apply; the local qwen3:1.7b fallback was not pulled or run;
+hosted output varies between runs, and the injected job was skipped by the model's own risk
+score. Nothing was committed at check time; no push, branch, PR or publication.
+
+## Quality review of hosted outputs - fixed and verified
+
+2026-11-08: reading the actual drafts and sent messages, not just the pass count, showed problems
+the smoke check had missed, plus four places that differed from the assignment PDF. The user
+asked to fix them for the hosted models only; local-model behaviour and choosing the best models
+come at the end.
+
+Found in the hosted runs: one sent reply asked the client to pick "from the following interview
+slots" with no slots (the claim checker removed the slot list); two of three bids were the $50
+minimum on a $900 job; plan sentences with curly apostrophes ("I’d", "I’m") were removed as
+claims; one proposal kept no evidence at all and another kept an orphaned "This work was
+delivered..." sentence. PDF differences: plan-only screening answers (the PDF asks for evidence
+citations), pricing without client spend or a Connects decision, a hard-coded risk-flag list, and
+a Compose file that could not run the models.
+
+Implemented:
+
+- Interview times are added to the reply by code from the calendar tool when the action is built,
+  so the approval preview and the sent message always list them; liaison v4 never writes times.
+- The claim checker reads curly quotes and non-breaking hyphens as plain text, treats a plan that
+  names a portfolio project or says "as demonstrated in" as a claim that needs a citation, and
+  removes a "This/That/It..." sentence that follows a removed one.
+- The Critic sends back a model draft whose cover letter cites no evidence, quoting up to two
+  removed sentences and why; human edits and regenerated paragraphs are reviewed as written.
+  Writer v5 and answer v3 reuse the evidence's own wording.
+- Screening answers cite evidence for experience questions and use "I would" plans otherwise; the
+  mock API job now also asks "Describe a similar API you have delivered."
+- Pricing gets the client's total spend, hires and average paid per hire, and code keeps the bid
+  within 60-100% of the job budget (`pricing.budget_share`, never below the floor). When fit x bid
+  is below Connects x $0.15 x 20 (`pricing.connect_usd`, `pricing.min_return`) the run stops as
+  "watch" with the reason. Market statistics wait for GigSim's historical jobs.
+- Risk flags are validated against `policy.risk_flags` in config and passed to the risk model.
+- The Groq JSON instruction moved to `agent/prompts/json_mode.v1.md`.
+- Compose passes `MODEL_PROFILE`, `GROQ_API_KEY` and `OLLAMA_URL` to the API, worker and beat and
+  adds an `ollama` service that pulls `nomic-embed-text`.
+- `make smoke` reports cited sentences, bid share, unanswered questions and whether the interview
+  times reached the reply, with a warning for each problem.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 193 passed, 1 Postgres skip (50.1 s) |
+| Playwright journeys in installed Chrome | 9 passed (58.8 s) |
+| Ruff, TypeScript check, production build | Passed |
+| `docker compose config` with dummy values | Valid; model settings reach api, worker, beat and migrate |
+
+Hosted runs (`make smoke RUNS=3`):
+
+| Run | Actual outcome |
+|---|---|
+| First run with the new rules (`smoke-20261108-214105.json`) | 2/3 proposals submitted; the second hit the token budget (12,150 of 12,000) after two rewrites, because the writer embellished its evidence sentences ("a full suite of integration tests") and the Critic's note did not say what was removed |
+| After the wording and feedback fix (`smoke-20261108-214552.json`) | 3/3 submitted with no rewrites, 3/3 replies with the interview times, 0 quality warnings; but every price reason read the client's $4,000 total as "per hire" |
+| After renaming the client fields (`smoke-20261108-214840.json`) | 3/3 submitted with no rewrites, 3/3 replies with the interview times, 0 quality warnings; p50/p95 6,105/6,324 tokens, 15.4/15.7 active s, $0.0011/$0.0012; bid $850 (94% of budget) with the reason "near the top of the 540-900 range ... despite the client's average paid per hire of 500" |
+
+Deferred by the user: choosing models by measurement at the end (with the smoke quality fields as
+the yardstick), local-only failures, an extra layer that strips injected sentences from model
+input, and moving the rule-based safety patterns into config. Nothing was committed at check
+time; no push, branch, PR or publication.
+
+## Partly-done items: Compose on Postgres, GitHub import, layout - done and verified
+
+2026-11-08: the starter kit is not available yet, so the user asked to finish the partly-done
+items first, then Phase 8, then Phase 10.
+
+Implemented:
+
+- Compose runs the whole stack: Postgres, Redis, a shared `qdrant` store, `ollama` for the
+  embeddings, the three MCP servers as HTTP services that check audience-bound bearer tokens,
+  migrations, the API, the Celery worker and beat, and the web app. Before this, the API and
+  worker would each have kept their own vector index inside their containers.
+- GitHub repository import through GitHub's official MCP server (`rag/ingest/github.py`,
+  `POST /evidence/github`, a Settings form): read-only repos toolset, only `get_repository_tree` and
+  `get_file_contents`, the README plus up to 12 source files as `repository` evidence.
+- Playwright specs moved to `apps/web/tests/e2e/`, the path the PDF lists.
+
+Checks:
+
+| Check | Actual outcome |
+|---|---|
+| Full Python regression | 196 passed, 1 skip (the Postgres test, run separately below) |
+| Postgres checkpoint test against Compose Postgres | 19 durability tests passed, including the previously skipped one |
+| Playwright journeys from `apps/web/tests/e2e/` | 9 passed |
+| Ruff, TypeScript check, image builds (including the production web build) | Passed; 8 images built in about 12 minutes |
+| `docker compose up` | 13 services: 11 running, migrations and the embedding-model pull exited 0 |
+| End to end through the HTTP API | proposal reached approval in 6.2 s with 5 evidence items and an $850 bid; MCP servers healthy over HTTP; 44 checkpoints in Postgres; one shared Qdrant collection |
+| C6 crash demo | API killed while the proposal awaited approval, restarted, approved: submitted exactly once (1 proposal record, Connects 100 -> 92) |
+| Client reply on the stack | sent, with the interview times listed |
+| Hosted smoke (`smoke-20261108-230027.json`) | 1/1 submitted, reply sent, 0 quality warnings; one Critic rewrite for a brief screening answer (9,392 tokens) |
+| GitHub import, live (`muhammad-moiz-ansari/pakrail-remastered`) | the server offered only the two named tools; README plus 11 source files from `src/`, 167 passages in 25 s, all `repository` evidence with real file text |
+
+Upwork: the user has an account. Upwork's MCP page (updated 6 Nov) says any MCP app may connect
+with OAuth 2.1 and dynamic client registration, and that API keys are not accepted. It also says
+callback addresses for apps on a server or website need Support approval, and that agents should not
+rank, score or pick jobs by their own criteria.
+
+Upwork sign-in (`apps/api/auth/upwork.py`, Settings -> Connect Upwork): OAuth 2.1 with PKCE (S256)
+and dynamic client registration; Upwork accepted the localhost callback, the user signed in on
+Upwork's page, and the tokens are stored encrypted per user (`apps/api/auth/tokens.py`). Check
+connection opened an MCP session with the user's token and listed 33 tools, including `find_jobs`,
+`get_messages`, `manage_proposals`, `get_preview`/`confirm_preview` and `send_message`
+(`docs/checks/upwork-signin.json`). A deployed callback address would still need Upwork Support approval.
+
+Upwork adapter (`mcp_servers/marketplace/adapters/upwork_live.py`, `MARKETPLACE_MODE=upwork`): the port maps
+onto `find_jobs` (search, recommendations, details with the real Connects cost), `get_profile` (Connects),
+`get_messages`, `list_freelancer_proposals` (pipeline events) and two writes. A proposal becomes an Upwork
+draft (`manage_proposals create`) only after an approved, unconsumed GigBid approval, and Upwork spends
+Connects when the user confirms it there; a message is sent with `send_message` after approval. Any
+other tool is refused in code. A write is recorded as in flight first, so an unknown outcome is never
+retried. The shared approval check now takes the live job instead of a mock-only record.
+
+Upwork's live-mode rules: the inbox keeps Upwork's order and never auto-archives; outcomes from Upwork
+events are not learned (terms 8.6); search details are cached for at most 24 hours (8.3); live runs,
+their checkpoints and Upwork records are purged after 30 days and on disconnect (8.6, 8.7).
+
+| Check | Actual outcome |
+|---|---|
+| Adapter tests with a stand-in Upwork server | 5 passed: reads, draft-only proposal behind an approval, refused vs unknown writes, purge, unranked live inbox |
+| Live reads on the user's account | search 10 jobs (9 with skills), recommendations 10, job details with Connects cost 10, client history, balance, events (none yet); a forbidden tool refused |
+| Full Python regression | 206 passed, 1 Postgres skip |
+
+Live write check (2026-11-09, the user's throwaway account, authorized in chat): Upwork first refused
+the draft until the account acknowledged its payment policy; the user confirmed "I understand Upwork's
+policies" in chat and the acknowledgement was recorded. Upwork then answered with a next step instead
+of a draft (`terms_required`: fixed-price drafts need a duration and a payment mode), which the adapter
+had wrongly reported as drafted. With the terms sent, Upwork refused because the account has 0 Connects
+and the job costs 10; Upwork checks the balance even for an unsubmitted draft. Fixes: a reply without a
+preview id is a refusal that shows Upwork's next step; fixed-price drafts carry the job's posted duration
+(or `upwork.default_duration`) and `upwork.payment_mode` (by project), shown in the approval preview through
+a new `terms` field on write results; hourly jobs are refused clearly; Upwork's refusal text is no longer
+cut at 200 characters; and Settings has an "I understand Upwork's policies" step for new accounts. GigBid's
+pricing node already stops a run when Connects are short, so a real run never reaches that refusal.
+
+Still not verified live: a built draft and its preview format (the account needs Connects), message
+sends (no conversation exists and starting one would message a stranger) and the proposal and message
+event formats (no proposals or messages yet).
+
+The live GitHub import caught two problems that the stand-in tests could not: with the
+`/x/repos/readonly` URL GitHub ignored `X-MCP-Tools` and offered 14 tools (the `/readonly` URL
+honours it), and the shallowest-first file order imported a generated `next-env.d.ts` and helper
+scripts instead of the app's `src/` code. Both are fixed and the import was rerun.
+Nothing was committed at check time; no push, branch, PR or publication.
+
+## Phase 8 - evaluation harness, retrieval and decision studies done; final runs on 2026-11-10
+
+Implemented on 2026-11-09 (see [evaluation](EVALUATION.md) for setup, metrics and the failure taxonomy):
+
+- A labelled synthetic dev set in `evals/datasets/synthetic/`: three personas, 48 evidence items, 51 jobs
+  with bid, scam, graded evidence, price-band and canary labels, validated by `evals/dataset.py`.
+- Composable retrieval: each variant adds one component to V0 and `+` joins them; V3 scores are cached
+  per query, V4's boost is sign-safe, and V8 grades passages by shared content words.
+- Runners for retrieval, decisions (every job decided and priced, 12 drafted), architecture (ReAct and
+  `langgraph-supervisor`), tool granularity and the rubric judge with blind labelling and panel sheets;
+  `make eval`, `make eval-all` and `make tables`, with every table naming its results file.
+- The rerank and evaluation extras and the reranker's weights install into `.venv` only; the shared uv and
+  Hugging Face caches were checked unchanged afterwards.
+
+| Check | Result |
+|---|---|
+| Retrieval study, 13 pipelines on 51 jobs (no tokens) | V2 best: Recall@5 0.752 vs 0.630 for V0, nDCG@10 0.812 vs 0.763; V3 4.9 s per query with no gain; 3 of 4 hypotheses held |
+| Decision study, production profile, 51 jobs | 0 errors; bid F1 0.935 (precision 1.0); scam recall 1.0; price in band 0.69; 6 of 9 drafts reach approval; unsupported claims 1.44 before and 0 after verification |
+| Fixes measured on affected jobs | Token budget 24K: no budget failures since; closest-evidence hint: 2 of 3 blocked drafts recovered; risk prompt v4: 13 of 15 risk jobs right (11 before), one subtle scam now reaches approval |
+| Judge (qwen3.8-27b) | 13 proposals scored, no invalid verdicts |
+| Architecture runner plumbing, scripted model | Real MCP tool calls, evidence capture, write-attempt count and claim check work for both designs; rows deleted afterwards |
+
+Decisions recorded: V2 ships as `retrieval.variant`; risk prompt v4 stays as it is (the user's decision);
+the model comparison is set aside while the deployed profile is used; the judge's human calibration stays
+pending until people label the sheet.
+
+Pending for 2026-11-10 and 11, when Groq's daily limits reset: the decision study reruns with every fix, then
+the two R&D C baselines, the R&D A tool study and the judge, which writes the 30-item sheet for labelling. They
+run one study at a time because together they need more than a day's quota; an attempt on the afternoon of
+2026-11-09 ran out of it (see the failure taxonomy in EVALUATION.md).
+GigSim outcomes and the classmates' panel wait on outside inputs. Free-tier limits (200K tokens per model per
+day, and 1,000 output tokens per minute for qwen3.8-27b) shaped the study sizes; EVALUATION.md lists them.
+Nothing was committed at check time.

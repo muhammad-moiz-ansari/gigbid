@@ -1,0 +1,175 @@
+{
+  "profile": "open",
+  "provider": "groq",
+  "nodes": {
+    "scout": "openai/gpt-oss-20b",
+    "analyst": "openai/gpt-oss-20b",
+    "risk": "openai/gpt-oss-20b",
+    "matcher": "openai/gpt-oss-20b",
+    "pricing": "openai/gpt-oss-20b",
+    "writer": "openai/gpt-oss-120b",
+    "answer": "openai/gpt-oss-20b",
+    "critic": "openai/gpt-oss-120b",
+    "compliance": "openai/gpt-oss-20b",
+    "intent": "openai/gpt-oss-20b",
+    "liaison": "openai/gpt-oss-120b"
+  },
+  "runs": [
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "submitted",
+      "steps": 11,
+      "tokens": 5315,
+      "api_usd": 0.0009254249999999999,
+      "active_seconds": 14.7,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1186,
+      "claims_removed": 1,
+      "error": null
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 2617,
+      "api_usd": 0.0005172749999999999,
+      "active_seconds": 9.7,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 2,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-scam",
+      "status": "skip",
+      "after_approval": null,
+      "steps": 5,
+      "tokens": 1523,
+      "api_usd": 0.0002211,
+      "active_seconds": 3.7,
+      "models": [
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-injection",
+      "status": "skip",
+      "after_approval": null,
+      "steps": 5,
+      "tokens": 1402,
+      "api_usd": 0.00017737500000000002,
+      "active_seconds": 4.7,
+      "models": [
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "submitted",
+      "steps": 11,
+      "tokens": 5583,
+      "api_usd": 0.0009718499999999999,
+      "active_seconds": 14.1,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1176,
+      "claims_removed": 3,
+      "error": null
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 2585,
+      "api_usd": 0.00046792499999999995,
+      "active_seconds": 9.7,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 1,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "submitted",
+      "steps": 11,
+      "tokens": 5438,
+      "api_usd": 0.000960825,
+      "active_seconds": 14.5,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1188,
+      "claims_removed": 2,
+      "error": null
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 2606,
+      "api_usd": 0.0004939499999999999,
+      "active_seconds": 9.7,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 2,
+      "error": null
+    }
+  ],
+  "proposals_submitted": 3,
+  "replies_sent": 3,
+  "proposal_tokens": {
+    "p50": 5438,
+    "p95": 5583
+  },
+  "proposal_active_seconds": {
+    "p50": 14.5,
+    "p95": 14.7
+  },
+  "proposal_api_usd": {
+    "p50": 0.000960825,
+    "p95": 0.0009718499999999999
+  }
+}

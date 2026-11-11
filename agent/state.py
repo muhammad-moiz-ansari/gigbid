@@ -27,6 +27,7 @@ class BidState(TypedDict, total=False):
     active_seconds: Annotated[float, operator.add]
     edit: dict
     conversation: str
+    reply_to: str
+    slots: list[dict]
     intent: str
     messages: list[dict]
-    memory: list[dict]

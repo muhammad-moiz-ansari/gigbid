@@ -1,6 +1,8 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from agent.model import config
 
 
 class Contract(BaseModel):
@@ -26,6 +28,15 @@ class RiskReport(Contract):
     flags: list[str]
     reasons: list[str]
 
+    @field_validator("flags")
+    @classmethod
+    def configured(cls, flags):
+        """Flags come from the policy list in config.yaml, so a policy update needs no code change."""
+        unknown = sorted(set(flags) - set(config()["policy"]["risk_flags"]))
+        if unknown:
+            raise ValueError(f"Unknown risk flags: {unknown}")
+        return flags
+
 
 class FitReport(Contract):
     score: float = Field(ge=0, le=1)
@@ -49,6 +60,15 @@ class ProposalDraft(Contract):
     screening_answers: dict[str, str] = {}
     version: int = Field(ge=1, default=1)
     evidence_ids: list[str] = []
+
+
+class ScreeningAnswer(Contract):
+    answer: str = Field(min_length=1, max_length=4000)
+
+
+class IntentReport(Contract):
+    intent: Literal["question", "negotiation", "interview", "scam"]
+    reasons: list[str]
 
 
 class Critique(Contract):
@@ -137,3 +157,4 @@ class WriteResult(Contract):
     connects_cost: int = 0
     effect_id: str | None = None
     status: str = "preview"
+    terms: dict = {}  # marketplace terms sent with the action, shown in the preview (Upwork: duration, payment)

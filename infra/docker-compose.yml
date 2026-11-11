@@ -20,6 +20,29 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  # One vector store shared by the API, worker and Portfolio MCP server.
+  qdrant:
+    image: qdrant/qdrant:v1.20.0
+    volumes:
+      - qdrant_data:/qdrant/storage
+  # Embeddings stay on an open model served locally; hosted models handle generation.
+  ollama:
+    image: ollama/ollama:0.40.15
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: [CMD, ollama, list]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  ollama-pull:
+    image: ollama/ollama:0.40.15
+    environment:
+      OLLAMA_HOST: ollama:11434
+    command: [pull, nomic-embed-text]
+    depends_on:
+      ollama:
+        condition: service_healthy
   migrate:
     build:
       context: ..
@@ -28,27 +51,98 @@ services:
       DATABASE_URL: postgresql+psycopg://gigbid:${POSTGRES_PASSWORD}@postgres/gigbid
       CHECKPOINT_URL: postgresql://gigbid:${POSTGRES_PASSWORD}@postgres/gigbid
       WEB_ORIGIN: http://localhost:3000
-      MARKETPLACE_MODE: mock
-      QUEUE_MODE: database
+      MARKETPLACE_MODE: ${MARKETPLACE_MODE:-mock}
+      QUEUE_MODE: celery
       REDIS_URL: redis://redis:6379/0
+      MODEL_PROFILE: ${MODEL_PROFILE:-open}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+      UPWORK_REDIRECT_URI: ${UPWORK_REDIRECT_URI:-http://localhost:3000/api/integrations/upwork/callback}
+      OLLAMA_URL: http://ollama:11434
+      QDRANT_MODE: server
+      QDRANT_URL: http://qdrant:6333
+      # The agents reach the three MCP servers over HTTP with audience-bound bearer tokens.
+      MCP_TRANSPORT: http
+      MCP_BIND_HOST: 0.0.0.0
+      MCP_ALLOWED_HOSTS: '["portfolio-mcp:*","marketplace-mcp:*","workspace-mcp:*"]'
+      PORTFOLIO_MCP_URL: http://portfolio-mcp:8001/mcp
+      MARKETPLACE_MCP_URL: http://marketplace-mcp:8002/mcp
+      WORKSPACE_MCP_URL: http://workspace-mcp:8003/mcp
     command: [python, -m, alembic, upgrade, head]
     depends_on:
       postgres:
         condition: service_healthy
+  portfolio-mcp:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    environment: *api_environment
+    command: [python, -m, mcp_servers.portfolio.server]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  marketplace-mcp:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    environment: *api_environment
+    command: [python, -m, mcp_servers.marketplace.server]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  workspace-mcp:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    environment: *api_environment
+    command: [python, -m, mcp_servers.workspace.server]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
   api:
     build:
       context: ..
       dockerfile: infra/docker/api.Dockerfile
     environment: *api_environment
     ports: ["127.0.0.1:8000:8000"]
-    depends_on:
+    depends_on: &app_dependencies
       migrate:
         condition: service_completed_successfully
+      ollama-pull:
+        condition: service_completed_successfully
+      qdrant:
+        condition: service_started
+      portfolio-mcp:
+        condition: service_started
+      marketplace-mcp:
+        condition: service_started
+      workspace-mcp:
+        condition: service_started
     healthcheck:
       test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
       interval: 10s
       timeout: 5s
       retries: 10
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    environment: *api_environment
+    command: [celery, -A, worker.tasks, worker, --loglevel=info]
+    depends_on:
+      <<: *app_dependencies
+      redis:
+        condition: service_healthy
+  beat:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    environment: *api_environment
+    command: [celery, -A, worker.tasks, beat, --loglevel=info]
+    depends_on:
+      redis:
+        condition: service_healthy
   web:
     build:
       context: ..
@@ -61,3 +155,5 @@ services:
         condition: service_healthy
 volumes:
   postgres_data:
+  ollama_data:
+  qdrant_data:

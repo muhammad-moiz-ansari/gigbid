@@ -1,0 +1,104 @@
+{
+  "profile": "open",
+  "provider": "groq",
+  "nodes": {
+    "scout": "openai/gpt-oss-20b",
+    "analyst": "openai/gpt-oss-20b",
+    "risk": "openai/gpt-oss-20b",
+    "matcher": "openai/gpt-oss-20b",
+    "pricing": "openai/gpt-oss-20b",
+    "writer": "openai/gpt-oss-120b",
+    "answer": "openai/gpt-oss-20b",
+    "critic": "openai/gpt-oss-120b",
+    "compliance": "openai/gpt-oss-20b",
+    "intent": "openai/gpt-oss-20b",
+    "liaison": "openai/gpt-oss-120b"
+  },
+  "runs": [
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "submitted",
+      "steps": 11,
+      "tokens": 6478,
+      "api_usd": 0.0011134499999999998,
+      "active_seconds": 15.2,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1931,
+      "claims_removed": 3,
+      "error": null
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 3293,
+      "api_usd": 0.0005692499999999999,
+      "active_seconds": 9.4,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 1,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-scam",
+      "status": "skip",
+      "after_approval": null,
+      "steps": 5,
+      "tokens": 1422,
+      "api_usd": 0.00018067500000000001,
+      "active_seconds": 3.5,
+      "models": [
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "error": null
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-injection",
+      "status": "awaiting_approval",
+      "after_approval": null,
+      "steps": 11,
+      "tokens": 6521,
+      "api_usd": 0.001131225,
+      "active_seconds": 13.1,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1923,
+      "claims_removed": 2,
+      "error": null
+    }
+  ],
+  "proposals_submitted": 1,
+  "replies_sent": 1,
+  "proposal_tokens": {
+    "p50": 6478,
+    "p95": 6478
+  },
+  "proposal_active_seconds": {
+    "p50": 15.2,
+    "p95": 15.2
+  },
+  "proposal_api_usd": {
+    "p50": 0.0011134499999999998,
+    "p95": 0.0011134499999999998
+  }
+}

@@ -1,13 +1,52 @@
 version: 1
 prompts:
-  writer: v2
-  liaison: v2
+  writer: v6
+  liaison: v4
+  compliance: v2
+  answer: v3
+  pricing: v3
+  risk: v4
+  judge: v1
 generation:
-  max_tokens: 1800
   node_timeout_seconds: 150
 profiles:
-  open:
+  # Required open profile: open-weight models on a hosted provider, so the deployed link works without a GPU.
+  open: &open
+    provider: groq
+    base_url: https://api.groq.com/openai/v1
+    reasoning_effort: low
+    nodes:
+      scout: openai/gpt-oss-20b
+      analyst: openai/gpt-oss-20b
+      risk: openai/gpt-oss-20b
+      matcher: openai/gpt-oss-20b
+      pricing: openai/gpt-oss-20b
+      writer: openai/gpt-oss-120b
+      answer: openai/gpt-oss-20b
+      critic: openai/gpt-oss-120b
+      compliance: openai/gpt-oss-20b
+      intent: openai/gpt-oss-20b
+      liaison: openai/gpt-oss-120b
+    fallbacks: {openai/gpt-oss-120b: openai/gpt-oss-20b, openai/gpt-oss-20b: openai/gpt-oss-120b}
+    max_tokens: {default: 1000, writer: 2000, liaison: 1500}
+    # Groq published prices in USD per million input and output tokens, checked 2026-11-08.
+    usd_per_million_tokens:
+      openai/gpt-oss-20b: [0.075, 0.30]
+      openai/gpt-oss-120b: [0.15, 0.60]
+      qwen/qwen3.8-27b: [0.80, 4.00]
+  # Comparison profile for choosing by measurement: the same provider and limits, gpt-oss-20b everywhere.
+  open_small:
+    <<: *open
+    nodes: {scout: openai/gpt-oss-20b, analyst: openai/gpt-oss-20b, risk: openai/gpt-oss-20b,
+            matcher: openai/gpt-oss-20b, pricing: openai/gpt-oss-20b, writer: openai/gpt-oss-20b,
+            answer: openai/gpt-oss-20b, critic: openai/gpt-oss-20b, compliance: openai/gpt-oss-20b,
+            intent: openai/gpt-oss-20b, liaison: openai/gpt-oss-20b}
+    fallbacks: {}
+  # The same open-weight roles on a laptop through Ollama.
+  open_local:
     provider: ollama
+    think: false
+    keep_alive: 30m
     nodes:
       scout: qwen3:4b
       analyst: qwen3:4b
@@ -15,18 +54,28 @@ profiles:
       matcher: qwen3:4b
       pricing: qwen3:4b
       writer: qwen3:8b
+      answer: qwen3:4b
       critic: qwen3:8b
       compliance: qwen3:4b
+      intent: qwen3:4b
       liaison: qwen3:8b
-    fallback: qwen3:4b
+    fallbacks: {qwen3:8b: qwen3:4b, qwen3:4b: qwen3:1.7b}
+    max_tokens: {default: 400, writer: 900, liaison: 700}
   paid:
     enabled: false
     reason: Optional; no paid provider is required or configured.
 open_comparisons:
   small: {writer: 'qwen3:4b', critic: 'qwen3:4b'}
   larger: {writer: 'qwen3:8b', critic: 'qwen3:8b'}
+evaluation:
+  # Models used by the studies themselves. The judge is a different family from the writer; Groq's free tier
+  # allows qwen3.8-27b only 1,000 output tokens per minute, so its calls stay short and skip reasoning.
+  # The tool study uses gpt-oss-20b: Groq bills qwen for the full JSON tool schemas, five times the tokens.
+  judge: {model: qwen/qwen3.8-27b, reasoning_effort: none, max_tokens: 300}
+  tool_study: {model: openai/gpt-oss-20b, reasoning_effort: low, max_tokens: 1000}
+  baseline: {model: openai/gpt-oss-120b, reasoning_effort: low, max_tokens: 2000}  # R&D C: ReAct and supervisor
 retrieval:
-  variant: V0
+  variant: V2  # chosen by measurement on the dev set; see docs/EVALUATION.md
   embedding_model: nomic-embed-text
   reranker: BAAI/bge-reranker-v2-m3
   chunk_chars: 1200
@@ -34,7 +83,7 @@ retrieval:
   k: 5
 budgets:
   steps: 24
-  tokens: 12000
+  tokens: 24000  # room for the two critic revisions; 12000 ran out after one on rich portfolios
   active_seconds: 180
   api_usd: 0.10
   analysis_p95_target_seconds: 60
@@ -44,16 +93,55 @@ thresholds:
   max_risk: 0.65
   critic_revisions: 2
   corrective_queries: 2
+  claim_support: 0.6
+  injection_risk: 0.5
+  claim_partial: 0.3
+github:
+  # GitHub's hosted MCP server in read-only mode; the import also names its two tools (X-MCP-Tools).
+  mcp_url: https://api.githubcopilot.com/mcp/readonly
+  max_files: 12
+  max_file_bytes: 50000
+  skip_dirs: [node_modules, vendor, dist, build, .venv, .git]
+  skip_suffixes: [.d.ts, .min.js]
+  # Files in these top-level folders come first; larger files are usually the core modules.
+  source_dirs: [src, app, lib, server, api, packages]
+  languages: {.py: Python, .ts: TypeScript, .tsx: TypeScript, .js: JavaScript, .go: Go, .java: Java, .rb: Ruby,
+              .rs: Rust, .sql: SQL}
+upwork:
+  # Upwork's official MCP server; sign-in is OAuth 2.1 with PKCE and dynamic client registration.
+  mcp_url: https://mcp.upwork.com/mcp
+  metadata_url: https://mcp.upwork.com/.well-known/oauth-authorization-server
+  # Fixed-price draft terms: the job's posted duration when Upwork gives one, and payment on delivery.
+  default_duration: less_than_1_month
+  payment_mode: by_project
+pricing:
+  budget_share: [0.6, 1.0]  # a bid stays within this share of the job budget until market statistics exist
+  connect_usd: 0.15         # value of one Connect when weighing a bid
+  min_return: 20            # fit x bid must be at least this multiple of the Connects cost
 scheduling:
   mock_min_interval_seconds: 300
   live_min_interval_seconds: 14400
+  event_sync_seconds: 60
+  mock_outcome_seconds: 120
+categories:
+  backend: [FastAPI, Postgres, Django, Flask, API, Celery]
+  web: [TypeScript, React, Next.js, JavaScript, CSS]
+  ai-ml: [RAG, LLM, Qdrant, PyTorch, Machine Learning]
+  data: [SQL, dbt, Pandas, Tableau, Power BI]
+  mobile: [Swift, ARKit, Kotlin, Flutter]
 retries:
   read_attempts: 3
   write_attempts: 1
   model_attempts: 2
+  max_rate_limit_wait_seconds: 10
 policy:
   provenance: provisional-development-only
   version: dev-1
   november_2_update: pending
+  rules: [No off-platform contact or payment, No fabricated experience or credentials,
+          No guarantees of results, Nothing is sent without human approval]
   banned_phrases: [telegram, whatsapp, wire transfer, guaranteed results, guarantee success]
+  # Risk flags a report may use; keep the rule-based flags from apps/api/safety.py in this list.
+  risk_flags: [off_platform, free_work, prompt_injection, guarantee, contact_details, unverified_client,
+               low_budget, vague_scope, scam]
   max_proposal_words: 350

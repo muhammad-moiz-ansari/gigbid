@@ -191,6 +191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/jobs/{job_id}/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip */
+        post: operations["skip_jobs__job_id__skip_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{job_id}": {
         parameters: {
             query?: never;
@@ -362,6 +379,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/evidence/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Repository */
+        post: operations["import_repository_evidence_github_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/evidence/index": {
         parameters: {
             query?: never;
@@ -464,17 +498,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/analytics": {
+    "/dev/advance": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Analytics */
-        get: operations["analytics_analytics_get"];
+        get?: never;
         put?: never;
-        post?: never;
+        /**
+         * Advance
+         * @description Mock only: advances simulated client outcomes now and applies the resulting events.
+         */
+        post: operations["advance_dev_advance_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -510,6 +547,146 @@ export interface paths {
         post?: never;
         /** Forget */
         delete: operations["forget_memory__memory_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analytics */
+        get: operations["analytics_analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/checkpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Checkpoints */
+        get: operations["run_checkpoints_runs__run_id__checkpoints_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replay */
+        post: operations["replay_runs__run_id__replay_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/upwork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Upwork Status */
+        get: operations["upwork_status_integrations_upwork_get"];
+        put?: never;
+        post?: never;
+        /** Upwork Disconnect */
+        delete: operations["upwork_disconnect_integrations_upwork_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/upwork/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upwork Connect */
+        post: operations["upwork_connect_integrations_upwork_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/upwork/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Upwork Callback */
+        get: operations["upwork_callback_integrations_upwork_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/upwork/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upwork Check */
+        post: operations["upwork_check_integrations_upwork_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/upwork/acknowledge-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upwork Acknowledge Policy
+         * @description Records Upwork's payment-policy acknowledgement; the Settings button sends it only on the user's click.
+         */
+        post: operations["upwork_acknowledge_policy_integrations_upwork_acknowledge_policy_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -553,6 +730,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Analytics */
+        Analytics: {
+            /** Mode */
+            mode: string;
+            /** Synthetic */
+            synthetic: boolean;
+            /** Submitted */
+            submitted: number;
+            /** Replied */
+            replied: number;
+            /** Hired */
+            hired: number;
+            /** Reply Rate */
+            reply_rate: number | null;
+            /** Hire Rate */
+            hire_rate: number | null;
+            /** Connects */
+            connects: {
+                [key: string]: unknown;
+            };
+            /** By Category */
+            by_category: components["schemas"]["CategoryStats"][];
+            proposal_tokens: components["schemas"]["Spread"];
+            proposal_active_seconds: components["schemas"]["Spread"];
+            proposal_api_usd: components["schemas"]["Spread"];
+            /** Rejection Reasons */
+            rejection_reasons: components["schemas"]["ReasonCount"][];
+            /** Runs */
+            runs: number;
+            /** Usage */
+            usage: {
+                [key: string]: unknown;
+            }[];
+            /** Official Outcomes */
+            official_outcomes: string;
+        };
         /** ApprovalDecision */
         ApprovalDecision: {
             /**
@@ -583,6 +796,23 @@ export interface components {
              */
             metadata: string;
         };
+        /** CategoryStats */
+        CategoryStats: {
+            /** Category */
+            category: string;
+            /** Submitted */
+            submitted: number;
+            /** Replied */
+            replied: number;
+            /** Hired */
+            hired: number;
+            /** Connects Spent */
+            connects_spent: number;
+            /** Reply Rate */
+            reply_rate: number | null;
+            /** Hire Rate */
+            hire_rate: number | null;
+        };
         /** Credentials */
         Credentials: {
             /** Email */
@@ -606,6 +836,11 @@ export interface components {
              * @enum {string}
              */
             mode: "none" | "outage" | "rate_limit" | "timeout" | "ambiguous_write";
+        };
+        /** GitHubImport */
+        GitHubImport: {
+            /** Repository */
+            repository: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -677,6 +912,18 @@ export interface components {
             /** Marketplace Mode */
             marketplace_mode?: ("mock" | "gigsim" | "upwork") | null;
         };
+        /** ReasonCount */
+        ReasonCount: {
+            /** Reason */
+            reason: string;
+            /** Count */
+            count: number;
+        };
+        /** ReplayInput */
+        ReplayInput: {
+            /** Checkpoint Id */
+            checkpoint_id: string;
+        };
         /** RunEvent */
         RunEvent: {
             /** Id */
@@ -728,6 +975,21 @@ export interface components {
             profile: {
                 [key: string]: unknown;
             };
+        };
+        /** SkipInput */
+        SkipInput: {
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+        };
+        /** Spread */
+        Spread: {
+            /** P50 */
+            p50: number | null;
+            /** P95 */
+            p95: number | null;
         };
         /** Upload */
         Upload: {
@@ -1092,6 +1354,43 @@ export interface operations {
             };
         };
     };
+    skip_jobs__job_id__skip_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SkipInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     job_jobs__job_id__get: {
         parameters: {
             query?: never;
@@ -1418,6 +1717,41 @@ export interface operations {
             };
         };
     };
+    import_repository_evidence_github_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitHubImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     evidence_index_evidence_index_get: {
         parameters: {
             query?: never;
@@ -1583,7 +1917,7 @@ export interface operations {
             };
         };
     };
-    analytics_analytics_get: {
+    advance_dev_advance_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1656,6 +1990,237 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analytics_analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Analytics"];
+                };
+            };
+        };
+    };
+    run_checkpoints_runs__run_id__checkpoints_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replay_runs__run_id__replay_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplayInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upwork_status_integrations_upwork_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    upwork_disconnect_integrations_upwork_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    upwork_connect_integrations_upwork_connect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    upwork_callback_integrations_upwork_callback_get: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upwork_check_integrations_upwork_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    upwork_acknowledge_policy_integrations_upwork_acknowledge_policy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/processed/gigbid.db"
     checkpoint_url: str = "data/processed/checkpoints.db"
     marketplace_mode: Literal["mock", "gigsim", "upwork"] = "mock"
-    model_profile: Literal["open", "paid"] = "open"
+    model_profile: Literal["open", "open_small", "open_local", "paid"] = "open"
+    groq_api_key: str = ""
+    github_token: str = ""
+    token_encryption_key: str = ""
+    upwork_redirect_uri: str = "http://localhost:3000/api/integrations/upwork/callback"
     retrieval_variant: str = ""
     ollama_url: str = "http://127.0.0.1:11434"
     redis_url: str = "redis://localhost:6379/0"
@@ -32,7 +36,7 @@ class Settings(BaseSettings):
     web_origin: str = "http://localhost:3000"
     cookie_secure: bool = False
     session_hours: int = 12
-    model_timeout_seconds: int = 45
+    model_timeout_seconds: int = 120
     tool_timeout_seconds: int = 30
     mcp_calls_per_minute: int = Field(default=60, ge=1)
     max_upload_bytes: int = 2_000_000

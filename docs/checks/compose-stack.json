@@ -1,0 +1,218 @@
+{
+  "scope": "Partly-done items: full Docker Compose stack on Postgres with the C6 crash demo, GitHub repository import through GitHub's MCP server, verified live, and the Playwright folder at the PDF's path",
+  "date": "2026-11-08",
+  "timezone": "Asia/Karachi",
+  "commands": {
+    "build": "docker compose --env-file .env --env-file <local postgres password file> -f infra/docker-compose.yml build",
+    "up": "docker compose --env-file .env --env-file <local postgres password file> -f infra/docker-compose.yml up -d",
+    "stack_check": "scratchpad driver over the HTTP API on 127.0.0.1:8000: register, seed, analyse mock-api, kill and restart the api container while awaiting approval, approve, then a client reply",
+    "postgres_test": "GIGBID_TEST_POSTGRES_CHECKPOINT_URL=<compose postgres, separate gigbid_test database> uv run python -m pytest tests/integration/test_bid_durability.py",
+    "regression": "uv run python -m pytest -q",
+    "browser": "cd apps/web && PLAYWRIGHT_CHANNEL=chrome npx playwright test",
+    "smoke": "make smoke"
+  },
+  "environment": {
+    "docker": "29.6.2",
+    "compose": "v5.3.1",
+    "images": [
+      "postgres:17-alpine",
+      "redis:7-alpine",
+      "qdrant/qdrant:v1.20.0",
+      "ollama/ollama:0.40.15",
+      "python:3.12-slim",
+      "node:24-alpine"
+    ]
+  },
+  "compose_services": {
+    "running": [
+      "postgres",
+      "redis",
+      "qdrant",
+      "ollama",
+      "portfolio-mcp",
+      "marketplace-mcp",
+      "workspace-mcp",
+      "api",
+      "worker",
+      "beat",
+      "web"
+    ],
+    "completed_with_exit_0": [
+      "migrate",
+      "ollama-pull"
+    ]
+  },
+  "stack_check": {
+    "api_ready": true,
+    "status": {
+      "model_profile": "open",
+      "marketplace_available": true
+    },
+    "proposal": {
+      "status": "awaiting_approval",
+      "seconds": 6.2,
+      "error": null,
+      "evidence": 5,
+      "price": 850.0
+    },
+    "mcp_health": {
+      "marketplace": {
+        "available": true,
+        "error_code": null,
+        "checked_at": 1794160609.541322,
+        "trace_id": "dfda5502-5b5c-4168-bb25-73647841c9fa"
+      },
+      "portfolio": {
+        "available": true,
+        "error_code": null,
+        "checked_at": 1794160608.284744,
+        "trace_id": "dfda5502-5b5c-4168-bb25-73647841c9fa"
+      },
+      "workspace": {
+        "available": true,
+        "error_code": null,
+        "checked_at": 1794160604.622453,
+        "trace_id": "dfda5502-5b5c-4168-bb25-73647841c9fa"
+      }
+    },
+    "api_killed_status": "api\nmigrate\nollama-pull",
+    "api_back": true,
+    "approve_http": 200,
+    "after_approval": "submitted",
+    "proposals_recorded": 1,
+    "connects_after": {
+      "balance": 92,
+      "spent": 8
+    },
+    "reply": {
+      "status": "awaiting_approval",
+      "error": null,
+      "after_approval": "sent",
+      "times_listed": true
+    }
+  },
+  "postgres_checkpoints_rows": 44,
+  "postgres_durability_tests": {
+    "passed": 19,
+    "skipped": 0
+  },
+  "full_regression": {
+    "passed": 196,
+    "skipped": 1,
+    "skip_reason": "Postgres test, run separately against Compose Postgres"
+  },
+  "browser": {
+    "passed": 9,
+    "path": "apps/web/tests/e2e/workflow.spec.ts"
+  },
+  "smoke": {
+    "results_file": "evals/results/smoke-20261108-230027.json",
+    "proposals_submitted": "1/1",
+    "replies_sent": 1,
+    "quality_warnings": 0,
+    "note": "one Critic rewrite for a brief screening answer; 9,392 tokens"
+  },
+  "github_import": {
+    "tests": [
+      "needs a name and a token",
+      "reads README and code through a stand-in MCP session",
+      "endpoint returns 503 without a token and 422 for a bad name",
+      "prefers source folders and larger files, skips generated .d.ts files"
+    ],
+    "live_import": {
+      "repository": "muhammad-moiz-ansari/pakrail-remastered",
+      "server_url": "https://api.githubcopilot.com/mcp/readonly",
+      "tools_offered": [
+        "get_file_contents",
+        "get_repository_tree"
+      ],
+      "tree_json_keys": [
+        "count",
+        "owner",
+        "recursive",
+        "repo",
+        "sha",
+        "tree",
+        "tree_sha",
+        "truncated"
+      ],
+      "tree_entries": 306,
+      "file_result_blocks": [
+        {
+          "type": "text",
+          "mime": null,
+          "has_text": true
+        },
+        {
+          "type": "resource",
+          "mime": "text/plain; charset=utf-8",
+          "has_text": true
+        }
+      ],
+      "picked": [
+        "README.md",
+        "src/lib/booking.ts",
+        "src/lib/coach-layouts.ts",
+        "src/app/information/[topic]/page.tsx",
+        "src/components/search-form.tsx",
+        "src/components/coach-map.tsx",
+        "src/components/coach-booking.tsx",
+        "src/components/travel-calendar.tsx",
+        "src/app/careers/page.tsx",
+        "src/server/booking-drafts.ts",
+        "src/lib/catalogue/import.ts",
+        "src/components/auth-form.tsx"
+      ],
+      "seconds": 25.3,
+      "passages": 167,
+      "types": [
+        "repository"
+      ],
+      "projects": [
+        "pakrail-remastered"
+      ],
+      "skills": [
+        "TypeScript"
+      ],
+      "status_lines_in_passages": 0
+    }
+  },
+  "upwork": {
+    "source": "https://www.upwork.com/ai/mcp (updated 2026-11-06) and mcp.upwork.com OAuth metadata",
+    "facts": [
+      "OAuth 2.1 with dynamic client registration; no API keys",
+      "custom app callback addresses on a server or website need Upwork Support approval",
+      "agents should not rank, score or pick jobs by their own criteria"
+    ],
+    "state": "sign-in test awaits the user's decision"
+  },
+  "caught_issues": [
+    "Compose would have given the API and worker separate embedded vector indexes; a shared Qdrant service fixes it",
+    "With the /x/repos/readonly URL GitHub ignored X-MCP-Tools and offered 14 tools; /readonly honours it (2 tools)",
+    "Shallowest-first file order imported a generated next-env.d.ts and helper scripts; source folders and larger files now come first"
+  ],
+  "git_head_at_check": "a5f37bb",
+  "tested_code_includes_uncommitted_changes": true,
+  "source_sha256": {
+    ".env.example": "8e09ffb26cf077016b2afc864bc2ce8f92dde4ac12d203a31b7eea2c9f8b7b27",
+    "agent/config.yaml": "d362121124b361e31af01d4aac8bc6c8a8ab27a569eb2600085cf42cf6155a73",
+    "apps/api/config.py": "64e0e097e57d04ae7a6aba100230cf43334aae2f50a3bda69667e944c2710e51",
+    "apps/api/routers/workflow.py": "519690bec11b8a771fc6cf9e9fccd8c1a994a8569ff4606d7d8047b900ceb8a8",
+    "apps/api/schemas/api.py": "ebac53b1a75c2ab11033cca0016b6d6907a9f2cbb1d35fee7100284d365cc484",
+    "apps/web/openapi.json": "e5468a43d17f5589ec9f41c7386dcd02a54d4b80d00d6269ef9eb62e1d1b669f",
+    "apps/web/playwright.config.ts": "72e4f9a7838399c34d8e72ff166f78a90fbc41334835fd6b3973564e21fe9f97",
+    "apps/web/src/components/Onboarding.tsx": "fb645c93451f0055abd6cd5dc3c3538278f6cd978b302f8a15a558da762753b2",
+    "apps/web/src/lib/api/schema.d.ts": "6ea205c3bba3a638a46fcae881a985ce2ad2d97e13ced549bb775256234583db",
+    "apps/web/tests/e2e/workflow.spec.ts": "a65e0bd6fd91270b32f337334998dbb999272fa872bdf814ad8fa9f656242e1b",
+    "infra/docker-compose.yml": "d1d4bfd0da20d6152b6bedea6f3f77fe5d1222a8a41e27ee329b43956446a944",
+    "rag/ingest/github.py": "7335061c5a0055113c1fe2b9f62276527f00b4276391aa420028f59cc458d666",
+    "tests/conftest.py": "b9320269a68c4e6b12df8f030a2bc6ee39f5edcd9f1dda71319110cabdbb59dc",
+    "tests/rag/test_api.py": "316ab3963f1118fbd35476cf22fa76b4ad85b48a7824aed9d671680f7781408b",
+    "tests/rag/test_loaders.py": "d744db9869037d93bdc96dbe5ad95d893d4df822bdaf07c3211ac2051a307236"
+  },
+  "external_limits": [
+    "Starter kit (GigSim, personas, policy pack, dev set) not yet available; the marketplace is the mock",
+    "Public deployment and tracing are later phases"
+  ],
+  "commits_pushes_branches_prs_or_publication": "Nothing committed at check time; the user reviews the commit. No push or publication."
+}

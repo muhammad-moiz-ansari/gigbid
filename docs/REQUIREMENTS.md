@@ -30,7 +30,40 @@ Phase 6 update: onboarding, metadata-preserving uploads, saved filters, structur
 job details, evidence citations, the proposal studio and paragraph regeneration are
 implemented. Typed history and authenticated SSE expose actual saved graph activity
 with replay, de-duplication and session revocation. See WEB_WORKFLOW.md and
-checks/phase6.json for browser/backend results. Phase 7 is not started.
+checks/phase6.json for browser/backend results.
+
+Phase 7 step 0 update: R5 claim verification now checks each sentence against the
+evidence its paragraph cites (supported, partly supported or unsupported), replacing the
+closed grammar that real models could not follow. Qwen3 thinking is disabled through
+config.
+
+Phase 7 update: conversation threads with intent classification and approved replies,
+event-driven pipeline statuses, Celery/Redis scheduling with duplicate-posting detection,
+style and outcome memory in a LangGraph store with explicit promotion rules and durable
+forgetting, autonomy-controlled skip archiving, category analytics and checkpoint replay
+are implemented. See PHASE_STATUS.md and checks/phase7.json.
+
+Real-model fixes update: generation defaults to hosted open-weight models (Groq) with local
+embeddings. R5 screening answers are plans only; R8 budgets record real tokens and API cost
+from published prices, and Retry records an acknowledgement for interrupted steps. See
+PHASE_STATUS.md and checks/real-model-fixes.json.
+
+Quality review update: R5 also catches uncited past work inside plan sentences and orphaned
+sentences, screening answers cite evidence, pricing uses client history with a Connects
+check, and risk flags come from config. See the quality review in PHASE_STATUS.md.
+
+Compose update: R10's `docker compose up` runs the full stack locally, and C6's crash demo
+(kill the API while a proposal awaits approval, approve, one submission) passed on Postgres.
+A2/B1 GitHub repository import goes through GitHub's MCP server; a public URL is still pending.
+R1/A4 the Upwork adapter sits behind the same port (`MARKETPLACE_MODE=upwork`), with encrypted per-user
+tokens, live reads verified and Upwork's live-mode and retention rules applied.
+
+Phase 8 update: R6/B2-B5 run on a labelled synthetic dev set (51 jobs; harness validation only) with
+composable pipelines; the measured winner, V2 hybrid retrieval, ships. The decision study covers all
+51 jobs, and the failure taxonomy inspects more than 20 failed jobs with attempted fixes. Study B is
+measured; studies A and C, judge labels and the final run with every fix wait on the model quota of
+2026-11-10. The model comparison is set aside for now (the deployed profile is used), and GigSim
+outcomes and the human panel stay pending. See EVALUATION.md and PHASE_STATUS.md.
 
 | Requirement | Implementation paths | Verification / evidence | External gate |
 |---|---|---|---|

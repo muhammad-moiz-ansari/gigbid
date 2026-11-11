@@ -1,0 +1,411 @@
+{
+  "date": "2026-11-08",
+  "server": "https://mcp.upwork.com/mcp",
+  "sign_in": {
+    "method": "OAuth 2.1 authorization code with PKCE (S256) and dynamic client registration",
+    "callback": "http://localhost:3000/api/integrations/upwork/callback",
+    "registration": "accepted by https://www.upwork.com/register",
+    "result": "user signed in on Upwork's page; Upwork redirected to the callback; tokens stored encrypted (Fernet)"
+  },
+  "tools_offered": 33,
+  "tool_names": [
+    "upwork__boost_profile",
+    "upwork__confirm_attachment_upload",
+    "upwork__confirm_preview",
+    "upwork__find_freelancers",
+    "upwork__find_jobs",
+    "upwork__find_saved_jobs",
+    "upwork__get_account",
+    "upwork__get_agency",
+    "upwork__get_freelancer_dashboard",
+    "upwork__get_freelancer_financials",
+    "upwork__get_messages",
+    "upwork__get_preview",
+    "upwork__get_profile",
+    "upwork__get_tool_help",
+    "upwork__get_upload_status",
+    "upwork__list_accounts",
+    "upwork__list_contracts",
+    "upwork__list_freelancer_proposals",
+    "upwork__list_milestones",
+    "upwork__list_offers",
+    "upwork__manage_meetings",
+    "upwork__manage_proposals",
+    "upwork__respond_to_offer",
+    "upwork__save_job",
+    "upwork__search_help_center",
+    "upwork__send_message",
+    "upwork__set_tool_mode",
+    "upwork__set_tool_permission",
+    "upwork__start_attachment_upload",
+    "upwork__store_uploaded_files",
+    "upwork__submit_feedback",
+    "upwork__submit_milestones",
+    "upwork__update_profile"
+  ],
+  "port_relevant": {
+    "upwork__confirm_preview": {
+      "actions": [
+        "confirm"
+      ],
+      "required": [
+        "action",
+        "params",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Submit Preview",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    "upwork__find_jobs": {
+      "actions": [
+        "search",
+        "get",
+        "smart_search"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Find Jobs",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__find_saved_jobs": {
+      "actions": [
+        "list",
+        "count"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Find Saved Jobs",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__get_freelancer_dashboard": {
+      "actions": [
+        "check"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Get Freelancer Dashboard",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__get_messages": {
+      "actions": [
+        "list_rooms",
+        "search_rooms",
+        "find_room",
+        "list_messages",
+        "get_message"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Get Messages",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__get_preview": {
+      "actions": [
+        "get"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "View Pending Preview",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__get_profile": {
+      "actions": [
+        "get",
+        "list_highlights",
+        "transactions",
+        "connects_balance"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Get Profile",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__get_tool_help": {
+      "actions": null,
+      "required": [
+        "tool_name"
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__list_freelancer_proposals": {
+      "actions": [
+        "list",
+        "invitations",
+        "get",
+        "get_room"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "List Freelancer Proposals",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    "upwork__manage_meetings": {
+      "actions": [
+        "list",
+        "list_recaps",
+        "get_meeting_summary",
+        "get_full_transcript",
+        "free_slots",
+        "request",
+        "schedule",
+        "reschedule",
+        "cancel"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Manage Meetings",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    "upwork__manage_proposals": {
+      "actions": [
+        "create",
+        "accept_invitation",
+        "start_ai_interview",
+        "decline_invitation",
+        "withdraw",
+        "edit",
+        "send_proposal",
+        "acknowledge_policy"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Manage Proposals",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    "upwork__send_message": {
+      "actions": [
+        "create_room",
+        "send",
+        "send_to_user",
+        "message_proposal",
+        "edit"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Send Message",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    "upwork__set_tool_mode": {
+      "actions": [
+        "get",
+        "set"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Set Tool Mode",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    "upwork__set_tool_permission": {
+      "actions": [
+        "get",
+        "set"
+      ],
+      "required": [
+        "action",
+        "org_uid"
+      ],
+      "annotations": {
+        "title": "Set Tool Permission",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  },
+  "never_call": [
+    "upwork__set_tool_mode",
+    "upwork__set_tool_permission",
+    "upwork__boost_profile",
+    "upwork__update_profile",
+    "upwork__respond_to_offer",
+    "upwork__submit_milestones",
+    "upwork__submit_feedback"
+  ],
+  "notes": [
+    "Every call needs org_uid from upwork__list_accounts",
+    "Proposals: manage_proposals create returns a preview; confirm_preview submits it and spends Connects",
+    "Upwork's MCP FAQ: agents should not rank, score or pick jobs by their own criteria; shared rate limits"
+  ],
+  "checks": {
+    "tests": "4 sign-in tests against a stand-in Upwork server; full suite 201 passed, 1 skip",
+    "browser": "9 passed"
+  },
+  "source_sha256": {
+    "agent/config.yaml": "69d68b8418c00b407dfb2cb74f80513a5913dfa43c1fe4a7ab4de92a89f39d43",
+    "agent/handoffs.py": "840e5b374361ba05ac5e95d5048a3dbd9f51e99a65af7caf4cbc017b62475cb0",
+    "apps/api/approvals.py": "fba5faffabfc5a740a35ae97e0180d1fecf4595619e83238c55df00cedd4f006",
+    "apps/api/auth/tokens.py": "c89af5f6ee99f3ab018c754e19e4462f2d11e64edc20bb336c16579cbf92f25e",
+    "apps/api/auth/upwork.py": "d5fe12d436480f2b041de58331ecab0bf92d25a7b3f0af142532c13d4d5d7b86",
+    "apps/api/config.py": "64e0e097e57d04ae7a6aba100230cf43334aae2f50a3bda69667e944c2710e51",
+    "apps/api/main.py": "41eb8424201fc5c2ee3530a2352f6541b370622e64c323042a94bdea0c2a56db",
+    "apps/api/routers/integrations.py": "60c6227111f2130940de9b0d8c7d3e2903685b60df5fd027085ae18f844a3f01",
+    "apps/api/routers/workflow.py": "519690bec11b8a771fc6cf9e9fccd8c1a994a8569ff4606d7d8047b900ceb8a8",
+    "apps/web/src/components/Dashboard.tsx": "67224aca84446756549e687a0bfb140910faacbbaf90942c84e12fee6c83e91e",
+    "apps/web/src/components/Onboarding.tsx": "af9d44583d48e40e4a7b1c93d2fcdbbbf61e89748af54bcebb97da8c7b8a29b7",
+    "dev_support/mock_marketplace/service.py": "fa6b6bdec5321c61700d37225f8f155ccfa151595828f0e87cefd7b2e140dae2",
+    "infra/docker-compose.yml": "d1d4bfd0da20d6152b6bedea6f3f77fe5d1222a8a41e27ee329b43956446a944",
+    "mcp_servers/marketplace/adapters/upwork_live.py": "c5efebf05faf2031506db981417dc1b81d5165ef93826b892ea9e97dd817ad2b",
+    "pyproject.toml": "60e11054a5d7f14b1aff1574a0fb483225f42695410eceeba51acbcdd12502e7",
+    "tests/contract/mcp_schema.json": "5701299feeb133c6e2718cb2d79adde5f23323176c2388fc2eb36fd5a22dde7c",
+    "tests/integration/test_upwork_adapter.py": "22aee409c323887b27797e7ffcfcb5d77d3ca34a6978fd0f68b51edfd8a0329c",
+    "tests/integration/test_upwork_signin.py": "6fe5e7de0782fef3c723efcfc485f39a5f952283eef2d2d4bf8524be59efa2ac",
+    "tests/mock_marketplace/test_cli.py": "2d6eba9f06ab097b409b825d10c08ede83d86fe44253be1eb6d8474aa2d6e7c8",
+    "tests/mock_marketplace/test_contract.py": "500cf400c0c1cb887d5c60f52c7d67dad11aaf741c3a02d564a7cdff0508b06c",
+    "uv.lock": "528310eb699ff419fac892cc121f485fbce2822601aa492dd6c84c3a791d9a6d",
+    "worker/__main__.py": "84903da012d78a08bdd71fd91ec6c04e018f9ba7984eeaf60ab695967e442941",
+    "worker/pipeline.py": "49ba24dbb384da83ecfcfb1ce1a93cb70ba525238e72899793f191baed4ba3e4",
+    "worker/retention.py": "31e0a3ae91fd18d8ad8015dde15c6fb72dfdbe2e36fe64747d1ca16b5ee6428f",
+    "worker/tasks.py": "d17b0890107f64543d1156a98941b1ccaf0e5a23fcdd5c081120b476a3cd48e5"
+  },
+  "adapter": {
+    "file": "mcp_servers/marketplace/adapters/upwork_live.py",
+    "mode": "MARKETPLACE_MODE=upwork",
+    "live_reads_2026_11_08": {
+      "search": {
+        "jobs": 10,
+        "with_skills": 9,
+        "with_budget": 10,
+        "ids_numeric": true
+      },
+      "recommended": {
+        "jobs": 10
+      },
+      "job": {
+        "connects_cost": 10,
+        "has_description": true,
+        "skills_from_cache": false,
+        "budget_positive": true,
+        "screening_questions": 0
+      },
+      "client_history": {
+        "id": "str",
+        "verified": "bool",
+        "spend": "float",
+        "hires": "int",
+        "synthetic": "bool"
+      },
+      "balance": {
+        "balance_is_int": true,
+        "weekly_limit": 50
+      },
+      "events": {
+        "count": 0
+      },
+      "refused_tool": "GigBid does not call upwork__set_tool_permission set"
+    },
+    "skills_note": "the first search result had no skills on Upwork; a job with skills keeps them through the 24-hour cache",
+    "writes": "proposal drafts (manage_proposals create) and messages (send_message send) need an approved, unconsumed GigBid approval; not exercised live",
+    "tests": "5 adapter tests with a stand-in Upwork server; full suite 206 passed, 1 Postgres skip"
+  },
+  "live_write_check_2026_11_09": {
+    "authorization": "the user authorized live writes on a throwaway account and confirmed Upwork's policy in chat",
+    "steps": [
+      {
+        "result": "refused: payment-policy acknowledgement required",
+        "action": "user confirmed; manage_proposals acknowledge_policy recorded"
+      },
+      {
+        "result": "terms_required: fixed-price drafts need estimated_duration and payment_mode",
+        "action": "adapter now sends the job's duration and payment by project; a reply without a preview id is a refusal"
+      },
+      {
+        "result": "refused: 0 Connects, the job costs 10",
+        "action": "none; Upwork checks the balance even for a draft"
+      }
+    ],
+    "local_records": "the check's test run, approval and idempotency rows were deleted; nothing was submitted and no Connects were spent",
+    "still_unverified": [
+      "a built draft and get_preview format (needs Connects)",
+      "send_message (no conversation)",
+      "proposal and message event formats (no proposals or messages)"
+    ]
+  }
+}

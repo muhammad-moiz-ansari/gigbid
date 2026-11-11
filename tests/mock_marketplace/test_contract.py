@@ -24,9 +24,9 @@ def test_every_adapter_has_explicit_port_and_accurate_readiness(mode):
     assert isinstance(adapter, MarketplacePort)
     assert adapter.readiness.mode == mode
     assert adapter.readiness.synthetic is (mode == "mock")
-    assert adapter.readiness.implemented is (mode == "mock")
+    assert adapter.readiness.implemented is (mode != "gigsim")
     assert not adapter.readiness.externally_verified
-    if mode != "mock":
+    if mode == "gigsim":
         assert not any(asdict(adapter.capabilities).values())
         request = WriteRequest(
             action=Action(kind="proposal", destination="unknown", text="test"),

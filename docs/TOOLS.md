@@ -26,7 +26,7 @@ tool requires an authenticated principal and shares the tenant's rate limit.
 | get_client_history | Marketplace | constrained client ID | ClientHistory | T/F/T/T | No invented missing history |
 | get_connects_balance | Marketplace | none | ConnectsBalance | T/F/T/T | Balance, lifetime/weekly spend and weekly limit |
 | list_messages | Marketplace | constrained conversation ID | MarketplaceMessage[] | T/F/T/T | Tenant-owned conversations only |
-| list_events | Marketplace | nonnegative cursor | MarketplaceEvent[] | T/F/T/T | Increasing tenant-scoped event cursor |
+| list_events | Marketplace | nonnegative cursor | MarketplaceEvent[] | T/F/T/T | Increasing tenant-scoped event cursor; proposal statuses plus sent and received messages |
 | create_proposal_draft | Marketplace | DraftRequest | WriteResult | F/F/T/T | Preview by default; execution requires exact approval |
 | submit_proposal | Marketplace | SubmitRequest | WriteResult | F/T/T/T | Exact approval and cost/evidence revalidation; Connects spend is a destructive effect |
 | send_message | Marketplace | MessageRequest | WriteResult | F/F/T/T | Additive message write, exact approval and stable key |
@@ -84,8 +84,8 @@ credential as a fallback.
 | Own Portfolio | Read-only exposure of explicitly uploaded, tenant-owned evidence with provenance | Implemented and protocol-tested |
 | Own Marketplace | A single approved/idempotent port boundary; schemas constrain operations | Implemented and tested against original mock |
 | Own Workspace | Narrow local calendar/email draft operations; no invitation or email send | Implemented and protocol-tested local mock |
-| Official Upwork MCP | Intended official marketplace access, avoiding scraping and session cookies | Pending verified contract, OAuth and separate account authorization; unavailable adapter |
-| Third-party GitHub MCP | Intended scoped repository ingestion through a separately reviewed server | Pending server/credentials/tool verification; not connected in Phase 3 |
+| Official Upwork MCP | Official marketplace access, avoiding scraping and session cookies; the user signs in on Upwork's own page | Adapter `mcp_servers/marketplace/adapters/upwork_live.py`: sign-in, search, job details, client history, Connects and events read live on 2026-11-08; proposal drafts and messages use an allow-list and a consumed GigBid approval; a live draft passed Upwork's policy and terms checks and stopped at the account's 0 Connects |
+| Third-party GitHub MCP | GitHub's official hosted server in read-only mode (`/mcp/readonly`), limited by `X-MCP-Tools` to `get_repository_tree` and `get_file_contents` (the server lists only these two), with a read-only fine-grained token; used only to import portfolio evidence | Implemented in `rag/ingest/github.py`; a live import of a public repository passed on 2026-11-08 |
 
 ## Approval and side effects
 
@@ -138,7 +138,7 @@ Role allowlists are enforced both when presenting tools and at invocation:
 | Pricing Strategist | get_connects_balance, get_client_history |
 | Writer | search_evidence, get_case_study |
 | Verifier / Critic | get_case_study |
-| Client Liaison | list_messages, search_evidence, free_slots |
+| Client Liaison | list_messages, get_job, search_evidence, free_slots |
 | Approved-action executor | create_proposal_draft, submit_proposal, send_message, reconcile_write, create_interview_hold, create_email_draft |
 
 Agent capabilities use this MCP gateway. App authentication, durable queues,
@@ -207,5 +207,5 @@ The existing Portfolio tools now read versioned, incrementally maintained SQL/BM
 and Qdrant indexes. Tool output schemas and role permissions are unchanged. Upload
 metadata, source aliases, replacement/deletion and cache cleanup are described in
 DATA_CARD.md and RUNBOOK.md. V0's real Qdrant path is tested through an in-memory MCP
-session using explicitly labelled test vectors. Real Ollama semantic execution is
-still pending; GitHub ingestion remains unavailable. No Phase 5 graph work was added.
+session using explicitly labelled test vectors. Real Ollama embeddings have since run in
+the 2026-11-08 smoke checks; GitHub ingestion remains unavailable. No Phase 5 graph work was added.

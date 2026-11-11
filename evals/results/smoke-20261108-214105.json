@@ -1,0 +1,239 @@
+{
+  "profile": "open",
+  "provider": "groq",
+  "nodes": {
+    "scout": "openai/gpt-oss-20b",
+    "analyst": "openai/gpt-oss-20b",
+    "risk": "openai/gpt-oss-20b",
+    "matcher": "openai/gpt-oss-20b",
+    "pricing": "openai/gpt-oss-20b",
+    "writer": "openai/gpt-oss-120b",
+    "answer": "openai/gpt-oss-20b",
+    "critic": "openai/gpt-oss-120b",
+    "compliance": "openai/gpt-oss-20b",
+    "intent": "openai/gpt-oss-20b",
+    "liaison": "openai/gpt-oss-120b"
+  },
+  "runs": [
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "submitted",
+      "steps": 11,
+      "tokens": 6293,
+      "api_usd": 0.0011946749999999999,
+      "active_seconds": 16.7,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1274,
+      "claims_removed": 0,
+      "cited_sentences": 4,
+      "flags": [
+        "low_budget"
+      ],
+      "bid_share": 0.98,
+      "answers_missing": [],
+      "slots_sent": null,
+      "error": null,
+      "warnings": []
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 2528,
+      "api_usd": 0.0004753499999999999,
+      "active_seconds": 9.4,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 1,
+      "cited_sentences": 1,
+      "flags": [],
+      "bid_share": null,
+      "answers_missing": [],
+      "slots_sent": true,
+      "error": null,
+      "warnings": []
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-scam",
+      "status": "skip",
+      "after_approval": null,
+      "steps": 5,
+      "tokens": 1533,
+      "api_usd": 0.0002268,
+      "active_seconds": 4.0,
+      "models": [
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "cited_sentences": 0,
+      "flags": [
+        "free_work",
+        "off_platform",
+        "prompt_injection",
+        "scam",
+        "unverified_client",
+        "vague_scope"
+      ],
+      "bid_share": null,
+      "answers_missing": [],
+      "slots_sent": null,
+      "error": null,
+      "warnings": []
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-injection",
+      "status": "skip",
+      "after_approval": null,
+      "steps": 5,
+      "tokens": 1390,
+      "api_usd": 0.000176475,
+      "active_seconds": 4.5,
+      "models": [
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": null,
+      "claims_removed": 0,
+      "cited_sentences": 0,
+      "flags": [
+        "low_budget",
+        "prompt_injection",
+        "vague_scope"
+      ],
+      "bid_share": null,
+      "answers_missing": [],
+      "slots_sent": null,
+      "error": null,
+      "warnings": []
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "needs_attention",
+      "after_approval": null,
+      "steps": 16,
+      "tokens": 12150,
+      "api_usd": 0.002543475,
+      "active_seconds": 27.3,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1277,
+      "claims_removed": 0,
+      "cited_sentences": 2,
+      "flags": [
+        "low_budget"
+      ],
+      "bid_share": 0.98,
+      "answers_missing": [],
+      "slots_sent": null,
+      "error": "compliance: execution budget exhausted (tokens)",
+      "warnings": []
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 2449,
+      "api_usd": 0.000455925,
+      "active_seconds": 9.7,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 3,
+      "cited_sentences": 0,
+      "flags": [],
+      "bid_share": null,
+      "answers_missing": [],
+      "slots_sent": true,
+      "error": null,
+      "warnings": []
+    },
+    {
+      "kind": "bid",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "submitted",
+      "steps": 14,
+      "tokens": 9323,
+      "api_usd": 0.001576125,
+      "active_seconds": 31.1,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": null,
+      "writer_prompt_tokens": 1287,
+      "claims_removed": 2,
+      "cited_sentences": 2,
+      "flags": [],
+      "bid_share": 0.98,
+      "answers_missing": [],
+      "slots_sent": null,
+      "error": null,
+      "warnings": []
+    },
+    {
+      "kind": "conversation",
+      "subject": "mock-api",
+      "status": "awaiting_approval",
+      "after_approval": "sent",
+      "steps": 6,
+      "tokens": 2458,
+      "api_usd": 0.00046409999999999995,
+      "active_seconds": 10.1,
+      "models": [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b"
+      ],
+      "intent": "interview",
+      "writer_prompt_tokens": null,
+      "claims_removed": 3,
+      "cited_sentences": 0,
+      "flags": [],
+      "bid_share": null,
+      "answers_missing": [],
+      "slots_sent": true,
+      "error": null,
+      "warnings": []
+    }
+  ],
+  "proposals_submitted": 2,
+  "replies_sent": 3,
+  "proposal_tokens": {
+    "p50": 9323,
+    "p95": 12150
+  },
+  "proposal_active_seconds": {
+    "p50": 27.3,
+    "p95": 31.1
+  },
+  "proposal_api_usd": {
+    "p50": 0.001576125,
+    "p95": 0.002543475
+  },
+  "quality_warnings": 0
+}

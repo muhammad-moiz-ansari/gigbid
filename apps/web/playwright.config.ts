@@ -5,7 +5,7 @@ import path from "node:path";
 const root = path.resolve(__dirname, "../..");
 const runId = randomUUID();
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./tests/e2e",
   timeout: 60000,
   expect: { timeout: 20000 },
   fullyParallel: false,

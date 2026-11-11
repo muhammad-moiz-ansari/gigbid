@@ -1,0 +1,267 @@
+{
+  "scope": "Real-model fixes 1-11 after the Phase 7 commit: hosted open-weight models on Groq as the default open profile, local embeddings, plan-only screening answers, Retry acknowledgement, trimmed model inputs, output caps, fixed risk flags with an injection floor, real fallbacks, hidden marketplace IDs, pricing facts and a repeatable smoke command; then a quality review of hosted outputs: interview times added by code, claim-checker hardening, evidence required in model drafts, cited screening answers, a pricing range with client history and a Connects check, risk flags in config, the JSON instruction as a prompt file, Compose model settings and smoke quality warnings",
+  "date": "2026-11-08",
+  "timezone": "Asia/Karachi",
+  "commands": {
+    "regression": "uv run python -m pytest -q",
+    "lint": "uv run python -m ruff check .",
+    "typecheck_build": "cd apps/web && npm run typecheck && npm run build",
+    "browser": "cd apps/web && PLAYWRIGHT_CHANNEL=chrome npx playwright test",
+    "smoke_baseline": "make smoke (before input trimming and ID removal)",
+    "smoke": "make smoke RUNS=3",
+    "fallback_check": "scratchpad driver: OpenModel.complete on the open profile with an unknown primary model name",
+    "celery_check": "scratchpad driver: real Celery worker and beat on Redis, SIGKILL during the writer, restart, POST /runs/{id}/retry, approve",
+    "graphs": "uv run python -m scripts.graphs",
+    "compose_config": "POSTGRES_PASSWORD=dummy GROQ_API_KEY=dummy docker compose -f infra/docker-compose.yml config"
+  },
+  "full_regression": {
+    "passed": 193,
+    "skipped": 1,
+    "skip_reason": "Real Postgres checkpoint service not configured",
+    "seconds": 50.11
+  },
+  "browser": {
+    "startTime": "2026-11-08T16:51:57.787Z",
+    "duration": 58779.046,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "lint_typecheck_build": "passed",
+  "environment": {
+    "hardware": "Apple M3, 24 GB",
+    "macos": "27.2",
+    "python": "3.13.14",
+    "node": "v26.5.0",
+    "uv": "0.11.32",
+    "ollama": "0.40.15",
+    "redis": "8.10.3",
+    "models": {
+      "provider": "groq (OpenAI-compatible JSON mode, reasoning_effort low)",
+      "small_nodes": "openai/gpt-oss-20b",
+      "writer_critic_liaison": "openai/gpt-oss-120b",
+      "embeddings": "nomic-embed-text:latest (local Ollama, digest 0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f)"
+    }
+  },
+  "hosted_runs": {
+    "baseline": {
+      "results_file": "evals/results/smoke-20261108-193512.json",
+      "proposals_submitted": "1/1",
+      "replies_sent": 1,
+      "proposal_tokens": 6478,
+      "proposal_active_seconds": 15.2,
+      "proposal_api_usd": 0.00111,
+      "writer_prompt_tokens": 1931,
+      "scam_job": "skip",
+      "injected_job": "awaiting_approval (not approved)"
+    },
+    "after_fixes": {
+      "results_file": "evals/results/smoke-20261108-193808.json",
+      "proposals_submitted": "3/3",
+      "replies_sent": 3,
+      "proposal_tokens": {
+        "p50": 5438,
+        "p95": 5583
+      },
+      "proposal_active_seconds": {
+        "p50": 14.5,
+        "p95": 14.7
+      },
+      "proposal_api_usd": {
+        "p50": 0.00096,
+        "p95": 0.00097
+      },
+      "writer_prompt_tokens": [
+        1186,
+        1176,
+        1188
+      ],
+      "scam_job": "skip",
+      "injected_job": "skip (the model's own risk score)"
+    },
+    "fallback_check": {
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-20b-missing",
+          "status": 404,
+          "tokens": 0,
+          "usage_complete": true
+        },
+        {
+          "model": "openai/gpt-oss-120b",
+          "tokens": 540,
+          "usage_complete": true
+        }
+      ],
+      "api_usd": 0.00014895
+    }
+  },
+  "budgets": {
+    "unchanged": {
+      "tokens": 12000,
+      "active_seconds": 180,
+      "api_usd": 0.1
+    },
+    "p95_share": {
+      "tokens": "47%",
+      "active_seconds": "8%",
+      "api_usd": "about 1%"
+    }
+  },
+  "celery_check": {
+    "job": "mock-web",
+    "pool": "solo",
+    "killed_at_seconds": 9.0,
+    "completed_before_kill": [
+      "intake",
+      "analyst",
+      "risk",
+      "matcher",
+      "reconcile",
+      "pricing"
+    ],
+    "status_after_kill": "running",
+    "status_after_recovery": "needs_attention",
+    "recovered_at_seconds": 333.9,
+    "retry_http": 200,
+    "status_after_retry": "awaiting_approval",
+    "budget_acknowledged_nodes": [
+      "writer"
+    ],
+    "node_starts": {
+      "intake": 1,
+      "analyst": 1,
+      "risk": 1,
+      "matcher": 1,
+      "reconcile": 1,
+      "pricing": 1,
+      "writer": 2,
+      "verifier": 1,
+      "critic": 1,
+      "compliance": 1,
+      "preview": 1
+    },
+    "status_after_approval": "submitted",
+    "connects": {
+      "balance": 90,
+      "spent": 10,
+      "weekly_spent": 10,
+      "weekly_limit": 50
+    }
+  },
+  "caught_issues": [
+    "A provider-rejected request (404) was first counted as unknown usage, which would stop a healthy run; 4xx is now known zero usage and timeouts/5xx stay unknown",
+    "gpt-oss-120b failed Groq strict JSON-schema validation at an 800-token cap; JSON mode with the schema in the system prompt and larger caps validated 8 of 8 real calls",
+    "Before trimming, the writer prompt carried evidence hashes and marketplace IDs (1,931 tokens); after trimming it is about 1,180 tokens",
+    "The smoke check counted submissions only, so a reply without its slots and $50 bids passed until the drafts were read",
+    "Plan-only screening answers contradicted the PDF's evidence-citation requirement",
+    "Field names spend and paid_per_hire led the pricing model to call a $4,000 total 'per hire'; renamed to total_spend and average_paid_per_hire",
+    "The new evidence rule first overwrote human edits without citations; it now applies to model drafts only"
+  ],
+  "warnings": [
+    "LangGraph's async SQLite store can log 'Task was destroyed but it is pending' when a run's store closes; benign and seen before these changes",
+    "Node 26 prints a DEP0205 module.register deprecation warning during Playwright runs"
+  ],
+  "git_head_at_check": "85328a5a80aa3bc834b059a37441eeada0d570fb",
+  "tested_code_includes_uncommitted_changes": true,
+  "source_sha256": {
+    ".env.example": "0eb66fd7f4b7a92284988275442c083f3aa5a6fd2b2726f17f6cc5ff74105ef1",
+    "Makefile": "dfa8fa0cd83e01c071d1b28619851dd733cd19a86e8c278f45e52c74026dcdd0",
+    "agent/budgets.py": "36ba9c64614cadff88ed21876e58850583c17a7c90fb78547f9bbc58d5b66460",
+    "agent/config.yaml": "3fb44baa9da8ee0c8775b5a71b0ceba6a384abd0feaae9904783a90c19d95732",
+    "agent/graphs/bid_graph.py": "ae4208f73e1cb1c67bc4da74a25d609b5af2c058fe5d3aab6aec112ad945005e",
+    "agent/handoffs.py": "d302a33a09cbb8db507d46be1d3b62b3ef5f1c999bab01fbbe3df1caa537963e",
+    "agent/model.py": "497511414db198fa8cf99554f10f8bd3c8b6affe1ae840156e8e39507192e03f",
+    "agent/nodes/liaison.py": "5fbac2abe5a574a13089616e492373779bebbfa37073fd1c996a05f846406f7b",
+    "agent/nodes/workflow.py": "5be33ba3890056bd8d64e8710e60c2070d3ad3ebb41ed1e4fbe08c6f4d5212ca",
+    "agent/prompts/answer.v2.md": "267bd72e5cd2389f5989d041695b8691fbbcd016f52cd7b5d31df7c3d90c85d2",
+    "agent/prompts/answer.v3.md": "b36d98f6cbef916b12f8c119e541cf2b9126c2a209036bfc59baa2d5cd36d1ad",
+    "agent/prompts/json_mode.v1.md": "a32a829369eb6e3094b52a010b847bd630242509a01ad98f0184b695a1ea9976",
+    "agent/prompts/liaison.v4.md": "d16bcd6ff468efc50850d3774fac05dbc5c4f425ea15a580c37ec0ad0604b19e",
+    "agent/prompts/pricing.v2.md": "5cbc0e6f59c98e7c06623d6fde1768ff5d0b1db36583ef7bebd5add06fc1f62d",
+    "agent/prompts/pricing.v3.md": "40f643d7e1866fdd35d4bcfb0e6015011a9f4bb72b3d388f93075062413fd388",
+    "agent/prompts/risk.v2.md": "d56b61d7e1b3365737418aaa65c8f9d8e9aa8145601e1513dad080482b0da0d5",
+    "agent/prompts/risk.v3.md": "9031c111ffda6e91593f083334f959554a094fe60f5b28b493784bd0be5b68cb",
+    "agent/prompts/writer.v4.md": "c05e166ce052757b117f317d330f2d85687c3962a6e7e89e3f6c3ec9d99ea54a",
+    "agent/prompts/writer.v5.md": "6500c490c44ce548f10ba7a9b7555b776d7617ee104e392849d0dc6893364175",
+    "apps/api/config.py": "f2fce2940d5e670468ac5acb44072f997659ba3d103ba5b0d3c145174a805a41",
+    "apps/api/routers/workflow.py": "7439cd9dfa21fdd7d458fe21d7863de1120b8c359f53e76dbbc426f2b94d24f8",
+    "apps/web/src/components/BidWorkspace.tsx": "fc6e7566ec53f6ac924933968a9b84871785b42a8c44a2bd20668c65cff0154a",
+    "dev_support/fixtures/jobs.json": "b3c31f45778c6b96288d620434a5b8477e1fe00b514810cdca9cccd9886b0589",
+    "docs/images/bid.mmd": "49b28af8d024492458cf3a168c00029095968cd1b221eecdce62256ec7fdbd89",
+    "infra/docker-compose.yml": "5e7fc19fc99e6581fe2d0675da224a034129df4c150983cef04afc7dc798923a",
+    "rag/verify.py": "8b127d65c376e61d25a0043791b8621b8e0520e576a08bc9b819b4bebc6b74e2",
+    "scripts/smoke.py": "56161e197768767be93228a65d12f7849897939abe5ef9725c04e2fcbb635fb0",
+    "tests/conftest.py": "5445ab45c63eafc9115ee06dade387abcd61d135a31f80091511e9668456637c",
+    "tests/integration/test_phase7_conversations.py": "ef9962338c9d70a216f0199b2f1ff279a32851c5e0dac66793942151bdc8dfb3",
+    "tests/integration/test_phase7_operations.py": "b722ef8b0546e9c66b682a898e6db48e6805ba1c22bb813905de785bbaeea09b",
+    "tests/support.py": "f3f7fb67200b8f6094f31dac01843f7dbf3ac8b10cce1c835da665602c3982e4",
+    "tests/unit/test_model_usage.py": "4edf8733a4341de5ece6471b71d3884af6f371ce482a54a16ab69fe5edf77041",
+    "tests/unit/test_phase5_grounding.py": "8f86dbfe78f511b4b1b3cf7800ca760b46e863126bde99b38e5c3b2c47ae447d"
+  },
+  "external_limits": [
+    "Official GigSim, persona corpora, policy pack, 2 November update and dev set remain unavailable; all outcomes are mock",
+    "Groq free-tier rate limits apply; the local qwen3:1.7b fallback was not pulled or run",
+    "Real Postgres, the full Docker Compose stack, public deployment, tracing links and human labels remain pending"
+  ],
+  "secrets": "The Groq key is only in the git-ignored .env; it is not in any tracked file, results file or log",
+  "commits_pushes_branches_prs_or_publication": "Nothing committed at check time; the user reviews and approves the commit. No push, branch, PR or publication.",
+  "quality_review": {
+    "findings_in_hosted_runs": [
+      "One sent reply asked the client to pick from interview slots it did not list; the claim checker removed the slot list",
+      "Two of three bids were the $50 minimum on a $900 job",
+      "Plan sentences with curly apostrophes were removed as unsupported claims",
+      "One proposal kept no evidence sentence; another kept an orphaned sentence after its subject was removed"
+    ],
+    "pdf_differences_fixed": [
+      "Screening answers were plan-only; the PDF asks for evidence citations",
+      "Pricing lacked client spend and a Connects decision",
+      "Risk flags were hard-coded instead of configured",
+      "Compose could not run the models (no key or Ollama service)"
+    ],
+    "runs": {
+      "first_with_new_rules": {
+        "results_file": "evals/results/smoke-20261108-214105.json",
+        "proposals_submitted": "2/3",
+        "note": "second proposal hit 12,150 of 12,000 tokens after two rewrites of embellished evidence sentences"
+      },
+      "after_wording_and_feedback_fix": {
+        "results_file": "evals/results/smoke-20261108-214552.json",
+        "proposals_submitted": "3/3",
+        "rewrites": 0,
+        "quality_warnings": 0,
+        "note": "price reasons read the client's $4,000 total as per hire"
+      },
+      "final": {
+        "results_file": "evals/results/smoke-20261108-214840.json",
+        "proposals_submitted": "3/3",
+        "replies_sent": 3,
+        "rewrites": 0,
+        "quality_warnings": 0,
+        "proposal_tokens": {
+          "p50": 6105,
+          "p95": 6324
+        },
+        "proposal_active_seconds": {
+          "p50": 15.4,
+          "p95": 15.7
+        },
+        "proposal_api_usd": {
+          "p50": 0.00107,
+          "p95": 0.00123
+        },
+        "bid": "850 of a 900 budget (range 540-900)",
+        "interview_times_in_every_reply": true
+      }
+    },
+    "compose_config": "valid with dummy values; MODEL_PROFILE, GROQ_API_KEY and OLLAMA_URL reach api, worker, beat and migrate",
+    "deferred": [
+      "Model selection by measurement at the end",
+      "Local-only model failures",
+      "Stripping injected sentences from model input",
+      "Rule-based safety patterns in config",
+      "Market statistics until GigSim historical jobs exist"
+    ]
+  }
+}

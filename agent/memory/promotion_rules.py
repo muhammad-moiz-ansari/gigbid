@@ -3,7 +3,7 @@ import re
 
 def style_candidates(edits):
     """Promote only a repeated exact phrase removal across five distinct edited runs."""
-    distinct = {e["run_id"]: e for e in edits}
+    distinct = {e["run_id"]: e for e in edits if "before" in e and "after" in e}
     if len(distinct) < 5:
         return []
     observations = list(distinct.values())[-5:]

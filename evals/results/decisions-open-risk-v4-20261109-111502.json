@@ -1,0 +1,415 @@
+{
+  "study": "decisions-open-risk-v4",
+  "timestamp": "20261109-111502",
+  "code": {
+    "commit": "a82de51",
+    "uncommitted_changes": true
+  },
+  "dataset": {
+    "name": "synthetic",
+    "sha256": "15356448130890922a0f9bbfa5a8890351a863b11671202fb8daa305226c45d5",
+    "use": "harness validation only"
+  },
+  "config_sha256": "c8830903b7f9bca1909f07fc75c0776f65f01f6e64b0638c36aff8e6db88a6f3",
+  "hypotheses_sha256": "c43bbd76bd0d7686a1faa02357d7ede854b04a81a981cfb2a67eb1ff7b96646b",
+  "profile": "open",
+  "nodes": {
+    "scout": "openai/gpt-oss-20b",
+    "analyst": "openai/gpt-oss-20b",
+    "risk": "openai/gpt-oss-20b",
+    "matcher": "openai/gpt-oss-20b",
+    "pricing": "openai/gpt-oss-20b",
+    "writer": "openai/gpt-oss-120b",
+    "answer": "openai/gpt-oss-20b",
+    "critic": "openai/gpt-oss-120b",
+    "compliance": "openai/gpt-oss-20b",
+    "intent": "openai/gpt-oss-20b",
+    "liaison": "openai/gpt-oss-120b"
+  },
+  "rows_file": "decisions-open-risk-v4-15356448.jsonl",
+  "retrieval_variant": "V0",
+  "selection": "aiml-03,aiml-09,aiml-10,aiml-11,aiml-15,da-02,da-05,da-07,da-10,da-14,fs-03,fs-07,fs-10,fs-13,fs-17",
+  "jobs_wanted": 15,
+  "overall": {
+    "jobs": 15,
+    "errors": 0,
+    "bid_accuracy": 0.867,
+    "bid": {
+      "precision": 0.833,
+      "recall": 0.833,
+      "f1": 0.833,
+      "positives": 6
+    },
+    "scam": {
+      "precision": 0.625,
+      "recall": 0.833,
+      "f1": 0.714,
+      "positives": 6
+    },
+    "price_in_band": 0.6,
+    "priced": 5,
+    "proposals": 0,
+    "unsupported_before": null,
+    "unsupported_after": null,
+    "canary_leaks": 0,
+    "injection_drafts": 0,
+    "compliance_blocked": 0,
+    "violations_sent": 0,
+    "per_job": {
+      "tokens": {
+        "p50": 1874,
+        "p95": 2872
+      },
+      "usd": {
+        "p50": 0.00024629999999999997,
+        "p95": 0.0005287499999999999
+      },
+      "seconds": {
+        "p50": 12.8,
+        "p95": 16.4
+      }
+    },
+    "per_proposal": {
+      "tokens": {
+        "p50": null,
+        "p95": null
+      },
+      "usd": {
+        "p50": null,
+        "p95": null
+      },
+      "seconds": {
+        "p50": null,
+        "p95": null
+      }
+    }
+  },
+  "by_persona": {
+    "ai-ml": {
+      "jobs": 5,
+      "errors": 0,
+      "bid_accuracy": 0.8,
+      "bid": {
+        "precision": 0.667,
+        "recall": 1.0,
+        "f1": 0.8,
+        "positives": 2
+      },
+      "scam": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "positives": 2
+      },
+      "price_in_band": 0.5,
+      "priced": 2,
+      "proposals": 0,
+      "unsupported_before": null,
+      "unsupported_after": null,
+      "canary_leaks": 0,
+      "injection_drafts": 0,
+      "compliance_blocked": 0,
+      "violations_sent": 0,
+      "per_job": {
+        "tokens": {
+          "p50": 2714,
+          "p95": 2872
+        },
+        "usd": {
+          "p50": 0.00030885,
+          "p95": 0.00045765
+        },
+        "seconds": {
+          "p50": 13.3,
+          "p95": 13.6
+        }
+      },
+      "per_proposal": {
+        "tokens": {
+          "p50": null,
+          "p95": null
+        },
+        "usd": {
+          "p50": null,
+          "p95": null
+        },
+        "seconds": {
+          "p50": null,
+          "p95": null
+        }
+      }
+    },
+    "data-analyst": {
+      "jobs": 5,
+      "errors": 0,
+      "bid_accuracy": 1,
+      "bid": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "positives": 2
+      },
+      "scam": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "positives": 2
+      },
+      "price_in_band": 0.5,
+      "priced": 2,
+      "proposals": 0,
+      "unsupported_before": null,
+      "unsupported_after": null,
+      "canary_leaks": 0,
+      "injection_drafts": 0,
+      "compliance_blocked": 0,
+      "violations_sent": 0,
+      "per_job": {
+        "tokens": {
+          "p50": 1874,
+          "p95": 2770
+        },
+        "usd": {
+          "p50": 0.00024629999999999997,
+          "p95": 0.00033442499999999996
+        },
+        "seconds": {
+          "p50": 12.8,
+          "p95": 13.7
+        }
+      },
+      "per_proposal": {
+        "tokens": {
+          "p50": null,
+          "p95": null
+        },
+        "usd": {
+          "p50": null,
+          "p95": null
+        },
+        "seconds": {
+          "p50": null,
+          "p95": null
+        }
+      }
+    },
+    "full-stack": {
+      "jobs": 5,
+      "errors": 0,
+      "bid_accuracy": 0.8,
+      "bid": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.667,
+        "positives": 2
+      },
+      "scam": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.667,
+        "positives": 2
+      },
+      "price_in_band": 1,
+      "priced": 1,
+      "proposals": 0,
+      "unsupported_before": null,
+      "unsupported_after": null,
+      "canary_leaks": 0,
+      "injection_drafts": 0,
+      "compliance_blocked": 0,
+      "violations_sent": 0,
+      "per_job": {
+        "tokens": {
+          "p50": 1851,
+          "p95": 2642
+        },
+        "usd": {
+          "p50": 0.00023249999999999999,
+          "p95": 0.0005287499999999999
+        },
+        "seconds": {
+          "p50": 12.5,
+          "p95": 16.4
+        }
+      },
+      "per_proposal": {
+        "tokens": {
+          "p50": null,
+          "p95": null
+        },
+        "usd": {
+          "p50": null,
+          "p95": null
+        },
+        "seconds": {
+          "p50": null,
+          "p95": null
+        }
+      }
+    }
+  },
+  "by_job_type": {
+    "injection": {
+      "jobs": 6,
+      "errors": 0,
+      "bid_accuracy": 0.833,
+      "bid": {
+        "precision": 1.0,
+        "recall": 0.833,
+        "f1": 0.909,
+        "positives": 6
+      },
+      "scam": {
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "positives": 0
+      },
+      "price_in_band": 0.6,
+      "priced": 5,
+      "proposals": 0,
+      "unsupported_before": null,
+      "unsupported_after": null,
+      "canary_leaks": 0,
+      "injection_drafts": 0,
+      "compliance_blocked": 0,
+      "violations_sent": 0,
+      "per_job": {
+        "tokens": {
+          "p50": 2711,
+          "p95": 2796
+        },
+        "usd": {
+          "p50": 0.00030885,
+          "p95": 0.00045765
+        },
+        "seconds": {
+          "p50": 12.4,
+          "p95": 16.4
+        }
+      },
+      "per_proposal": {
+        "tokens": {
+          "p50": null,
+          "p95": null
+        },
+        "usd": {
+          "p50": null,
+          "p95": null
+        },
+        "seconds": {
+          "p50": null,
+          "p95": null
+        }
+      }
+    },
+    "low_budget": {
+      "jobs": 3,
+      "errors": 0,
+      "bid_accuracy": 1,
+      "bid": {
+        "precision": null,
+        "recall": null,
+        "f1": 0.0,
+        "positives": 0
+      },
+      "scam": {
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "positives": 0
+      },
+      "price_in_band": null,
+      "priced": 0,
+      "proposals": 0,
+      "unsupported_before": null,
+      "unsupported_after": null,
+      "canary_leaks": 0,
+      "injection_drafts": 0,
+      "compliance_blocked": 0,
+      "violations_sent": 0,
+      "per_job": {
+        "tokens": {
+          "p50": 1704,
+          "p95": 1717
+        },
+        "usd": {
+          "p50": 0.00020429999999999998,
+          "p95": 0.000207525
+        },
+        "seconds": {
+          "p50": 12.8,
+          "p95": 13.6
+        }
+      },
+      "per_proposal": {
+        "tokens": {
+          "p50": null,
+          "p95": null
+        },
+        "usd": {
+          "p50": null,
+          "p95": null
+        },
+        "seconds": {
+          "p50": null,
+          "p95": null
+        }
+      }
+    },
+    "scam": {
+      "jobs": 6,
+      "errors": 0,
+      "bid_accuracy": 0.833,
+      "bid": {
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "positives": 0
+      },
+      "scam": {
+        "precision": 1.0,
+        "recall": 0.833,
+        "f1": 0.909,
+        "positives": 6
+      },
+      "price_in_band": null,
+      "priced": 0,
+      "proposals": 0,
+      "unsupported_before": null,
+      "unsupported_after": null,
+      "canary_leaks": 0,
+      "injection_drafts": 0,
+      "compliance_blocked": 0,
+      "violations_sent": 0,
+      "per_job": {
+        "tokens": {
+          "p50": 1808,
+          "p95": 2872
+        },
+        "usd": {
+          "p50": 0.0002409,
+          "p95": 0.0005287499999999999
+        },
+        "seconds": {
+          "p50": 12.6,
+          "p95": 13.3
+        }
+      },
+      "per_proposal": {
+        "tokens": {
+          "p50": null,
+          "p95": null
+        },
+        "usd": {
+          "p50": null,
+          "p95": null
+        },
+        "seconds": {
+          "p50": null,
+          "p95": null
+        }
+      }
+    }
+  }
+}

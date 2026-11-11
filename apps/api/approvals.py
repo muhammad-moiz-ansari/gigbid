@@ -22,10 +22,11 @@ def binding(run_id, preview, context=None):
 
 def stage_approval(db, tenant, run_id, preview, context=None):
     bound = binding(run_id, preview, context)
+    # Only a still-pending review is reused; a decided or consumed approval never authorizes a new preview.
     approval = db.scalar(select(Approval).where(Approval.tenant == tenant,
                                               Approval.run_id == run_id,
                                               Approval.binding == bound,
-                                              Approval.decision != "invalidated"))
+                                              Approval.decision == "pending"))
     if not approval:
         for old in db.scalars(select(Approval).where(Approval.tenant == tenant,
                                                      Approval.run_id == run_id,
@@ -38,7 +39,7 @@ def stage_approval(db, tenant, run_id, preview, context=None):
     return approval
 
 
-def validate_approval(db, tenant: str, request: WriteRequest, preview: dict):
+def validate_approval(db, tenant: str, request: WriteRequest, preview: dict, current_job: dict | None = None):
     approval = db.get(Approval, request.approval_id or "")
     if not approval or approval.tenant != tenant or approval.run_id != request.run_id:
         raise PermissionError("A tenant-bound approval is required")
@@ -61,8 +62,11 @@ def validate_approval(db, tenant: str, request: WriteRequest, preview: dict):
             or context["profile"] != digest(user.profile)):
             raise PermissionError("Approval context changed; renewed review required")
         if request.action.kind == "proposal":
-            job = get_record(db, tenant, "job", request.action.destination)
-            if not job or context["job"] != digest(JobSpec.model_validate(job.value).model_dump()):
+            # A live adapter passes the job it just read; the mock reads its own record.
+            if current_job is None:
+                record = get_record(db, tenant, "job", request.action.destination)
+                current_job = record.value if record else None
+            if not current_job or context["job"] != digest(JobSpec.model_validate(current_job).model_dump()):
                 raise PermissionError("Job changed; renewed analysis required")
     for evidence_id, expected in request.action.evidence_hashes.items():
         record = get_record(db, tenant, "evidence", evidence_id)

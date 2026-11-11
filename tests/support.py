@@ -1,7 +1,8 @@
 """Deterministic doubles for tests only; never imported by production code."""
 import asyncio
 
-from agent.mcp_client import ALLOWLISTS
+from agent.marketplace_port import NotFound
+from agent.mcp_client import ALLOWLISTS, ToolFailure
 from apps.api.db import get_record, transaction
 from dev_support.mock_marketplace.service import MockMarketplace
 from rag.retriever import retrieve
@@ -13,16 +14,25 @@ class TestModels:
     async def complete(self, node, data, schema):
         await asyncio.sleep(0.005)
         if node == "analyst":
-            value = data
+            value = {**data, "id": "hidden", "client_id": "hidden"}
         elif node == "risk":
             value = {"score": 0.1, "flags": [], "reasons": ["Synthetic test double"]}
         elif node == "pricing":
             value = {"amount": 500, "connects": data["job"]["connects"], "rationale": "Test fixture price"}
         elif node in ("writer", "liaison"):
             evidence = data["evidence"]
-            quote = f'Portfolio evidence: "{evidence[0]["text"]}" [{evidence[0]["id"]}]' if evidence else ""
-            value = {"text": quote + "\n\nProposed approach: I would begin with a small scope and test each requirement.",
-                     "version": data.get("version", 1), "evidence_ids": [e["id"] for e in evidence]}
+            claim = f'{" ".join(evidence[0]["text"].split())} [{evidence[0]["id"]}]' if evidence else ""
+            questions = (data.get("job") or {}).get("screening_questions", [])
+            value = {"text": claim + "\n\nProposed approach: I would begin with a small scope and test each requirement.",
+                     "version": data.get("version", 1), "evidence_ids": [e["id"] for e in evidence],
+                     "screening_answers": {q: "I would test each requirement." for q in questions}}
+        elif node == "answer":
+            value = {"answer": "I would test each requirement."}
+        elif node == "intent":
+            text = data["message"].lower()
+            intent = "interview" if any(w in text for w in ("interview", "schedule", "available")) else \
+                "negotiation" if any(w in text for w in ("price", "budget", "rate")) else "question"
+            value = {"intent": intent, "reasons": ["Synthetic keyword test double"]}
         elif node == "critic":
             value = {"passed": True, "comments": []}
         else:
@@ -44,7 +54,10 @@ class TestTools:
         self.calls.append((role, name, args))
         mock = MockMarketplace()
         if name == "get_job":
-            return mock.job(self.tenant, args["job_id"]).model_dump()
+            try:
+                return mock.job(self.tenant, args["job_id"]).model_dump()
+            except NotFound:
+                raise ToolFailure("not_found", message="Job not found") from None
         if name == "get_client_history":
             return mock.client_history(self.tenant, args["client_id"])
         if name == "get_connects_balance":
@@ -68,5 +81,5 @@ class TestTools:
         if name == "list_messages":
             return mock.messages(self.tenant, args["conversation"])
         if name == "free_slots":
-            return [{"start": "2026-11-10T10:00:00Z", "synthetic": True}]
+            return [{"start": "2026-11-10T10:00:00Z", "minutes": 30, "synthetic": True}]
         raise AssertionError(name)

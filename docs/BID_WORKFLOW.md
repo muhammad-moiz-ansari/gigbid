@@ -26,15 +26,15 @@ for the intended Postgres deployment. Existing Compose settings already supply b
 Checkpoint setup requires schema creation privileges. Postgres and Compose runtime
 are unverified here because no service/Docker installation is available.
 
-From the project root, after configuring the database, Ollama models and portfolio:
+From the project root, after configuring the database, model profile and portfolio:
 
 ```powershell
 uv run python -m scripts.manage worker
 ```
 
 This runs the existing queue drainer. It does not start or connect real marketplace
-accounts. Open generation requires the configured qwen3 models; V0 retrieval also
-requires nomic-embed-text. Explicit BM25 remains a diagnostic development option.
+accounts. Open generation uses the configured model profile (hosted Groq by default, or
+local Ollama); V0 retrieval requires local nomic-embed-text. Explicit BM25 remains a diagnostic development option.
 No production model double or silent retrieval/model substitution is provided.
 
 ## Approval boundary
@@ -75,21 +75,53 @@ time is summed, so it is intentionally different from wall-clock latency. Human
 approval wait is excluded. Limits and model timeouts/output caps live in config.yaml.
 Retries do not reset counters. Missing/malformed inference usage or a reservation
 left unfinished by process death causes needs_attention before further generation
-or new writes. Recovery reads can still confirm an already completed effect.
+or new writes. A human Retry then records an acknowledgement of that unknown usage
+(the interrupted nodes and the time) in the ledger and continues within the remaining
+budget. A rate-limited or rejected (4xx) request counts as known zero usage.
+Recovery reads can still confirm an already completed effect.
 The budget ledger is authoritative; checkpoint usage lists summarize completed
 nodes. Attempt-level budget events include failures and preserve numeric metrics.
-API USD is unreported/null for local Ollama calls; hardware cost is not measured.
+API USD comes from the hosted profile's published per-token prices. It is null for
+local Ollama calls, whose hardware cost is not measured.
 
-The verifier accepts exact complete current evidence passages and a closed grammar
-of future plans and questions. Prefixing a past achievement with "Proposed approach"
-or "Question" cannot bypass it. Partial quotes are removed because they can drop
-negation. Multi-paragraph quotes retain context. Unsupported screening answers are
-also removed, and compliance scans both question labels and answer content.
-Screening labels must match questions from the actual marketplace job; invented
-labels are removed and recorded as unsupported rather than sent with the proposal.
-Versioned writer/liaison v2 prompts describe the accepted grammar. This intentionally
-restricts prose variety. Reported before/after counts measure this deterministic
-grammar check, not semantic accuracy or a real-model quality score.
+Phase 7 step 0 replaced the earlier closed grammar, which a real qwen3:8b writer never
+satisfied: in the 2026-11-08 smoke test every draft was removed and the run was blocked.
+Drafts are now plain paragraphs that end with `[evidence_id]` citations. The verifier
+splits each paragraph into sentences. Questions, plans ("I would ...") and courtesy or
+client-need sentences are kept. A sentence about past work must cite current evidence,
+use only numbers that appear in it, not contradict a negation in it, and share at least
+60% of its words with it (30-60% is partly supported). Unsupported and partly supported
+sentences are removed before the Critic and counted before and after. Prefixing a past
+achievement with "Proposed approach" or "Question" still cannot bypass the check.
+Screening answers are checked the same way, and invented question labels are removed.
+Citations stay in the studio; the client receives plain text. Thresholds live in
+`agent/config.yaml`. Word overlap is a deterministic check, not semantic proof.
+
+Compliance blocks only on rule checks: off-platform contact or payment, free work,
+guarantees, contact details, injected text, banned phrases, the word limit and a failed
+Critique. The compliance model (prompt v2) reviews the plain outgoing text and its concerns
+appear in the studio as warnings for the human reviewer; it cannot block or approve. In real
+runs a small model without portfolio access repeatedly flagged verified claims as fabricated.
+
+Models receive only what each node needs. Evidence is trimmed to id, text, project, skills,
+date and outcome, and marketplace job and client IDs are removed from every model input.
+Screening answers cite evidence for experience questions and are "I would" plans otherwise.
+Risk flags are validated against `policy.risk_flags` in config, and planted instructions raise
+the risk score to at least `thresholds.injection_risk` (0.5) so the reviewer sees them, without
+forcing a skip.
+
+The claim checker reads curly quotes and non-breaking hyphens as plain text. A plan sentence that
+names a portfolio project or says "as demonstrated in" counts as a claim and needs a citation,
+and a "This/That/It..." sentence after a removed one is removed too. The Critic sends back a
+model draft whose cover letter cites no evidence, quoting up to two removed sentences; a human
+edit or a regenerated paragraph is reviewed as written.
+
+Pricing gets the client's total spend, hires and average paid per hire, the fit score and the
+Connects facts. Code keeps the bid within `pricing.budget_share` of the job budget (60-100%,
+never below the floor), and when fit x bid is below Connects x `connect_usd` x `min_return` the
+run stops as "watch" with the reason. Market statistics wait for GigSim's historical jobs.
+Interview times come from the calendar tool and are added to the reply when the action is
+built, so the approval preview shows exactly what is sent.
 
 ## Checks and limits
 
@@ -111,3 +143,32 @@ API behavior was checked against the official documentation for
 [interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts),
 [persistence](https://docs.langchain.com/oss/python/langgraph/persistence) and
 [graph routing](https://docs.langchain.com/oss/python/langgraph/graph-api).
+
+## Conversation graph (Phase 7)
+
+One durable thread per client conversation: intake (thread, job context and evidence),
+classify (small-model intent with a rule-based scam override), draft, verifier, compliance,
+preview, approval and send. Each new client message starts the next turn on the same thread.
+Draft versions keep increasing so action keys stay unique, and a message that is already
+being answered is never queued twice. Interview requests get free calendar slots from the
+Workspace MCP; no calendar hold is created. Compliance blocks any dollar amount below the
+user's minimum bid.
+
+## Memory (Phase 7)
+
+Promoted memory lives in a LangGraph store (SQLite locally, Postgres when `CHECKPOINT_URL`
+is a Postgres URL) under per-tenant `style` and `outcome` namespaces. Both graphs are
+compiled with the store and nodes read it with `get_store()`. Style rules come only from
+approved text edits (the same word removed in five distinct runs). Outcome notes come from
+replied, interview, hired and lost events grouped by a configurable skill-to-category map
+(three outcomes in one category). Raw tool output never becomes memory. The writer and
+liaison receive memory as labelled context, pricing receives the category's outcome note,
+and the Critic sends back a draft that uses a word the user keeps removing. Forgetting an
+entry deletes it and records a tombstone so later observations cannot promote it again.
+
+## Replay (Phase 7)
+
+`scripts.manage replay` and `/runs/{id}/replay` re-run a thread from a saved checkpoint as a
+new branch with a fresh budget; earlier totals stay in the ledger. A replay that reaches
+preview always needs a new approval, because only a still-pending approval is reused. A
+replayed execute step reconciles its stable key, so a submitted proposal is never sent twice.
