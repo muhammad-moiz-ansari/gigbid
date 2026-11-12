@@ -9,15 +9,21 @@ def main():
     parser.add_argument("command", choices=["migrate", "seed", "dev", "worker", "test", "lint", "eval", "demo", "client",
                                             "graphs", "replay"])
     parser.add_argument("--tenant")
+    parser.add_argument("--starter-kit", action="store_true", help="Seed the v0.1 sample data")
     parser.add_argument("--run", help="Run ID for replay")
     parser.add_argument("--node", help="Replay from the latest checkpoint that runs this node next")
     args = parser.parse_args()
+    if args.starter_kit and args.command != "seed":
+        parser.error("--starter-kit requires seed")
     if args.command == "migrate":
         subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], check=True)
     elif args.command == "seed":
         if not args.tenant:
             parser.error("--tenant is required; sign up first or use the UI's Load synthetic examples")
-        from dev_support.seed import seed
+        if args.starter_kit:
+            from dev_support.starter_kit import seed
+        else:
+            from dev_support.seed import seed
         seed(args.tenant)
     elif args.command == "dev":
         subprocess.run([sys.executable, "-m", "uvicorn", "apps.api.main:app", "--host", "127.0.0.1", "--port", "8000"], check=True)

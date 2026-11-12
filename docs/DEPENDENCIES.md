@@ -1,5 +1,18 @@
 # Dependency register
 
+The instructor's **Student Starter Kit v0.1** has been received. Its original
+sample files and illustrative policy are preserved under `data/sample/` and
+`data/policy_pack/`. It does not include GigSim, the full persona corpora, the
+grading policy/update, or a labelled development set. The table below refers
+to those separate inputs.
+
+To import the two sample jobs and portfolio passage into an existing mock-mode
+tenant, run `python -m scripts.manage seed --tenant TENANT_ID --starter-kit`.
+This is additive and does not reset Connects. The sample jobs have no client
+references, so each gets an unverified mock client with no recorded activity.
+The sample freelancer and unlinked client history remain reference data. The
+normal seed and evaluation fixtures remain available as before.
+
 | Missing input/service | Affected acceptance | Local substitute | Replacement / blocked verification |
 |---|---|---|---|
 | Instructor GigSim and contract | R1, A2, C6, outcomes | dev_support/mock_marketplace | Import unchanged to gigsim; map verified contract and run official suite |

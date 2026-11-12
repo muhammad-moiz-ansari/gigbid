@@ -7,10 +7,12 @@ from dev_support.mock_marketplace.config import SimulatorConfig
 from dev_support.mock_marketplace.service import _lock
 
 
-def seed_marketplace(tenant: str):
+def seed_marketplace(tenant: str, *, jobs=None, clients=None):
     """Seed original local data without resetting balances, outcomes or fault state."""
-    jobs = json.loads((ROOT / "dev_support/fixtures/jobs.json").read_text())
-    clients = json.loads((ROOT / "dev_support/fixtures/clients.json").read_text())
+    if jobs is None:
+        jobs = json.loads((ROOT / "dev_support/fixtures/jobs.json").read_text())
+    if clients is None:
+        clients = json.loads((ROOT / "dev_support/fixtures/clients.json").read_text())
     config = SimulatorConfig.model_validate_json(
         (ROOT / "dev_support/fixtures/simulator.json").read_text()
     )
