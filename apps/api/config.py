@@ -35,7 +35,6 @@ class Settings(BaseSettings):
     workspace_mcp_url: str = "http://localhost:8003/mcp"
     web_origin: str = "http://localhost:3000"
     cookie_secure: bool = False
-    session_hours: int = 12
     model_timeout_seconds: int = 120
     tool_timeout_seconds: int = 30
     mcp_calls_per_minute: int = Field(default=60, ge=1)
@@ -43,6 +42,13 @@ class Settings(BaseSettings):
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
     langfuse_base_url: str = "http://localhost:3001"
+
+    @property
+    def web_origins(self) -> tuple[str, ...]:
+        local_origins = ("http://localhost:3000", "http://127.0.0.1:3000")
+        if self.web_origin in local_origins:
+            return local_origins
+        return (self.web_origin,)
 
 
 @lru_cache

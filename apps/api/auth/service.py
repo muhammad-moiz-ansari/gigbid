@@ -9,6 +9,7 @@ from apps.api.config import settings
 from apps.api.db import Session, User, now, transaction
 
 passwords = PasswordHash.recommended()
+SESSION_LIFETIME_SECONDS = 2 * 60 * 60
 DUMMY_HASH = passwords.hash("dummy-unusable-password")
 
 
@@ -25,7 +26,7 @@ def current_session(request: Request) -> Session:
             raise HTTPException(401, "Sign in to continue")
         # Bearer callers do not rely on ambient browser cookies.
         if not bearer and request.method not in ("GET", "HEAD", "OPTIONS"):
-            if request.headers.get("origin") != settings().web_origin or not secrets.compare_digest(
+            if request.headers.get("origin") not in settings().web_origins or not secrets.compare_digest(
                 request.headers.get("x-csrf-token", ""), session.csrf
             ):
                 raise HTTPException(403, "Invalid origin or CSRF token")
@@ -43,7 +44,7 @@ def current_user(session: Session = Depends(current_session)) -> User:
 def issue_session(db, tenant: str):
     token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
     db.add(Session(token_hash=token_hash(token), tenant=tenant, csrf=csrf,
-                   expires=now() + settings().session_hours * 3600))
+                   expires=now() + SESSION_LIFETIME_SECONDS))
     return token, csrf
 
 

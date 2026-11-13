@@ -18,3 +18,4 @@ dist/
 *.egg-info/
 tmp/
 output/
+/data/instructor/

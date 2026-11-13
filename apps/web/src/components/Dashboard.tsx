@@ -102,8 +102,8 @@ export default function Dashboard() {
     <small>Local development · Synthetic marketplace · Official integrations pending</small></div>
     <form className="auth-form" onSubmit={auth}><p className="eyebrow">YOUR FREELANCE WORKSPACE</p><h2>{register ? "Create your account" : "Welcome back"}</h2><p className="muted">Keep your next opportunity in focus.</p>
       <label>Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
-      <label>Password<input type="password" minLength={12} maxLength={128} autoComplete={register ? "new-password" : "current-password"} required value={password} onChange={e => setPassword(e.target.value)} /></label>
-      <small className="muted">At least 12 characters.</small>{error && <p role="alert" className="error">{error}</p>}
+      <label>Password<input type="password" minLength={6} maxLength={128} autoComplete={register ? "new-password" : "current-password"} required value={password} onChange={e => setPassword(e.target.value)} /></label>
+      {register && <small className="muted">At least 6 characters.</small>}{error && <p role="alert" className="error">{error}</p>}
       <button className="primary" disabled={busy}>{busy ? "Please wait…" : register ? "Create account →" : "Sign in →"}</button>
       <button type="button" className="text-button" onClick={() => setRegister(!register)}>{register ? "Already have an account? Sign in" : "New here? Create an account"}</button></form></main>;
 

@@ -23,8 +23,9 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000 (use this origin for the configured CSRF check). Register
-an account with a password of at least 12 characters. The mock mode is labelled in
+Open http://localhost:3000 or http://127.0.0.1:3000 with the default configuration.
+For a custom web address or port, set `WEB_ORIGIN` to match and restart the API.
+Register an account with a password of at least 6 characters. The mock mode is labelled in
 the UI. In Settings select **Load synthetic examples**, or sign in and invoke the
 CSRF-protected `/dev/seed` endpoint. The seed command also accepts an existing user
 ID: `uv run python -m scripts.manage seed --tenant USER_ID`.

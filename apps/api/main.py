@@ -24,7 +24,7 @@ from apps.api.safety import redact
 from apps.api.streaming import router as streaming_router
 
 app = FastAPI(title="GigBid API", version="0.1.0", description="Local mock mode; official integrations pending")
-app.add_middleware(CORSMiddleware, allow_origins=[settings().web_origin], allow_credentials=True,
+app.add_middleware(CORSMiddleware, allow_origins=settings().web_origins, allow_credentials=True,
                    allow_methods=["GET", "POST", "PUT", "DELETE"],
                    allow_headers=["Content-Type", "X-CSRF-Token", "Authorization", "X-Trace-ID", "Last-Event-ID"])
 log = logging.getLogger("gigbid")

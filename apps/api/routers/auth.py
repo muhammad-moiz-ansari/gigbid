@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.exc import IntegrityError
 
 from apps.api.auth.service import (
+    SESSION_LIFETIME_SECONDS,
     authenticate,
     current_session,
     current_user,
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def session_response(db, user, response):
     token, csrf = issue_session(db, user.id)
     response.set_cookie("gigbid_session", token, httponly=True, secure=settings().cookie_secure,
-                        samesite="lax", max_age=settings().session_hours * 3600, path="/")
+                        samesite="lax", max_age=SESSION_LIFETIME_SECONDS, path="/")
     return SessionView(id=user.id, email=user.email, csrf=csrf, profile=user.profile)
 
 
@@ -37,8 +38,8 @@ def login_rate(request):
 @router.post("/register", response_model=SessionView)
 def register(data: Credentials, response: Response, request: Request):
     login_rate(request)
-    if request.headers.get("origin") not in (None, settings().web_origin):
-        raise HTTPException(403, "Invalid origin")
+    if request.headers.get("origin") not in (None, *settings().web_origins):
+        raise HTTPException(403, "Open GigBid at the web address configured in WEB_ORIGIN and try again.")
     try:
         with transaction() as db:
             user = User(email=data.email, password_hash=passwords.hash(data.password), profile=Profile().model_dump())
@@ -52,8 +53,8 @@ def register(data: Credentials, response: Response, request: Request):
 @router.post("/login", response_model=SessionView)
 def login(data: Credentials, response: Response, request: Request):
     login_rate(request)
-    if request.headers.get("origin") not in (None, settings().web_origin):
-        raise HTTPException(403, "Invalid origin")
+    if request.headers.get("origin") not in (None, *settings().web_origins):
+        raise HTTPException(403, "Open GigBid at the web address configured in WEB_ORIGIN and try again.")
     user = authenticate(data.email, data.password)
     with transaction() as db:
         return session_response(db, user, response)

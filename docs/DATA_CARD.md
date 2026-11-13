@@ -174,3 +174,48 @@ first Phase 8 runs is `15356448130890922a0f9bbfa5a8890351a863b11671202fb8daa3052
 
 `evals/datasets/tool_tasks.yaml` holds the 40 labelled tool-call tasks for R&D A and the rewritten tool
 descriptions. Human judge labels and panel ratings go in `evals/labels/`; none are invented.
+# Instructor dataset bundle
+
+The local import uses `data/instructor/archive/Final_Upwork_Dataset.csv`.
+The supplied introduction attributes the archive to Ahmed Mayalou
+([Kaggle profile](https://www.kaggle.com/ahmedmyalo/)) and describes it as
+historical Upwork postings collected in February and March 2023. Its sample
+mix is uneven across search categories. The companion feature guide documents
+the columns and notes missing fixed-price budgets for some 3D jobs.
+No redistribution license was supplied with the local files. Keep raw files
+and exports of job text local until permissions are confirmed.
+
+```powershell
+python -m dev_support.instructor_jobs --limit 100
+python -m dev_support.instructor_jobs --limit 100 --tenant YOUR_TENANT_ID
+```
+
+The first command validates without writing. The second seeds an existing
+mock-mode account. Use a dedicated account if you want an inbox containing
+only historical imports. The importer reads the first eligible unique rows in
+file order, trims text, deduplicates by a hash of the source URL, keeps skill
+tags, and uses the dollar budget and the archive's revised Connects field.
+It skips hourly jobs, incomplete rows and rows with invalid costs. Results are
+neither representative samples nor current market estimates.
+
+The job text and posted fields are historical observations. Job URLs are not
+stored by the importer, but descriptions may still contain personal details
+or links. Use local models for this data unless external processing is
+permitted. Per-job client records and any subsequent simulator conversations,
+portfolio evidence from demo fixtures, and outcomes are synthetic. An
+unverified mock client with zero recorded activity means that no linked
+client record was imported. It is not a finding about the original client.
+
+Other inputs in this bundle remain unused:
+
+| File | Reason |
+| --- | --- |
+| 2024 jobs CSV | Has dates and pricing fields but no descriptions or skills for matching. |
+| Contracts CSV | Has historical payment and hours fields but no verified join to these postings or persona evidence. |
+| Freelancer gig success CSV | Profile-level metrics do not label bid decisions, evidence relevance, or proposal quality. Provenance and license are unverified. |
+| Preprocessed BERT workbook | Unlabelled. Its provenance and relationship to the archive are unverified. |
+| Archive XLSX | CSV selected for streaming import; workbook not used as an independent source. |
+
+The historical import does not supply GigSim, official outcomes, the policy
+update, or the assignment's labelled development split. Keep existing
+synthetic evaluation results labelled as such.
