@@ -29,7 +29,7 @@ export default defineConfig({
     {
       command: "node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3100",
       cwd: __dirname, url: "http://127.0.0.1:3100", reuseExistingServer: false, timeout: 120000,
-      env: { API_INTERNAL_URL: "http://127.0.0.1:8106", NEXT_TELEMETRY_DISABLED: "1" }
+      env: { API_INTERNAL_URL: "http://127.0.0.1:8106", NEXT_TELEMETRY_DISABLED: "1", GIGBID_E2E_TEST_SERVER: "1" }
     }
   ]
 });

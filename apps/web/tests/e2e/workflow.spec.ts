@@ -6,6 +6,11 @@ async function register(page: Page) {
   await page.getByRole("button", { name: "New here? Create an account" }).click();
   await page.getByLabel("Email", { exact: true }).fill(`phase6-${Date.now()}-${Math.random().toString(16).slice(2)}@example.test`);
   await page.getByLabel("Password", { exact: true }).fill("browser-test-password-123");
+  await page.getByLabel("Full name", { exact: true }).fill("Taylor Dev");
+  await page.getByRole("combobox", { name: "Persona", exact: true }).selectOption("own");
+  await page.getByLabel("Minimum fixed bid (USD)").fill("50");
+  await page.getByLabel("Hourly rate (USD)").fill("50");
+  await page.getByLabel("Weekly Connects budget").fill("50");
   await page.getByRole("button", { name: "Create account →", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Your freelance profile" })).toBeVisible();
 }
@@ -13,7 +18,10 @@ async function register(page: Page) {
 async function review(page: Page) {
   await register(page);
   await page.getByRole("link", { name: "Job inbox", exact: false }).click();
+  await page.getByRole("link", { name: "Settings", exact: false }).click();
   await page.getByRole("button", { name: /Load synthetic examples/ }).click();
+  await expect(page.getByText("Labelled synthetic examples loaded.")).toBeVisible();
+  await page.getByRole("link", { name: "Job inbox", exact: false }).click();
   const card = page.locator(".job-card").filter({ hasText: "Build a secure task API" }).first();
   await card.getByRole("button", { name: /Analyse fit/ }).click();
   await expect(page.getByRole("button", { name: "Approve exact action →" })).toBeEnabled();
@@ -111,7 +119,10 @@ test("mobile navigation, empty filters and outage recovery remain usable", async
   await page.setViewportSize({ width: 390, height: 844 });
   await register(page);
   await page.getByRole("link", { name: "Job inbox", exact: false }).click();
+  await page.getByRole("link", { name: "Settings", exact: false }).click();
   await page.getByRole("button", { name: /Load synthetic examples/ }).click();
+  await expect(page.getByText("Labelled synthetic examples loaded.")).toBeVisible();
+  await page.getByRole("link", { name: "Job inbox", exact: false }).click();
   await page.getByRole("textbox", { name: "Filter opportunities" }).fill("unmatched-search-phrase");
   await expect(page.getByText("No opportunities match your filters.")).toBeVisible();
   await page.getByRole("textbox", { name: "Filter opportunities" }).fill("");
@@ -146,6 +157,11 @@ test("invalidated reviews and account switching clear stale workspace data", asy
   await page.getByRole("button", { name: "New here? Create an account" }).click();
   await page.getByLabel("Email", { exact: true }).fill(`next-user-${Date.now()}@example.test`);
   await page.getByLabel("Password", { exact: true }).fill("browser-test-password-123");
+  await page.getByLabel("Full name", { exact: true }).fill("Taylor Dev");
+  await page.getByRole("combobox", { name: "Persona", exact: true }).selectOption("own");
+  await page.getByLabel("Minimum fixed bid (USD)").fill("50");
+  await page.getByLabel("Hourly rate (USD)").fill("50");
+  await page.getByLabel("Weekly Connects budget").fill("50");
   await page.getByRole("button", { name: "Create account →", exact: true }).click();
   await expect(page.getByText("0 portfolio passages available.")).toBeVisible();
   await expect(page.getByText("No evidence uploaded yet. Start with a case study or CV above.")).toBeVisible();
@@ -156,7 +172,10 @@ test("invalidated reviews and account switching clear stale workspace data", asy
 test("client reply becomes an approved reply with offered interview slots", async ({ page }) => {
   await register(page);
   await page.getByRole("link", { name: "Job inbox", exact: false }).click();
+  await page.getByRole("link", { name: "Settings", exact: false }).click();
   await page.getByRole("button", { name: /Load synthetic examples/ }).click();
+  await expect(page.getByText("Labelled synthetic examples loaded.")).toBeVisible();
+  await page.getByRole("link", { name: "Job inbox", exact: false }).click();
   await page.getByRole("link", { name: "Messages", exact: false }).click();
   await page.getByLabel("Client message").fill("Could we schedule an interview this week?");
   await page.getByRole("button", { name: "Add synthetic reply" }).click();
@@ -180,7 +199,10 @@ test("memory viewer shows a learned rule and forgetting it removes it", async ({
 test("inbox skip hides a job and keeps it under the Skipped filter", async ({ page }) => {
   await register(page);
   await page.getByRole("link", { name: "Job inbox", exact: false }).click();
+  await page.getByRole("link", { name: "Settings", exact: false }).click();
   await page.getByRole("button", { name: /Load synthetic examples/ }).click();
+  await expect(page.getByText("Labelled synthetic examples loaded.")).toBeVisible();
+  await page.getByRole("link", { name: "Job inbox", exact: false }).click();
   const card = page.locator(".job-card").filter({ hasText: "Native iOS development" });
   await card.getByText("Skip…").click();
   await card.getByLabel("Reason for skipping Native iOS development").fill("Not my stack");

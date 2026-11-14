@@ -36,9 +36,15 @@ REPLY = "Thanks for the proposal. Could we schedule an interview to discuss the 
 
 def account():
     client = TestClient(app)
-    credentials = {"email": f"smoke-{secrets.token_hex(4)}@example.test", "password": secrets.token_urlsafe(18)}
-    me = client.post("/auth/register", json=credentials, headers={"origin": ORIGIN}).json()
-    client.headers.update({"origin": ORIGIN, "x-csrf-token": me["csrf"]})
+    credentials = {
+        "email": f"smoke-{secrets.token_hex(4)}@example.test",
+        "password": secrets.token_urlsafe(18),
+        "profile": {"name": "Smoke Test", "persona": "own", "floor_fixed": 50,
+                    "hourly_rate": 50, "weekly_connects": 50},
+    }
+    response = client.post("/auth/register", json=credentials, headers={"origin": ORIGIN})
+    response.raise_for_status()
+    client.headers.update({"origin": ORIGIN, "x-csrf-token": response.json()["csrf"]})
     client.post("/dev/seed").raise_for_status()
     return client
 

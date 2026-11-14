@@ -41,11 +41,14 @@ def tenant(persona):
     Base.metadata.create_all(engine)
     client = TestClient(app)
     email = f"{persona['persona']}-{secrets.token_hex(4)}@eval.test"
-    me = client.post("/auth/register", json={"email": email, "password": secrets.token_urlsafe(18)},
-                     headers={"origin": ORIGIN}).json()
-    client.headers.update({"origin": ORIGIN, "x-csrf-token": me["csrf"]})
-    client.put("/auth/profile", json={"name": persona["name"], "persona": persona["persona"],
-                                 "floor_fixed": persona["floor_fixed"], "weekly_connects": 1000}).raise_for_status()
+    response = client.post("/auth/register", json={
+        "email": email,
+        "password": secrets.token_urlsafe(18),
+        "profile": {"name": persona["name"], "persona": persona["persona"],
+                    "floor_fixed": persona["floor_fixed"], "hourly_rate": 50, "weekly_connects": 1000},
+    }, headers={"origin": ORIGIN})
+    response.raise_for_status()
+    client.headers.update({"origin": ORIGIN, "x-csrf-token": response.json()["csrf"]})
     with transaction() as db:
         user = db.scalar(select(User.id).where(User.email == email))
         _lock(db, user)
