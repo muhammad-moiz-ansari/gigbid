@@ -11,7 +11,7 @@ from apps.api.auth.service import (
 )
 from apps.api.config import settings
 from apps.api.db import Session, User, now, transaction
-from apps.api.schemas.api import Credentials, Profile, SessionView
+from apps.api.schemas.api import Credentials, Profile, Registration, SessionView
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -36,13 +36,15 @@ def login_rate(request):
 
 
 @router.post("/register", response_model=SessionView)
-def register(data: Credentials, response: Response, request: Request):
+def register(data: Registration, response: Response, request: Request):
     login_rate(request)
     if request.headers.get("origin") not in (None, *settings().web_origins):
         raise HTTPException(403, "Open GigBid at the web address configured in WEB_ORIGIN and try again.")
     try:
         with transaction() as db:
-            user = User(email=data.email, password_hash=passwords.hash(data.password), profile=Profile().model_dump())
+            profile = Profile(**data.profile.model_dump()).model_dump()
+            profile["name"] = profile["name"].strip()
+            user = User(email=data.email, password_hash=passwords.hash(data.password), profile=profile)
             db.add(user)
             db.flush()
             return session_response(db, user, response)

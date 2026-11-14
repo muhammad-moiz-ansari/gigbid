@@ -27,13 +27,15 @@ export default function Dashboard() {
   const router = useRouter(), path = usePathname();
   const [section = "inbox", id] = path.split("/").filter(Boolean);
   const [session, setSession] = useState<Session | null>(null), [loading, setLoading] = useState(true);
+  const [signup, setSignup] = useState({ name: "", persona: "", floor_fixed: "", hourly_rate: "", weekly_connects: "" });
   const [email, setEmail] = useState(""), [password, setPassword] = useState(""), [register, setRegister] = useState(false);
   const [error, setError] = useState(""), [notice, setNotice] = useState(""), [busy, setBusy] = useState(false);
   const [jobs, setJobs] = useState<Doc[]>([]), [runs, setRuns] = useState<Run[]>([]), [status, setStatus] = useState<Doc>({});
   const [portfolio, setPortfolio] = useState<Doc[]>([]), [messages, setMessages] = useState<Doc[]>([]);
   const [pipeline, setPipeline] = useState<Doc[]>([]), [analytics, setAnalytics] = useState<Doc>({}), [memory, setMemory] = useState<Doc[]>([]);
   const [query, setQuery] = useState(""), [decisionFilter, setDecisionFilter] = useState("all");
-  const [refreshing, setRefreshing] = useState(false), [loaded, setLoaded] = useState(false);
+  const [showAllJobs, setShowAllJobs] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const inflight = useRef<Promise<void> | null>(null);
   const workspaceEpoch = useRef(0);
   const [profile, setProfile] = useState<Profile>({ name: "Freelancer", persona: "own", floor_fixed: 50, weekly_connects: 50, auto_skip: true, saved_query: "", interval_seconds: 14400, hourly_rate: 50, min_budget: 0, required_skills: [] });
@@ -45,12 +47,11 @@ export default function Dashboard() {
     setJobs([]); setRuns([]); setPortfolio([]); setMessages([]); setPipeline([]);
     setAnalytics({}); setMemory([]); setStatus({}); setLoaded(false);
     setRegister(false);
-    setQuery(""); setDecisionFilter("all"); setError(""); setNotice(""); setRefreshing(false);
+    setQuery(""); setDecisionFilter("all"); setShowAllJobs(false); setError(""); setNotice("");
   }, []);
   const refresh = useCallback((): Promise<void> => {
     if (inflight.current) return inflight.current;
     const epoch = workspaceEpoch.current;
-    setRefreshing(true);
     inflight.current = (async () => {
       const [s, r, e] = await Promise.all([api.GET("/status"), api.GET("/runs"), api.GET("/evidence")]);
       if (epoch !== workspaceEpoch.current) return;
@@ -75,7 +76,7 @@ export default function Dashboard() {
       if (error?.status === 401) { clearWorkspace(); setSession(null); setCsrf(""); }
       throw error;
     }).finally(() => {
-      if (epoch === workspaceEpoch.current) { setRefreshing(false); inflight.current = null; }
+      if (epoch === workspaceEpoch.current) { inflight.current = null; }
     });
     return inflight.current;
   }, [clearWorkspace]);
@@ -89,7 +90,7 @@ export default function Dashboard() {
   const selectedJob = jobs.find(j => j.id === id || j.id === run?.subject);
   async function act(task: () => Promise<void>) { setError(""); setNotice(""); setBusy(true); try { const epoch = workspaceEpoch.current; await task(); if (epoch === workspaceEpoch.current) await refresh(); } catch (e) { setError(e instanceof Error ? e.message : "Operation failed"); } finally { setBusy(false); } }
   async function auth(e: React.FormEvent) { e.preventDefault(); setBusy(true); setError(""); try {
-    const result = register ? await api.POST("/auth/register", { body: { email, password } }) : await api.POST("/auth/login", { body: { email, password } });
+    const result = register ? await api.POST("/auth/register", { body: { email, password, profile: { name: signup.name.trim(), persona: signup.persona as Profile["persona"], floor_fixed: Number(signup.floor_fixed), hourly_rate: Number(signup.hourly_rate), weekly_connects: Number(signup.weekly_connects) } } }) : await api.POST("/auth/login", { body: { email, password } });
     const user = checked(result); clearWorkspace(); setSession(user); setCsrf(user.csrf); setProfile(user.profile as Profile); setPassword(""); router.push(register ? "/settings" : "/inbox");
   } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }
   async function skip(jobId: string, reason: string) { await act(async () => { checked(await api.POST("/jobs/{job_id}/skip", { params: { path: { job_id: jobId } }, body: { reason } })); setNotice("Job skipped. Choose the Skipped filter to see it again."); }); }
@@ -101,16 +102,34 @@ export default function Dashboard() {
     <div className="auth-principles"><span>01 &nbsp; Real portfolio evidence</span><span>02 &nbsp; A second pair of eyes</span><span>03 &nbsp; You approve every send</span></div>
     <small>Local development · Synthetic marketplace · Official integrations pending</small></div>
     <form className="auth-form" onSubmit={auth}><p className="eyebrow">YOUR FREELANCE WORKSPACE</p><h2>{register ? "Create your account" : "Welcome back"}</h2><p className="muted">Keep your next opportunity in focus.</p>
+      {register && <>
+        <label>Full name<input required maxLength={100} autoComplete="name" value={signup.name} onChange={e => setSignup({ ...signup, name: e.target.value })}/></label>
+        <label>Persona<select required value={signup.persona} onChange={e => setSignup({ ...signup, persona: e.target.value })}>
+          <option value="">Choose your profile</option><option value="own">My own profile</option><option value="full-stack">Full-stack developer</option><option value="ai-ml">AI / ML engineer</option><option value="data-analyst">Data analyst</option>
+        </select></label>
+        <label>Minimum fixed bid (USD)<input required type="number" min="0.01" max="1000000" step="0.01" value={signup.floor_fixed} onChange={e => setSignup({ ...signup, floor_fixed: e.target.value })}/></label>
+        <label>Hourly rate (USD)<input required type="number" min="0.01" max="10000" step="0.01" value={signup.hourly_rate} onChange={e => setSignup({ ...signup, hourly_rate: e.target.value })}/></label>
+        <label>Weekly Connects budget<input required type="number" min="0" max="10000" value={signup.weekly_connects} onChange={e => setSignup({ ...signup, weekly_connects: e.target.value })}/></label>
+      </>}
       <label>Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
       <label>Password<input type="password" minLength={6} maxLength={128} autoComplete={register ? "new-password" : "current-password"} required value={password} onChange={e => setPassword(e.target.value)} /></label>
       {register && <small className="muted">At least 6 characters.</small>}{error && <p role="alert" className="error">{error}</p>}
       <button className="primary" disabled={busy}>{busy ? "Please wait…" : register ? "Create account →" : "Sign in →"}</button>
       <button type="button" className="text-button" onClick={() => setRegister(!register)}>{register ? "Already have an account? Sign in" : "New here? Create an account"}</button></form></main>;
 
+  const initial = profile.name?.trim() && profile.name !== "Freelancer" ? Array.from(profile.name.trim())[0].toUpperCase() : "—";
   const titles: Record<string, string> = { inbox: "Your next opportunity.", jobs: "A closer look.", studio: "Make a strong first impression.", pipeline: "Keep good work moving.", messages: "Keep the conversation going.", runs: "See the thinking behind it.", analytics: "Learn from what happens.", settings: "Make this workspace yours." };
   const threads = Object.entries(messages.reduce<Record<string, Doc[]>>((all, m) => ({ ...all, [m.conversation]: [...(all[m.conversation] || []), m] }), {}));
   const waiting = runs.filter(r => r.status === "awaiting_approval" && r.approval_status === "pending").length;
+  const savedFilters = [
+    profile.saved_query?.trim() && `Search: ${profile.saved_query.trim()}`,
+    !!profile.min_budget && `Minimum budget: ${money(profile.min_budget)}`,
+    profile.max_connects != null && `Maximum Connects: ${profile.max_connects}`,
+    !!profile.required_skills?.some(skill => skill.trim()) &&
+      `Required skills: ${profile.required_skills.map(skill => skill.trim()).filter(Boolean).join(", ")}`,
+  ].filter(Boolean);
   const shown = jobs.filter(j => {
+    if (showAllJobs) return true;
     const terms = (query + " " + (profile.saved_query || "")).toLowerCase().split(/\s+/).filter(Boolean);
     const searchable = (j.title + " " + j.description + " " + j.skills.join(" ")).toLowerCase();
     return terms.every(term => searchable.includes(term)) && j.budget >= (profile.min_budget || 0) &&
@@ -121,28 +140,29 @@ export default function Dashboard() {
         decisionFilter === "unanalysed" ? !j.analysis.decision : j.analysis.decision?.action === decisionFilter));
   }).sort((a, b) => (b.analysis.fit?.score ?? -1) - (a.analysis.fit?.score ?? -1));
   return <div className="shell"><a className="skip-link" href="#main-content">Skip to main content</a><aside className="sidebar"><Link href="/inbox" className="brand">g<span>↗</span> gigbid<span className="brand-dot">●</span></Link>
-    <div className="workspace"><span className="avatar">{profile.name?.[0]?.toUpperCase() || "F"}</span><div><strong>{profile.name || "Freelancer"}</strong><small>Personal workspace</small></div><span>⌄</span></div>
+    <div className="workspace"><span className="avatar">{initial}</span><div><strong>{profile.name || "Freelancer"}</strong><small>Personal workspace</small></div><span>⌄</span></div>
     <p className="nav-label">WORKSPACE</p><nav aria-label="Main navigation">{navigation.map(([key, icon, label]) => <Link aria-current={(section === key || key === "inbox" && ["jobs", "studio"].includes(section)) ? "page" : undefined} key={key} href={`/${key}`} className={(section === key || key === "inbox" && ["jobs", "studio"].includes(section)) ? "active" : ""}><span>{icon}</span>{label}{key === "inbox" && waiting > 0 && <b>{waiting}</b>}</Link>)}</nav>
     <div className="sidebar-note"><span className="status-dot"/> Human in the loop<p>Every proposal and message waits for your approval.</p></div>
     <div className="sidebar-bottom"><small>{session.email}</small><button className="text-button" onClick={() => act(async () => { checked(await api.POST("/auth/logout")); clearWorkspace(); setSession(null); setCsrf(""); })}>Sign out ↗</button></div>
-  </aside><main className="main" id="main-content" tabIndex={-1}><header className="topbar"><span>Workspace <span className="muted"> / {section === "inbox" ? "Job inbox" : section}</span></span><div><Badge tone="amber">{status.synthetic ? "SYNTHETIC / MOCK" : status.marketplace_mode || "Loading"}</Badge><button className="text-button" disabled={refreshing} onClick={() => refresh().catch(e => setError(e.message))}>{refreshing ? "Refreshing…" : "Refresh workspace"}</button><span className="top-avatar">{profile.name?.[0] || "F"}</span></div></header>
+  </aside><main className="main" id="main-content" tabIndex={-1}><header className="topbar"><span>Workspace <span className="muted"> / {section === "inbox" ? "Job inbox" : section}</span></span><div><Badge tone="amber">{status.synthetic ? "SIMULATION MODE" : status.marketplace_mode || "Loading"}</Badge><button className="text-button" onClick={() => refresh().catch(e => setError(e.message))}>Refresh workspace</button><span className="top-avatar">{initial}</span></div></header>
     <div className="content"><div className="page-heading"><div><p className="eyebrow">{section === "inbox" ? "LESS SCROLLING. BETTER FIT." : "YOUR FREELANCE COPILOT"}</p><h1>{titles[section] || titles.inbox}</h1><p className="muted">{section === "inbox" ? "Discover work that fits your skills. Send only what you believe in." : "Portfolio evidence, clear decisions, and your approval at every step."}</p></div>
-      {section === "inbox" && <button className="primary" disabled={busy} onClick={() => act(async () => { checked(await api.POST("/dev/seed")); setNotice("Original synthetic examples loaded."); })}>＋ Load synthetic examples</button>}</div>
+      {section === "inbox" && status.synthetic && <button className="primary" disabled={busy} onClick={() => act(async () => { const result = checked(await api.POST("/dev/instructor-jobs")); setNotice(`${result.count} instructor jobs are available in your inbox.`); })}>Load instructor jobs</button>}</div>
     {error && <div role="alert" className="alert error">{error}<button aria-label="Dismiss error" onClick={() => setError("")}>×</button></div>}
     {notice && <div role="status" className="alert success">{notice}</div>}
     {status.marketplace_available === false && <div role="alert" className="alert warning"><strong>Marketplace unavailable.</strong> {status.error} Queued work is retained. Retry failed runs after recovery.</div>}
-    <div className="mode-note"><span>◈</span>{status.synthetic ? "Synthetic marketplace · Jobs, clients and sample portfolios are authored development examples." : "Configured marketplace · Check integration readiness before proceeding."} Uploaded portfolio evidence retains its own provenance. Policy remains provisional.</div>
+    <div className="mode-note"><span>◈</span>{status.synthetic ? "Instructor jobs are historical Upwork listings. Client activity, submissions and Connects spending are simulated." : "Configured marketplace · Check integration readiness before proceeding."} Uploaded portfolio evidence retains its own provenance. Policy remains provisional.</div>
     {!loaded && <p role="status" className="panel">{error ? "Workspace data is unavailable. Use Refresh workspace to retry." : "Loading workspace data…"}</p>}
 
     {section === "inbox" && <><div className="metrics"><Metric label="OPPORTUNITIES" value={jobs.length} note="In your current feed"/><Metric label="READY FOR REVIEW" value={waiting} note="Your decision comes next"/><Metric label="CONNECTS AVAILABLE" value={analytics.connects?.balance ?? "—"} note={`${analytics.connects?.spent || 0} spent · recorded mock activity`}/><Metric label="IN YOUR PIPELINE" value={pipeline.length} note="Tracked from marketplace events"/></div>
-      <div className="inbox-layout"><section><div className="section-heading"><h2>Opportunity feed <span className="count">{shown.length}</span></h2><input aria-label="Filter opportunities" placeholder="⌕  Search skills or titles" value={query} onChange={e => setQuery(e.target.value)}/></div>
-      <div className="feed-tabs"><span className="selected">All opportunities</span><span>{waiting} awaiting review</span><small>Ranked by analysed fit ↓ · saved filters applied</small></div>
-      <div className="filter-row"><label htmlFor="decision-filter">Decision filter</label><select id="decision-filter" value={decisionFilter} onChange={e => setDecisionFilter(e.target.value)}>
+      <div className="inbox-layout"><section><div className="section-heading"><h2>Opportunity feed <span className="count">{shown.length} of {jobs.length}</span></h2><input aria-label="Filter opportunities" placeholder="⌕  Search skills or titles" value={query} disabled={showAllJobs} onChange={e => setQuery(e.target.value)}/></div>
+      <div className="feed-tabs"><span className="selected">{showAllJobs ? "All loaded jobs" : "Filtered opportunities"}</span><span>{waiting} awaiting review</span><small>Ranked by analysed fit ↓</small></div>
+      {savedFilters.length > 0 && <p className="muted">{showAllJobs ? "Saved filters paused" : "Active saved filters"} · {savedFilters.join(" · ")}</p>}
+      <div className="filter-row"><label htmlFor="decision-filter">Decision filter</label><select id="decision-filter" value={decisionFilter} disabled={showAllJobs} onChange={e => setDecisionFilter(e.target.value)}>
         <option value="all">All decisions</option><option value="awaiting_approval">Awaiting review</option><option value="bid">Bid</option><option value="watch">Watch</option><option value="skip">Skip</option><option value="unanalysed">Not analysed</option><option value="skipped">Skipped</option>
-      </select><Link className="inline-link" href="/settings">Edit saved budget and skill filters</Link></div>
+      </select><button type="button" className="secondary" onClick={() => setShowAllJobs(value => !value)}>{showAllJobs ? "Reapply filters" : "Show all loaded jobs"}</button><Link className="inline-link" href="/settings">Edit saved budget and skill filters</Link></div>
       {!shown.length && loaded && <div className="panel empty"><h3>{jobs.length ? "No opportunities match your filters." : "Your opportunity feed is empty."}</h3>
-        <p>{jobs.length ? "Adjust the search or saved filters in Settings to see more opportunities." : "Load labelled synthetic examples to explore the workflow, and add your own portfolio in Settings."}</p></div>}
-      {shown.map(job => <article key={job.id} className="job-card"><div className="job-top"><span className="job-icon">{job.skills[0]?.slice(0, 2)}</span><div><small>{job.client_id} <span className="muted">· synthetic client</span></small><h3><Link href={`/jobs/${job.id}`}>{job.title}</Link></h3></div><Badge tone={job.status === "skip" ? "red" : job.analysis.fit ? "green" : "neutral"}>{job.analysis.fit ? `${Math.round(job.analysis.fit.score * 100)}% fit` : "Not analysed"}</Badge></div>
+        <p>{jobs.length ? "Adjust the search or saved filters in Settings to see more opportunities." : "Load instructor jobs and add your portfolio in Settings."}</p></div>}
+      {shown.map(job => <article key={job.id} className="job-card"><div className="job-top"><span className="job-icon">{job.skills[0]?.slice(0, 2)}</span><div><small>{job.id.startsWith("historical-upwork-") ? "Instructor dataset · historical Upwork listing" : status.synthetic ? "Synthetic example" : job.client_id}</small><h3><Link href={`/jobs/${job.id}`}>{job.title}</Link></h3></div><Badge tone={job.status === "skip" ? "red" : job.analysis.fit ? "green" : "neutral"}>{job.analysis.fit ? `${Math.round(job.analysis.fit.score * 100)}% fit` : "Not analysed"}</Badge></div>
         <p className="job-description">{job.description}</p><div className="skills">{job.skills.map((s: string) => <span key={s}>{s}</span>)}</div>
         <div className="job-footer"><span><strong>{money(job.budget)}</strong> <small>fixed budget</small></span><span>◈ {job.connects} Connects</span><Badge tone={job.analysis.risk?.flags?.length ? "amber" : "neutral"}>{job.analysis.risk?.flags?.join(", ") || job.status.replaceAll("_", " ")}</Badge>
           {job.duplicate_of && <Badge tone="amber">Duplicate of {job.duplicate_of}</Badge>}{job.recommended_skip && <Badge tone="red">Recommended skip</Badge>}{job.skipped && job.skip_reason && <small>Skipped: {job.skip_reason}</small>}<span>Bid {money(job.analysis.price?.amount)}</span><span>Action: {job.analysis.decision?.action || "Pending"}</span><button className="secondary" disabled={busy} onClick={() => job.run_id ? router.push(`/studio/${job.run_id}`) : analyse(job.id)}>{job.run_id ? "View analysis" : "Analyse fit"} ↗</button>{!job.skipped && <SkipJob job={job} busy={busy} skip={skip}/>}</div></article>)}</section>

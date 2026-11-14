@@ -34,7 +34,7 @@ def client():
 
 @pytest.fixture
 def account(client):
-    result = client.post("/auth/register", json={"email": "alice@example.test", "password": "correct-horse-battery-123"})
+    result = client.post("/auth/register", json={"email": "alice@example.test", "password": "correct-horse-battery-123", "profile": {"name": "Test User", "persona": "own", "floor_fixed": 50, "hourly_rate": 50, "weekly_connects": 50}})
     assert result.status_code == 200, result.text
     me = result.json()
     client.headers.update({"origin": "http://localhost:3000", "x-csrf-token": me["csrf"]})

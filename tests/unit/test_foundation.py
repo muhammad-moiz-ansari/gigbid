@@ -27,7 +27,7 @@ def test_clean_database_migration_and_repeat(tmp_path):
 def test_health_readiness_and_cookie_security(client):
     assert client.get("/health").json()["ok"] is True
     assert client.get("/ready").json()["database"] == "ready"
-    result = client.post("/auth/register", json={"email": "foundation@example.test", "password": "secure-password-for-test"})
+    result = client.post("/auth/register", json={"email": "foundation@example.test", "password": "secure-password-for-test", "profile": {"name": "Test User", "persona": "own", "floor_fixed": 50, "hourly_rate": 50, "weekly_connects": 50}})
     assert result.status_code == 200
     cookie = result.headers["set-cookie"].lower()
     assert "httponly" in cookie and "samesite=lax" in cookie

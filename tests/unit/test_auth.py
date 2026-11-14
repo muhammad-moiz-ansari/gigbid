@@ -8,7 +8,7 @@ from apps.api.main import app
 
 def test_password_hash_and_two_hour_session(client, monkeypatch):
     monkeypatch.setattr(service, "now", lambda: 1000)
-    result = client.post("/auth/register", json={"email": "expiry@example.test", "password": "abcdef"})
+    result = client.post("/auth/register", json={"email": "expiry@example.test", "password": "abcdef", "profile": {"name": "Test User", "persona": "own", "floor_fixed": 50, "hourly_rate": 50, "weekly_connects": 50}})
     assert result.status_code == 200
     assert "Max-Age=7200" in result.headers["set-cookie"]
     with transaction() as db:
@@ -25,7 +25,7 @@ def test_csrf_and_tenant_isolation(client, account):
     run = client.post("/jobs/mock-api/analyse").json()
     with TestClient(app) as other:
         assert other.get("/runs").status_code == 401
-        registered = other.post("/auth/register", json={"email": "bob@example.test", "password": "different-password-123"}).json()
+        registered = other.post("/auth/register", json={"email": "bob@example.test", "password": "different-password-123", "profile": {"name": "Test User", "persona": "own", "floor_fixed": 50, "hourly_rate": 50, "weekly_connects": 50}}).json()
         assert registered["id"] != account["id"]
         assert other.get(f'/runs/{run["id"]}').status_code == 404
         assert other.get("/evidence").json() == []
@@ -43,7 +43,7 @@ def test_password_and_session_revocation(client, account):
 def test_local_registration_accepts_six_characters_and_checks_origin(client, monkeypatch):
     monkeypatch.setattr(settings(), "web_origin", "http://localhost:3000")
     origin = {"origin": "http://127.0.0.1:3000"}
-    credentials = {"email": "local@example.test", "password": "abcdef"}
+    credentials = {"email": "local@example.test", "password": "abcdef", "profile": {"name": "Test User", "persona": "own", "floor_fixed": 50, "hourly_rate": 50, "weekly_connects": 50}}
     assert client.post("/auth/register", headers=origin,
                        json={**credentials, "password": "abcde"}).status_code == 422
     foreign = {"origin": "http://localhost:3001"}

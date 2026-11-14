@@ -157,6 +157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dev/instructor-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Load Instructor Jobs */
+        post: operations["load_instructor_jobs_dev_instructor_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/status": {
         parameters: {
             query?: never;
@@ -919,6 +936,14 @@ export interface components {
             /** Count */
             count: number;
         };
+        /** Registration */
+        Registration: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+            profile: components["schemas"]["SignupProfile"];
+        };
         /** ReplayInput */
         ReplayInput: {
             /** Checkpoint Id */
@@ -975,6 +1000,22 @@ export interface components {
             profile: {
                 [key: string]: unknown;
             };
+        };
+        /** SignupProfile */
+        SignupProfile: {
+            /** Name */
+            name: string;
+            /**
+             * Persona
+             * @enum {string}
+             */
+            persona: "own" | "full-stack" | "ai-ml" | "data-analyst";
+            /** Floor Fixed */
+            floor_fixed: number;
+            /** Hourly Rate */
+            hourly_rate: number;
+            /** Weekly Connects */
+            weekly_connects: number;
         };
         /** SkipInput */
         SkipInput: {
@@ -1110,7 +1151,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Credentials"];
+                "application/json": components["schemas"]["Registration"];
             };
         };
         responses: {
@@ -1295,6 +1336,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    load_instructor_jobs_dev_instructor_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
         };

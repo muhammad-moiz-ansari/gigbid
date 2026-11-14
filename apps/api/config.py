@@ -1,3 +1,4 @@
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -45,10 +46,12 @@ class Settings(BaseSettings):
 
     @property
     def web_origins(self) -> tuple[str, ...]:
-        local_origins = ("http://localhost:3000", "http://127.0.0.1:3000")
-        if self.web_origin in local_origins:
-            return local_origins
-        return (self.web_origin,)
+        origin = self.web_origin.strip().rstrip("/")
+        loopback = re.fullmatch(r"http\\?://(?:localhost|127\.0\.0\.1):([0-9]+)", origin)
+        if loopback:
+            port = loopback[1]
+            return (f"http://localhost:{port}", f"http://127.0.0.1:{port}")
+        return (origin,)
 
 
 @lru_cache

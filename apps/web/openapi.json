@@ -57,7 +57,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Credentials"
+                "$ref": "#/components/schemas/Registration"
               }
             }
           },
@@ -272,6 +272,31 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/instructor-jobs": {
+      "post": {
+        "tags": [
+          "workflow"
+        ],
+        "summary": "Load Instructor Jobs",
+        "operationId": "load_instructor_jobs_dev_instructor_jobs_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Load Instructor Jobs Dev Instructor Jobs Post"
                 }
               }
             }
@@ -2062,6 +2087,32 @@
         ],
         "title": "ReasonCount"
       },
+      "Registration": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 5,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 6,
+            "title": "Password"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/SignupProfile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "profile"
+        ],
+        "title": "Registration"
+      },
       "ReplayInput": {
         "properties": {
           "checkpoint_id": {
@@ -2197,6 +2248,54 @@
           "profile"
         ],
         "title": "SessionView"
+      },
+      "SignupProfile": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Name"
+          },
+          "persona": {
+            "type": "string",
+            "enum": [
+              "own",
+              "full-stack",
+              "ai-ml",
+              "data-analyst"
+            ],
+            "title": "Persona"
+          },
+          "floor_fixed": {
+            "type": "number",
+            "maximum": 1000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Floor Fixed"
+          },
+          "hourly_rate": {
+            "type": "number",
+            "maximum": 10000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Hourly Rate"
+          },
+          "weekly_connects": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Weekly Connects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "persona",
+          "floor_fixed",
+          "hourly_rate",
+          "weekly_connects"
+        ],
+        "title": "SignupProfile"
       },
       "SkipInput": {
         "properties": {

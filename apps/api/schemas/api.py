@@ -32,6 +32,19 @@ class Profile(BaseModel):
     marketplace_mode: Literal["mock", "gigsim", "upwork"] | None = None
 
 
+class SignupProfile(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+    name: str = Field(min_length=1, max_length=100, pattern=r"\S")
+    persona: Literal["own", "full-stack", "ai-ml", "data-analyst"]
+    floor_fixed: float = Field(gt=0, le=1_000_000)
+    hourly_rate: float = Field(gt=0, le=10000)
+    weekly_connects: int = Field(ge=0, le=10000)
+
+
+class Registration(Credentials):
+    profile: SignupProfile
+
+
 class Upload(BaseModel):
     source: str = Field(min_length=1, max_length=200)
     text: str = Field(min_length=1, max_length=2_000_000)

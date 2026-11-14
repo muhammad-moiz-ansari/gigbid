@@ -1,3 +1,4 @@
+import csv
 import json
 
 import httpx
@@ -31,6 +32,7 @@ from apps.api.schemas.api import (
     SkipInput,
     Upload,
 )
+from dev_support.instructor_jobs import DEFAULT_SOURCE, import_jobs, load_jobs
 from dev_support.seed import seed
 from mcp_servers.marketplace.adapters import marketplace
 from rag.ingest.github import ingest_repository
@@ -95,6 +97,20 @@ def fault(data: FaultInput, user: User = Depends(current_user)) -> dict:
     with transaction() as db:
         put_record(db, user.id, "mock_control", "fault", data.model_dump())
     return data.model_dump()
+
+
+@router.post("/dev/instructor-jobs")
+def load_instructor_jobs(user: User = Depends(current_user)) -> dict[str, int]:
+    if settings().marketplace_mode != "mock":
+        raise HTTPException(409, "Historical jobs require simulation mode")
+    try:
+        jobs = load_jobs(DEFAULT_SOURCE, 100)
+        if not jobs:
+            raise ValueError("No usable fixed-price jobs in the instructor archive")
+        import_jobs(user.id, jobs)
+    except (OSError, ValueError, csv.Error) as exc:
+        raise HTTPException(422, f"Instructor archive could not be imported: {exc}") from exc
+    return {"count": len(jobs)}
 
 
 @router.get("/status")

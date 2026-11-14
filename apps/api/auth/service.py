@@ -52,6 +52,8 @@ def authenticate(email: str, password: str):
     with transaction() as db:
         user = db.scalar(select(User).where(User.email == email.lower().strip()))
         valid = passwords.verify(password, user.password_hash if user else DUMMY_HASH)
-        if not valid or not user:
-            raise HTTPException(401, "Invalid email or password")
+        if not user:
+            raise HTTPException(401, "Email not registered.")
+        if not valid:
+            raise HTTPException(401, "Wrong password.")
         return user
