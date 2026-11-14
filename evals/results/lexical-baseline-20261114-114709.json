@@ -1,0 +1,805 @@
+{
+  "study": "lexical-baseline",
+  "timestamp": "20261114-114709",
+  "code": {
+    "commit": "1d1533b",
+    "uncommitted_changes": false
+  },
+  "dataset": {
+    "name": "synthetic",
+    "sha256": "78a353f7c6d8668b2ac4332c667b2f89d455b41272de0099fc7a0f3daf0b1b4b",
+    "use": "harness validation only"
+  },
+  "config_sha256": "96b01a1a99ba7e911ce215fd1b4f3b6543c0e5f5c898ca5652e014b1c6efdfc7",
+  "hypotheses_sha256": "23bd056413108eeca40fb5de5fbbb76e2222d4187e8548d4877cdfe820c10b3f",
+  "pipeline": "BM25",
+  "summary": {
+    "recall5": 0.692,
+    "mrr": 0.846,
+    "ndcg10": 0.746,
+    "jobs": 42,
+    "refused_when_nothing_fits": 0,
+    "refused_when_evidence_exists": 0,
+    "p50_ms": 11,
+    "p95_ms": 21
+  },
+  "per_job": [
+    {
+      "job": "aiml-01",
+      "persona": "ai-ml",
+      "job_type": "multi_requirement",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.8,
+      "mrr": 1.0,
+      "ndcg10": 0.8453596772450142,
+      "top5": [
+        "aiml-proposal-handbook.md",
+        "aiml-claimwise-review.md",
+        "aiml-claimwise-case.md",
+        "aiml-cv.md",
+        "aiml-proposal-docbot.md"
+      ]
+    },
+    {
+      "job": "aiml-02",
+      "persona": "ai-ml",
+      "job_type": "exact_tool",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.6666666666666666,
+      "mrr": 0.5,
+      "ndcg10": 0.6654667621606754,
+      "top5": [
+        "aiml-docflow-review.md",
+        "aiml-claimwise-readme.md",
+        "aiml-claimwise-case.md",
+        "aiml-claimwise-review.md",
+        "aiml-proposal-handbook.md"
+      ]
+    },
+    {
+      "job": "aiml-03",
+      "persona": "ai-ml",
+      "job_type": "scam",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.6,
+      "mrr": 0.5,
+      "ndcg10": 0.6043130938474478,
+      "top5": [
+        "aiml-proposal-docbot.md",
+        "aiml-claimwise-review.md",
+        "aiml-docflow-review.md",
+        "aiml-proposal-handbook.md",
+        "aiml-cv.md"
+      ]
+    },
+    {
+      "job": "aiml-04",
+      "persona": "ai-ml",
+      "job_type": "implied_skill",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.9871451602176229,
+      "top5": [
+        "aiml-docflow-case.md",
+        "aiml-docflow-readme.md",
+        "aiml-proposal-handbook.md",
+        "aiml-cv.md",
+        "aiml-agentdesk-readme.md"
+      ]
+    },
+    {
+      "job": "aiml-05",
+      "persona": "ai-ml",
+      "job_type": "out_of_scope",
+      "ms": 10,
+      "returned": 10
+    },
+    {
+      "job": "aiml-06",
+      "persona": "ai-ml",
+      "job_type": "exact_tool",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 1.0,
+      "ndcg10": 0.8301645268058915,
+      "top5": [
+        "aiml-supportllm-case.md",
+        "aiml-docflow-review.md",
+        "aiml-claimwise-review.md",
+        "aiml-cv.md",
+        "aiml-proposal-weld.md"
+      ]
+    },
+    {
+      "job": "aiml-07",
+      "persona": "ai-ml",
+      "job_type": "vague",
+      "ms": 14,
+      "returned": 10,
+      "recall5": 0.6,
+      "mrr": 1.0,
+      "ndcg10": 0.7874054205786858,
+      "top5": [
+        "aiml-claimwise-review.md",
+        "aiml-docflow-review.md",
+        "aiml-proposal-docbot.md",
+        "aiml-proposal-handbook.md",
+        "aiml-claimwise-case.md"
+      ]
+    },
+    {
+      "job": "aiml-08",
+      "persona": "ai-ml",
+      "job_type": "multi_requirement",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.7161833790943976,
+      "top5": [
+        "aiml-supportllm-proposal.md",
+        "aiml-docflow-review.md",
+        "aiml-supportllm-case.md",
+        "aiml-claimwise-review.md",
+        "aiml-cv.md"
+      ]
+    },
+    {
+      "job": "aiml-09",
+      "persona": "ai-ml",
+      "job_type": "scam",
+      "ms": 16,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.674972032186087,
+      "top5": [
+        "aiml-supportllm-case.md",
+        "aiml-proposal-docbot.md",
+        "aiml-supportllm-proposal.md",
+        "aiml-cv.md",
+        "aiml-docflow-review.md"
+      ]
+    },
+    {
+      "job": "aiml-10",
+      "persona": "ai-ml",
+      "job_type": "injection",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.6,
+      "mrr": 0.5,
+      "ndcg10": 0.5942787351162508,
+      "top5": [
+        "aiml-supportllm-proposal.md",
+        "aiml-claimwise-case.md",
+        "aiml-proposal-handbook.md",
+        "aiml-claimwise-review.md",
+        "aiml-proposal-docbot.md"
+      ]
+    },
+    {
+      "job": "aiml-11",
+      "persona": "ai-ml",
+      "job_type": "low_budget",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.3333333333333333,
+      "mrr": 1.0,
+      "ndcg10": 0.46842861187702656,
+      "top5": [
+        "aiml-claimwise-review.md",
+        "aiml-docflow-review.md",
+        "aiml-proposal-docbot.md",
+        "aiml-proposal-handbook.md",
+        "aiml-clinicnotes-case.md"
+      ]
+    },
+    {
+      "job": "aiml-12",
+      "persona": "ai-ml",
+      "job_type": "exact_tool",
+      "ms": 12,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 1.0,
+      "ndcg10": 0.9180385079206221,
+      "top5": [
+        "aiml-agentdesk-readme.md",
+        "aiml-docflow-review.md",
+        "aiml-claimwise-review.md",
+        "aiml-proposal-weld.md",
+        "aiml-supportllm-case.md"
+      ]
+    },
+    {
+      "job": "aiml-13",
+      "persona": "ai-ml",
+      "job_type": "out_of_scope",
+      "ms": 21,
+      "returned": 10
+    },
+    {
+      "job": "aiml-14",
+      "persona": "ai-ml",
+      "job_type": "implied_skill",
+      "ms": 18,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.944847956559586,
+      "top5": [
+        "aiml-clinicnotes-case.md",
+        "aiml-supportllm-proposal.md",
+        "aiml-docflow-review.md",
+        "aiml-cv.md",
+        "aiml-claimwise-review.md"
+      ]
+    },
+    {
+      "job": "aiml-15",
+      "persona": "ai-ml",
+      "job_type": "injection",
+      "ms": 33,
+      "returned": 10,
+      "recall5": 0.6666666666666666,
+      "mrr": 1.0,
+      "ndcg10": 0.773147801319325,
+      "top5": [
+        "aiml-proposal-weld.md",
+        "aiml-shelfvision-case.md",
+        "aiml-docflow-review.md",
+        "aiml-claimwise-review.md",
+        "aiml-proposal-handbook.md"
+      ]
+    },
+    {
+      "job": "aiml-16",
+      "persona": "ai-ml",
+      "job_type": "vague",
+      "ms": 22,
+      "returned": 10
+    },
+    {
+      "job": "aiml-17",
+      "persona": "ai-ml",
+      "job_type": "multi_requirement",
+      "ms": 20,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.9586075897137902,
+      "top5": [
+        "aiml-docflow-case.md",
+        "aiml-docflow-review.md",
+        "aiml-proposal-weld.md",
+        "aiml-docflow-readme.md",
+        "aiml-agentdesk-readme.md"
+      ]
+    },
+    {
+      "job": "da-01",
+      "persona": "data-analyst",
+      "job_type": "multi_requirement",
+      "ms": 17,
+      "returned": 10,
+      "recall5": 0.8,
+      "mrr": 1.0,
+      "ndcg10": 0.9492169403800587,
+      "top5": [
+        "da-larkspur-case.md",
+        "da-larkspur-review.md",
+        "da-larkspur-models-repo.md",
+        "da-cv.md",
+        "da-proposal-pepperpot.md"
+      ]
+    },
+    {
+      "job": "da-02",
+      "persona": "data-analyst",
+      "job_type": "scam",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 0.2,
+      "ndcg10": 0.38685280723454163,
+      "top5": [
+        "da-copperloaf-review.md",
+        "da-larkspur-review.md",
+        "da-proposal-pepperpot.md",
+        "da-proposal-pellham.md",
+        "da-cv.md"
+      ]
+    },
+    {
+      "job": "da-03",
+      "persona": "data-analyst",
+      "job_type": "exact_tool",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.9141404765548908,
+      "top5": [
+        "da-copperloaf-model-repo.md",
+        "da-copperloaf-case.md",
+        "da-proposal-pepperpot.md",
+        "da-copperloaf-review.md",
+        "da-larkspur-review.md"
+      ]
+    },
+    {
+      "job": "da-04",
+      "persona": "data-analyst",
+      "job_type": "out_of_scope",
+      "ms": 11,
+      "returned": 10
+    },
+    {
+      "job": "da-05",
+      "persona": "data-analyst",
+      "job_type": "injection",
+      "ms": 12,
+      "returned": 10,
+      "recall5": 0.4,
+      "mrr": 1.0,
+      "ndcg10": 0.6891317855669629,
+      "top5": [
+        "da-larkspur-case.md",
+        "da-larkspur-review.md",
+        "da-copperloaf-review.md",
+        "da-proposal-pepperpot.md",
+        "da-proposal-quarry.md"
+      ]
+    },
+    {
+      "job": "da-06",
+      "persona": "data-analyst",
+      "job_type": "implied_skill",
+      "ms": 12,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.6782255397257025,
+      "top5": [
+        "da-proposal-pepperpot.md",
+        "da-copperloaf-review.md",
+        "da-pepperpot-case.md",
+        "da-larkspur-review.md",
+        "da-pepperpot-analysis-repo.md"
+      ]
+    },
+    {
+      "job": "da-07",
+      "persona": "data-analyst",
+      "job_type": "low_budget",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.9751957567060058,
+      "top5": [
+        "da-proposal-kettlewick.md",
+        "da-proposal-pellham.md",
+        "da-copperloaf-review.md",
+        "da-cv.md",
+        "da-larkspur-case.md"
+      ]
+    },
+    {
+      "job": "da-08",
+      "persona": "data-analyst",
+      "job_type": "vague",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 0.25,
+      "ndcg10": 0.44613443807449454,
+      "top5": [
+        "da-copperloaf-review.md",
+        "da-proposal-pepperpot.md",
+        "da-copperloaf-case.md",
+        "da-proposal-kettlewick.md",
+        "da-larkspur-review.md"
+      ]
+    },
+    {
+      "job": "da-09",
+      "persona": "data-analyst",
+      "job_type": "multi_requirement",
+      "ms": 14,
+      "returned": 10,
+      "recall5": 0.6666666666666666,
+      "mrr": 1.0,
+      "ndcg10": 0.9651911745127935,
+      "top5": [
+        "da-fernbrook-marketing-repo.md",
+        "da-copperloaf-case.md",
+        "da-proposal-pepperpot.md",
+        "da-copperloaf-review.md",
+        "da-larkspur-models-repo.md"
+      ]
+    },
+    {
+      "job": "da-10",
+      "persona": "data-analyst",
+      "job_type": "scam",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 0.4,
+      "mrr": 0.3333333333333333,
+      "ndcg10": 0.4921157776895738,
+      "top5": [
+        "da-copperloaf-review.md",
+        "da-larkspur-review.md",
+        "da-larkspur-case.md",
+        "da-proposal-quarry.md",
+        "da-cv.md"
+      ]
+    },
+    {
+      "job": "da-11",
+      "persona": "data-analyst",
+      "job_type": "exact_tool",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.940914767159646,
+      "top5": [
+        "da-fernbrook-marketing-repo.md",
+        "da-proposal-pepperpot.md",
+        "da-copperloaf-case.md",
+        "da-proposal-quarry.md",
+        "da-cv.md"
+      ]
+    },
+    {
+      "job": "da-12",
+      "persona": "data-analyst",
+      "job_type": "implied_skill",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 1.0,
+      "ndcg10": 0.8262346571285599,
+      "top5": [
+        "da-ashgrove-crm-case.md",
+        "da-copperloaf-review.md",
+        "da-larkspur-review.md",
+        "da-proposal-pepperpot.md",
+        "da-pepperpot-analysis-repo.md"
+      ]
+    },
+    {
+      "job": "da-13",
+      "persona": "data-analyst",
+      "job_type": "vague",
+      "ms": 8,
+      "returned": 10
+    },
+    {
+      "job": "da-14",
+      "persona": "data-analyst",
+      "job_type": "injection",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.944847956559586,
+      "top5": [
+        "da-proposal-quarry.md",
+        "da-proposal-pellham.md",
+        "da-copperloaf-review.md",
+        "da-cv.md",
+        "da-larkspur-review.md"
+      ]
+    },
+    {
+      "job": "da-15",
+      "persona": "data-analyst",
+      "job_type": "out_of_scope",
+      "ms": 10,
+      "returned": 10
+    },
+    {
+      "job": "da-16",
+      "persona": "data-analyst",
+      "job_type": "exact_tool",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.9327783893101107,
+      "top5": [
+        "da-tidewell-tableau-case.md",
+        "da-copperloaf-review.md",
+        "da-proposal-quarry.md",
+        "da-larkspur-review.md",
+        "da-cv.md"
+      ]
+    },
+    {
+      "job": "da-17",
+      "persona": "data-analyst",
+      "job_type": "multi_requirement",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 0.4,
+      "mrr": 1.0,
+      "ndcg10": 0.6131750443432039,
+      "top5": [
+        "da-copperloaf-review.md",
+        "da-cv.md",
+        "da-copperloaf-case.md",
+        "da-larkspur-review.md",
+        "da-pepperpot-case.md"
+      ]
+    },
+    {
+      "job": "fs-01",
+      "persona": "full-stack",
+      "job_type": "multi_requirement",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 0.6,
+      "mrr": 1.0,
+      "ndcg10": 0.7225292631327483,
+      "top5": [
+        "fs-cv.md",
+        "fs-proposal-tallyfern.md",
+        "fs-quillmoor-case.md",
+        "fs-kilnwright-case.md",
+        "fs-proposal-moorlark.md"
+      ]
+    },
+    {
+      "job": "fs-02",
+      "persona": "full-stack",
+      "job_type": "exact_tool",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.8903894887369824,
+      "top5": [
+        "fs-quillmoor-readme.md",
+        "fs-cv.md",
+        "fs-kilnwright-review.md",
+        "fs-ladlewick-perf-case.md",
+        "fs-quillmoor-review.md"
+      ]
+    },
+    {
+      "job": "fs-03",
+      "persona": "full-stack",
+      "job_type": "scam",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 0.25,
+      "ndcg10": 0.43067655807339306,
+      "top5": [
+        "fs-proposal-moorlark.md",
+        "fs-quillmoor-review.md",
+        "fs-kilnwright-review.md",
+        "fs-cv.md",
+        "fs-coldwake-proposal.md"
+      ]
+    },
+    {
+      "job": "fs-04",
+      "persona": "full-stack",
+      "job_type": "implied_skill",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.8154931437050941,
+      "top5": [
+        "fs-quillmoor-review.md",
+        "fs-quillmoor-readme.md",
+        "fs-quillmoor-case.md",
+        "fs-kilnwright-review.md",
+        "fs-coldwake-case.md"
+      ]
+    },
+    {
+      "job": "fs-05",
+      "persona": "full-stack",
+      "job_type": "out_of_scope",
+      "ms": 8,
+      "returned": 10
+    },
+    {
+      "job": "fs-06",
+      "persona": "full-stack",
+      "job_type": "vague",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 0.5,
+      "ndcg10": 0.6728853390803202,
+      "top5": [
+        "fs-quillmoor-review.md",
+        "fs-ladlewick-perf-case.md",
+        "fs-cv.md",
+        "fs-quillmoor-readme.md",
+        "fs-proposal-bramblecote.md"
+      ]
+    },
+    {
+      "job": "fs-07",
+      "persona": "full-stack",
+      "job_type": "injection",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 1.0,
+      "ndcg10": 0.5517279302220487,
+      "top5": [
+        "fs-proposal-tallyfern.md",
+        "fs-quillmoor-review.md",
+        "fs-coldwake-proposal.md",
+        "fs-proposal-moorlark.md",
+        "fs-quillmoor-case.md"
+      ]
+    },
+    {
+      "job": "fs-08",
+      "persona": "full-stack",
+      "job_type": "multi_requirement",
+      "ms": 8,
+      "returned": 10,
+      "recall5": 0.8,
+      "mrr": 1.0,
+      "ndcg10": 0.7361412541722094,
+      "top5": [
+        "fs-coldwake-proposal.md",
+        "fs-coldwake-case.md",
+        "fs-ladlewick-perf-case.md",
+        "fs-coldwake-readme.md",
+        "fs-cv.md"
+      ]
+    },
+    {
+      "job": "fs-09",
+      "persona": "full-stack",
+      "job_type": "exact_tool",
+      "ms": 10,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.9832184408687481,
+      "top5": [
+        "fs-brineholt-e2e-repo.md",
+        "fs-quillmoor-readme.md",
+        "fs-proposal-tallyfern.md",
+        "fs-cv.md",
+        "fs-quillmoor-case.md"
+      ]
+    },
+    {
+      "job": "fs-10",
+      "persona": "full-stack",
+      "job_type": "low_budget",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg10": 0.21453086476600655,
+      "top5": [
+        "fs-proposal-bramblecote.md",
+        "fs-proposal-tallyfern.md",
+        "fs-ladlewick-perf-case.md",
+        "fs-proposal-moorlark.md",
+        "fs-coldwake-proposal.md"
+      ]
+    },
+    {
+      "job": "fs-11",
+      "persona": "full-stack",
+      "job_type": "implied_skill",
+      "ms": 11,
+      "returned": 10,
+      "recall5": 0.75,
+      "mrr": 1.0,
+      "ndcg10": 0.9832843142264166,
+      "top5": [
+        "fs-coldwake-case.md",
+        "fs-coldwake-readme.md",
+        "fs-cv.md",
+        "fs-quillmoor-review.md",
+        "fs-proposal-tallyfern.md"
+      ]
+    },
+    {
+      "job": "fs-12",
+      "persona": "full-stack",
+      "job_type": "vague",
+      "ms": 14,
+      "returned": 10
+    },
+    {
+      "job": "fs-13",
+      "persona": "full-stack",
+      "job_type": "scam",
+      "ms": 15,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 0.3333333333333333,
+      "ndcg10": 0.41311732856427996,
+      "top5": [
+        "fs-proposal-moorlark.md",
+        "fs-proposal-tallyfern.md",
+        "fs-quillmoor-case.md",
+        "fs-kilnwright-readme.md",
+        "fs-ladlewick-perf-case.md"
+      ]
+    },
+    {
+      "job": "fs-14",
+      "persona": "full-stack",
+      "job_type": "multi_requirement",
+      "ms": 17,
+      "returned": 10,
+      "recall5": 0.5,
+      "mrr": 1.0,
+      "ndcg10": 0.7845193401126699,
+      "top5": [
+        "fs-kilnwright-case.md",
+        "fs-quillmoor-review.md",
+        "fs-cv.md",
+        "fs-proposal-tallyfern.md",
+        "fs-quillmoor-case.md"
+      ]
+    },
+    {
+      "job": "fs-15",
+      "persona": "full-stack",
+      "job_type": "out_of_scope",
+      "ms": 10,
+      "returned": 10
+    },
+    {
+      "job": "fs-16",
+      "persona": "full-stack",
+      "job_type": "exact_tool",
+      "ms": 9,
+      "returned": 10,
+      "recall5": 0.25,
+      "mrr": 1.0,
+      "ndcg10": 0.8017432748275147,
+      "top5": [
+        "fs-furrowfield-live-repo.md",
+        "fs-ladlewick-perf-case.md",
+        "fs-quillmoor-review.md",
+        "fs-coldwake-proposal.md",
+        "fs-proposal-moorlark.md"
+      ]
+    },
+    {
+      "job": "fs-17",
+      "persona": "full-stack",
+      "job_type": "injection",
+      "ms": 10,
+      "returned": 10,
+      "recall5": 1.0,
+      "mrr": 1.0,
+      "ndcg10": 0.8044726423602091,
+      "top5": [
+        "fs-cv.md",
+        "fs-coldwake-case.md",
+        "fs-coldwake-proposal.md",
+        "fs-coldwake-readme.md",
+        "fs-ladlewick-perf-case.md"
+      ]
+    }
+  ]
+}
