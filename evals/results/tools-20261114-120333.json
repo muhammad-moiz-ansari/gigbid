@@ -1,0 +1,43 @@
+{
+  "study": "tools",
+  "timestamp": "20261114-120333",
+  "code": {
+    "commit": "8720c35",
+    "uncommitted_changes": true
+  },
+  "dataset": {
+    "name": "synthetic",
+    "sha256": "78a353f7c6d8668b2ac4332c667b2f89d455b41272de0099fc7a0f3daf0b1b4b",
+    "use": "harness validation only"
+  },
+  "config_sha256": "96b01a1a99ba7e911ce215fd1b4f3b6543c0e5f5c898ca5652e014b1c6efdfc7",
+  "hypotheses_sha256": "23bd056413108eeca40fb5de5fbbb76e2222d4187e8548d4877cdfe820c10b3f",
+  "model": "openai/gpt-oss-20b",
+  "rows_file": "tools-gpt-oss-20b-c78f34d1.jsonl",
+  "tasks_sha256": "c78f34d1bf2f81f6c5409c2e8be9b9313d8a0856dcda8f9d0aaa7f9ba2f2e304",
+  "schema_sha256": "45bd5d93fc12e644b6ddcd3be9b2ea0e13149f4294227c93eafa4dd7b47d02cf",
+  "tasks": 40,
+  "sets": {
+    "fine": {
+      "tasks": 40,
+      "tool_selection_accuracy": 0.825,
+      "argument_accuracy": 0.8,
+      "tokens_per_task": 938,
+      "rejected_by_provider": 6
+    },
+    "coarse": {
+      "tasks": 40,
+      "tool_selection_accuracy": 0.775,
+      "argument_accuracy": 0.75,
+      "tokens_per_task": 929,
+      "rejected_by_provider": 7
+    },
+    "rewritten": {
+      "tasks": 40,
+      "tool_selection_accuracy": 0.925,
+      "argument_accuracy": 0.9,
+      "tokens_per_task": 1431,
+      "rejected_by_provider": 3
+    }
+  }
+}
