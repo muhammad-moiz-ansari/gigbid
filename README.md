@@ -1,61 +1,44 @@
 # GigBid
 
-An evidence-grounded freelancer copilot with human approval before outgoing actions.
+> The 30-second demo GIF and recording link will be added after the demo is recorded.
 
-**Current handoff: Phase 7 and its real-model fixes are done; generation now uses hosted
-open-weight models (see the phase status).** The user requires explicit instructions before each
-subsequent phase. Later-phase code started under the original authorization is
-preserved but unfinished.
+GigBid helps freelancers decide which jobs to pursue and draft proposals grounded in their portfolio. Every outgoing action goes through human review of the exact draft, destination, bid and Connects cost.
 
-Phase 2 adds typed marketplace contracts, explicit adapter readiness, a durable
-synthetic marketplace, deterministic client outcomes, fault controls and tested
-idempotent Connects accounting. See the [simulator guide](dev_support/mock_marketplace/README.md).
-Official adapter implementations remain unavailable pending verified contracts.
-The final checks passed all 54 simulator/foundation/approval compatibility tests and
-Ruff. Recorded counts and source/fixture hashes are in [Phase 2 check evidence](docs/checks/phase2.json).
+- **Review deployment.** Vercel frontend, Render API and Neon Postgres. [API readiness](https://gigbid-dari.onrender.com/ready) was verified. The production frontend URL and hosted worker still need final reviewer verification.
+- **Data.** The historical instructor archive supplies job listings for selected accounts. Mock clients, submission effects and Connects accounting are simulated. Keep the raw archive private. [Data card](docs/DATA_CARD.md)
+- **Local release checks.** 217 Python tests passed with one Postgres checkpoint skip, and nine Chrome journeys passed. With Groq and local Ollama V2 over MCP HTTP, 28 of 30 repeated mock proposals submitted and 29 of 30 replies sent. [Smoke report](evals/results/smoke-20261115-162627.json)
 
-Phase 3 implements three MCP servers with typed tools, portfolio resources/prompts,
-authenticated tenant access, approval/idempotency checks, deadlines, rate limits,
-redacted audits and role allowlists. All 91 regression tests pass, including real
-stdio/HTTP calls and server recovery. See [MCP tool guide](docs/TOOLS.md) and
-[Phase 3 evidence](docs/checks/phase3.json). Inspector screenshots and official
-integration verification remain pending.
+## Architecture
 
-Phase 4 adds structured PDF/Markdown/review/proposal ingestion, source metadata and
-hashes, deduplication, incremental replacement/deletion, tenant-scoped BM25/Qdrant
-indexes and a versioned V0 dense baseline. See [portfolio data card](docs/DATA_CARD.md)
-and [index commands](docs/RUNBOOK.md). Local Qdrant and test-vector lifecycle checks
-pass; real Ollama embedding execution and GitHub MCP ingestion remain pending.
-The full regression run passed 128 tests; the final Phase 4 subset passed 37
-overlapping tests after edge-case fixes. [Phase 4 evidence](docs/checks/phase4.json)
-records commands, provenance and limitations.
+```mermaid
+flowchart LR
+    B[Reviewer browser] --> W[Next.js]
+    W --> A[FastAPI]
+    A --> P[(Postgres and checkpoints)]
+    P --> R[Worker and LangGraph]
+    R --> P
+    R --> G[Groq generation]
+    R --> M[Portfolio, Marketplace and Workspace MCP]
+    M --> O[Ollama embeddings]
+    M --> Q[(Qdrant)]
+    A --> B
+```
 
-Phase 5 hardens the durable bid graph, typed parallel handoffs, bounded revisions,
-claim verification, persistent human approvals and crash recovery. Approval resumes
-require saved human decision receipts; material context changes block execution.
-Durable budgets include failed attempts and survive retries. Local crash tests use
-the original mock, real checkpoints and explicitly labelled model doubles. Postgres
-and real open-model runtime verification remain pending. See the
-[graph and approval guide](docs/BID_WORKFLOW.md) and
-[Phase 5 evidence](docs/checks/phase5.json). Full regression: 154 passed, one
-Postgres skip. Final focused checks: 27 passed, with the same skip; counts overlap.
+The bid graph analyses job requirements, risk and evidence in parallel, then joins the results for a decision. Drafts pass verification, critique, compliance and dry-run review before a persisted approval. The conversation graph keeps a durable thread for each client and requires approval before a reply is sent.
 
-Phase 6 completes onboarding metadata, saved inbox filters, structured job details,
-the evidence-backed studio, paragraph regeneration and persisted live activity.
-SSE history/reconnect and inactive approval states use actual backend records.
-See the [web workflow guide](docs/WEB_WORKFLOW.md) and
-[Phase 6 check evidence](docs/checks/phase6.json) for actual results and limits.
+See the [bid graph](docs/images/bid.mmd), [conversation graph](docs/images/conversation.mmd) and [rendered graph sources](docs/GRAPH_DIAGRAMS.md). The worker and API share run state and checkpoints. Ollama generates embeddings and Qdrant stores vectors in the evaluated V2 configuration. Groq generates drafts. Hosted BM25, if selected, is a distinct configuration.
 
-Phase 7 makes real open models work end to end and adds client conversations on one durable
-thread per client, event-driven pipeline stages, Celery/Redis scheduling with duplicate-posting
-detection, style and outcome memory in a LangGraph store, autonomy-controlled skip archiving,
-category analytics, and checkpoint replay with an agent run viewer. See the
-[phase status](docs/PHASE_STATUS.md) for real-model and Celery results and open issues.
+## Run locally
 
-Phase 8 adds reproducible evaluation: a labelled synthetic dev set (three personas, 51 jobs, for harness
-validation only), composable retrieval pipelines (V0 to V4 and V8, joined with `+`), and runners for retrieval,
-decisions, model choice, architecture (R&D C), tool granularity (R&D A) and judge calibration. See the
-[evaluation guide](docs/EVALUATION.md); every number below comes from a file in `evals/results/`.
+Start from a checkout with Python, uv, Node and Docker installed. Copy `.env.example` to a private `.env` and set a local Postgres password and the model configuration. Then run:
+
+```sh
+docker compose -f infra/docker-compose.yml up --build
+```
+
+Open `http://localhost:3000` and use **Settings → Load synthetic examples** to rehearse the mock workflows. See the [runbook](docs/RUNBOOK.md) for native Windows commands, model setup and backend checks. See the [Portfolio MCP server README](mcp_servers/portfolio/README.md) for installation and authenticated usage.
+
+## Evaluation
 
 <!-- results:start -->
 Generated by `python -m evals.tables` from the newest results files. The dev set is synthetic and suitable for harness validation only; official conclusions wait for the official dev set and GigSim.
@@ -149,29 +132,37 @@ Model comparison: not run yet; the deployed profile (gpt-oss-20b small nodes, gp
 
 Architecture study: pending.
 
-Tool granularity study: pending.
+### Tool granularity on 40 tasks (openai/gpt-oss-20b)
+
+| Tool set | Tasks run | Tool selection accuracy | Argument accuracy | Tokens per task |
+|---|---|---|---|---|
+| fine | 40 | 0.82 | 0.80 | 938 |
+| coarse | 40 | 0.78 | 0.75 | 929 |
+| rewritten | 40 | 0.93 | 0.90 | 1431 |
+
+Source: `evals/results/tools-20261114-120333.json`
 
 Judge (qwen/qwen3.8-27b, prompt v1) against human labels: pending (0 of 30 items carry a label and a verdict). Source: `evals/results/judge-20261109-123142.json`.
 <!-- results:end -->
 
-Generation defaults to hosted open-weight models on Groq (`MODEL_PROFILE=open`, with
-`GROQ_API_KEY` in the git-ignored `.env`); `open_local` runs the same graphs on Ollama.
-Embeddings stay local with `nomic-embed-text`. `make smoke` runs approved proposals and client
-replies with the configured models on a throwaway database. See the [runbook](docs/RUNBOOK.md).
+### Multi-agent comparison status
 
-The foundation includes FastAPI, Next.js/TypeScript, multi-user sign-in, tenant-scoped
-storage, migrations, generated API types, and visibly labelled synthetic examples.
-Local development uses SQLite. `docker compose up` starts the full stack on Postgres, Redis,
-Qdrant and Ollama with the three MCP servers over HTTP; it was run end to end on 2026-11-08.
-Live mode (`MARKETPLACE_MODE=upwork`) uses Upwork's official MCP server after you sign in from Settings.
+| Design | Evidence available |
+|---|---|
+| Custom parallel LangGraph | Measured decision and smoke runs |
+| Single ReAct agent | Runner exercised with scripted generation |
+| Prebuilt supervisor | Runner exercised with scripted generation |
 
-Phase 1 checks passed: five foundation tests, Ruff, generated API types, TypeScript
-and the production web build. Postgres/Compose execution remains an environment
-blocker. See the phase log for exact commands and unfinished later-phase work.
+A matched real-model comparison remains pending. The synthetic data and test conditions are documented in the [evaluation guide](docs/EVALUATION.md).
 
-See [local startup and checks](docs/RUNBOOK.md), [phase status](docs/PHASE_STATUS.md),
-[requirements](docs/REQUIREMENTS.md), and [missing dependencies](docs/DEPENDENCIES.md).
+## Review and submission
 
-Official GigSim, persona data, policy update, live accounts, real-model evaluations,
-human ratings and public deployment are pending. No official outcomes are claimed.
-No external publication actions have been performed.
+The trace exports below come from recorded runs and contain event names, node names, and status. They become public links when this revision is pushed to the public repository.
+
+- [Skipped scam](docs/traces/skipped-scam.md)
+- [Approved proposal](docs/traces/approved-proposal.md)
+- [Critic revision loop](docs/traces/critic-loop.md)
+- [Crash and resume](docs/traces/crash-and-resume.md)
+- [Approved client reply](docs/traces/approved-reply.md)
+
+See the [submission checklist](docs/SUBMISSION.md), [technical article draft](docs/TECHNICAL_WRITEUP.md), [requirements](docs/REQUIREMENTS.md), and [AI usage](docs/AI_USAGE.md). Judge calibration, official GigSim outcomes and the proposal experiment results remain pending.

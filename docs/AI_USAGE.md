@@ -1,8 +1,10 @@
 # AI-assisted implementation record
 
-Codex assisted with the local project implementation using file inspection, patches,
-terminal commands and official documentation. No commits, pushes, PRs, real account
-connections or publishing actions were performed by the assistant.
+Codex assisted with local implementation, tests, evaluation runs, and submission
+drafting. Later work included explicitly authorized local commits and an import
+of ten instructor job listings into the user's GigBid account in Neon.
+The submission preparation updated the README, rendered graph definitions in
+Mermaid for GitHub, and drafted the technical article from recorded results.
 
 Phase 3 affected the MCP servers/shared schemas, delegated authentication, the MCP
 client, observed availability in the API, local protocol tests, schema snapshots,

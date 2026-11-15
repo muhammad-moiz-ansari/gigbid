@@ -91,6 +91,14 @@ Model comparison: not run yet; the deployed profile (gpt-oss-20b small nodes, gp
 
 Architecture study: pending.
 
-Tool granularity study: pending.
+### Tool granularity on 40 tasks (openai/gpt-oss-20b)
+
+| Tool set | Tasks run | Tool selection accuracy | Argument accuracy | Tokens per task |
+|---|---|---|---|---|
+| fine | 40 | 0.82 | 0.80 | 938 |
+| coarse | 40 | 0.78 | 0.75 | 929 |
+| rewritten | 40 | 0.93 | 0.90 | 1431 |
+
+Source: `evals/results/tools-20261114-120333.json`
 
 Judge (qwen/qwen3.8-27b, prompt v1) against human labels: pending (0 of 30 items carry a label and a verdict). Source: `evals/results/judge-20261109-123142.json`.
