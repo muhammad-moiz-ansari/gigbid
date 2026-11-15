@@ -97,7 +97,7 @@ export default function Dashboard() {
   async function analyse(jobId: string) { await act(async () => { const result = checked(await api.POST("/jobs/{job_id}/analyse", { params: { path: { job_id: jobId } } })); router.push(`/jobs/${jobId}`); setNotice(`Run queued: ${result.id}`); }); }
 
   if (loading) return <main className="auth"><p>Opening your workspace…</p></main>;
-  if (!session) return <main className="auth"><div className="auth-story"><Link className="brand" href="/">g<span>↗</span> gigbid</Link><Badge tone="green">Your work, well represented</Badge>
+  if (!session) return <main className="auth"><div className="auth-story"><Link className="brand" href="/"><img className="brand-logo" src="/logo.png" width={32} height={32} alt=""/>gigbid</Link><Badge tone="green">Your work, well represented</Badge>
     <h1>Find the right work.<br/><em>Make your case.</em></h1><p>A calmer way to find opportunities, show your evidence, and write proposals worth sending.</p>
     <div className="auth-principles"><span>01 &nbsp; Real portfolio evidence</span><span>02 &nbsp; A second pair of eyes</span><span>03 &nbsp; You approve every send</span></div>
     <small>Local development · Synthetic marketplace · Official integrations pending</small></div>
@@ -139,7 +139,7 @@ export default function Dashboard() {
       (decisionFilter === "skipped" ? j.skipped : !j.skipped) && (decisionFilter === "all" || decisionFilter === "skipped" || (decisionFilter === "awaiting_approval" ? j.status === decisionFilter :
         decisionFilter === "unanalysed" ? !j.analysis.decision : j.analysis.decision?.action === decisionFilter));
   }).sort((a, b) => (b.analysis.fit?.score ?? -1) - (a.analysis.fit?.score ?? -1));
-  return <div className="shell"><a className="skip-link" href="#main-content">Skip to main content</a><aside className="sidebar"><Link href="/inbox" className="brand">g<span>↗</span> gigbid<span className="brand-dot">●</span></Link>
+  return <div className="shell"><a className="skip-link" href="#main-content">Skip to main content</a><aside className="sidebar"><Link href="/inbox" className="brand"><img className="brand-logo" src="/logo.png" width={32} height={32} alt=""/>gigbid</Link>
     <div className="workspace"><span className="avatar">{initial}</span><div><strong>{profile.name || "Freelancer"}</strong><small>Personal workspace</small></div><span>⌄</span></div>
     <p className="nav-label">WORKSPACE</p><nav aria-label="Main navigation">{navigation.map(([key, icon, label]) => <Link aria-current={(section === key || key === "inbox" && ["jobs", "studio"].includes(section)) ? "page" : undefined} key={key} href={`/${key}`} className={(section === key || key === "inbox" && ["jobs", "studio"].includes(section)) ? "active" : ""}><span>{icon}</span>{label}{key === "inbox" && waiting > 0 && <b>{waiting}</b>}</Link>)}</nav>
     <div className="sidebar-note"><span className="status-dot"/> Human in the loop<p>Every proposal and message waits for your approval.</p></div>

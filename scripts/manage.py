@@ -28,8 +28,8 @@ def main():
     elif args.command == "dev":
         subprocess.run([sys.executable, "-m", "uvicorn", "apps.api.main:app", "--host", "127.0.0.1", "--port", "8000"], check=True)
     elif args.command == "worker":
-        from worker.__main__ import main as worker_main
-        asyncio.run(worker_main())
+        from worker.__main__ import run as run_worker
+        run_worker()
     elif args.command == "test":
         subprocess.run([sys.executable, "-m", "pytest", "-q"], check=True)
     elif args.command == "lint":
